@@ -11,9 +11,11 @@ ALIGNED = 'F_CONTIGUOUS,ALIGNED,OWNDATA'
 ALIGNED_ARR = ALIGNED.split(',')
 
 # Load the DLL (from a specific location)
-# TODO load from somewhere "official"
-_path = os.path.abspath(os.path.join(os.path.dirname('__file__'), '../../dlls/gl'))
-lib = np.ctypeslib.load_library('MeasCalcs', _path)
+# TODO load this properly
+os.environ['PATH'] = 'C:\\Users\\mattk\\github\\pypolarmap\\dlls\\gl;' + os.environ['PATH']
+# _path = os.path.abspath(os.path.join(os.path.dirname('__file__'), '../../dlls/gl'))
+# lib = np.ctypeslib.load_library('MeasCalcs', _path)
+lib = np.ctypeslib.load_library('MeasCalcs', 'C:\\Users\\mattk\\github\\pypolarmap\\dlls\\gl')
 
 # FFT setup
 fft_func = getattr(lib, 'FFT')
@@ -30,16 +32,42 @@ linToLog_func.argtypes = [
     # COMPLEX(8), intent(in):: DataIn(0:NumFFTPts)        ! FFT data in at all angles
     np.ctypeslib.ndpointer(dtype=np.complex128, ndim=1, flags=ALIGNED),
     # real(8), intent(in) :: DeltaF                      ! the frequency delta
-    ct.POINTER(ct.c_double),
+    ct.c_double,
     # integer, intent(in):: NumFFTPts                    ! the number of FFT points in the input
-    ct.POINTER(ct.c_int32),
+    ct.c_int32,
     # COMPLEX(8), intent(out) :: DataOut(0:NumLogPts)    ! The interpolated log frequency output
     np.ctypeslib.ndpointer(dtype=np.complex128, ndim=1, flags=WRITEABLE_ALIGNED),
     # integer, intent(in) :: NumLogPts                   ! number of smoothed output points ‐ log scaled
-    ct.POINTER(ct.c_int32),
-    # real(8), intent(in) :: Freqs(0:NumLogPts)          ! the Array of output frequencies
-    np.ctypeslib.ndpointer(dtype=np.float64, ndim=1, flags=ALIGNED),
+    ct.c_int32,
+    # real(8), intent(out) :: Freqs(0:NumLogPts)          ! the Array of output frequencies
+    np.ctypeslib.ndpointer(dtype=np.float64, ndim=1, flags=WRITEABLE_ALIGNED),
 ]
+
+# smooth setup
+smooth_func = getattr(lib, 'Smooth')
+smooth_func.restype = None
+smooth_func.argtypes = [
+    # ByRef Data_in As Double
+    ct.POINTER(ct.c_double),
+    # ByVal Freqs() As Double
+    np.ctypeslib.ndpointer(dtype=np.float64, ndim=1, flags=WRITEABLE_ALIGNED),
+    # ByVal numpts_ As Integer
+    ct.c_int32,
+    # ByVal atype As Integer
+    ct.c_int32
+]
+
+
+def erbspace(low, high, N, earQ=9.26449, minBW=24.7, order=1):
+    '''
+    copied from https://github.com/brian-team/brian
+    '''
+    low = float(low)
+    high = float(high)
+    cf = -(earQ * minBW) + np.exp(
+        (np.arange(N)) * (-np.log(high + earQ * minBW) + np.log(low + earQ * minBW)) / (N - 1)) * (high + earQ * minBW)
+    cf = cf[::-1]
+    return cf
 
 
 def fft(data):
@@ -56,20 +84,20 @@ def fft(data):
     return paddedData.view(dtype=np.complex128), numPoints.value
 
 
-def linToLog(linearFreqs, freqStep, logPoints):
+def linToLog(linearFreqs, freqStep):
     '''
     converts a linearly spaced dataset to a log spaced one.
     :param linearFreqs: the input data as a 1 dimensional ndarray of complex numbers (as output by fft)
     :param freqStep: the frequency step in the input data.
-    :param logPoints: the number of points in the desired output.
     :return: the log spaced complex data.
     '''
     inputData = np.require(linearFreqs, dtype=np.complex128, requirements=ALIGNED_ARR)
     freqStep = ct.c_double(freqStep)
     inputPts = ct.c_int32(linearFreqs.shape[0])
-    outputData = np.require(np.empty(inputPts.value, dtype=np.complex128), dtype=np.complex128,
+    outputPts = 200
+    outputData = np.require(np.zeros(outputPts, dtype=np.complex128), dtype=np.complex128,
                             requirements=WRITEABLE_ALIGNED_ARR)
-    logFreqs = np.require(np.empty(inputPts.value, dtype=np.float64), dtype=np.float64, requirements=ALIGNED_ARR)
-    logPoints = ct.c_int32(logPoints)
+    logFreqs = np.require(erbspace(20, 24000, outputPts), dtype=np.float64, requirements=WRITEABLE_ALIGNED_ARR)
+    logPoints = ct.c_int32(outputPts)
     linToLog_func(inputData, freqStep, inputPts, outputData, logPoints, logFreqs)
     return outputData, logFreqs
