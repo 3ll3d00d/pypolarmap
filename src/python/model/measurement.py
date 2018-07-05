@@ -3,7 +3,8 @@ import re
 import typing
 
 import numpy as np
-from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant
+from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant, QEvent
+from PyQt5.QtWidgets import QItemDelegate
 
 
 def asMeasurement(path, fileName, ext):
@@ -17,9 +18,9 @@ def asMeasurement(path, fileName, ext):
     name = fileName[:len(ext) - 1]
     h = _getAngle(fileName, 'H')
     v = _getAngle(fileName, 'V')
-    if h:
+    if h is not None:
         return Measurement(path, name, ext=ext, h=h)
-    elif v:
+    elif v is not None:
         return Measurement(path, name, ext=ext, v=v)
     else:
         return None  # ignore - filename format is invalid
@@ -72,6 +73,7 @@ class Measurement:
         self._ext = ext
         self._h = h
         self._v = v
+        self._active = True
         self.samples = np.array([])
 
     def load(self):
@@ -88,22 +90,50 @@ class Measurement:
     def max(self):
         return np.amax(self.samples)
 
+    def peakIndex(self):
+        return np.argmax(self.samples)
+
+    def toggleState(self):
+        self._active = not self._active
+
+    def getDisplayName(self):
+        return 'H' + str(self._h) + 'V' + str(self._v)
+
+    def gated(self, left, right):
+        '''
+        Applies the left and right gate to the measurement.
+        :param left: the left gate position.
+        :param right: the right gate position.
+        :return: a gated copy of this measurement.
+        '''
+        gated = Measurement(self._path, self._name, ext=self._ext, h=self._h, v=self._v)
+        gated._active = self._active
+        gated.samples = self.samples[left:right]
+        return gated
+
 
 class MeasurementModel(QAbstractTableModel):
     '''
-    A Qt table model to feed the measurements view.
+    A Qt table model to feed the measurements view. Accepts a listener for state changes.
     '''
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, listener=None):
         super().__init__(parent=parent)
         self._headers = ['File', 'Type', 'Samples', 'H', 'V', 'Active']
         self._measurements = []
+        self._listener = listener
 
     def rowCount(self, parent: QModelIndex = ...):
         return len(self._measurements)
 
     def columnCount(self, parent: QModelIndex = ...):
         return len(self._headers)
+
+    def flags(self, index: QModelIndex) -> Qt.ItemFlags:
+        if (index.column() == 5):
+            return super().flags(index) | Qt.ItemIsEditable
+        else:
+            return super().flags(index)
 
     def data(self, index: QModelIndex, role: int = ...) -> typing.Any:
         if not index.isValid():
@@ -122,7 +152,7 @@ class MeasurementModel(QAbstractTableModel):
             elif index.column() == 4:
                 return QVariant(self._measurements[index.row()]._v)
             elif index.column() == 5:
-                return QVariant(True)
+                return QVariant(self._measurements[index.row()]._active)
             else:
                 return QVariant()
 
@@ -136,3 +166,51 @@ class MeasurementModel(QAbstractTableModel):
         self.layoutAboutToBeChanged.emit()
         self._measurements = measurements
         self.layoutChanged.emit()
+
+    def completeRendering(self, view):
+        view.setItemDelegateForColumn(5, CheckBoxDelegate(None))
+        for x in range(0, 6):
+            view.resizeColumnToContents(x)
+
+    def toggleState(self, idx):
+        self._measurements[idx].toggleState()
+        if self._listener:
+            self._listener.onMeasurementUpdate(idx)
+
+
+# from https://stackoverflow.com/questions/17748546/pyqt-column-of-checkboxes-in-a-qtableview
+class CheckBoxDelegate(QItemDelegate):
+    """
+    A delegate that places a fully functioning QCheckBox cell of the column to which it's applied & which propagates
+    state changes to the owning measurement model.
+    """
+
+    def __init__(self, parent):
+        QItemDelegate.__init__(self, parent)
+
+    def createEditor(self, parent, option, index):
+        """
+        Important, otherwise an editor is created if the user clicks in this cell.
+        """
+        return None
+
+    def paint(self, painter, option, index):
+        """
+        Paint a checkbox without the label.
+        """
+        self.drawCheck(painter, option, option.rect, Qt.Unchecked if int(index.data()) == 0 else Qt.Checked)
+
+    def editorEvent(self, event, model, option, index):
+        '''
+        Change the data in the model and the state of the checkbox
+        if the user presses the left mousebutton and this cell is editable. Otherwise do nothing.
+        '''
+        if not int(index.flags() & Qt.ItemIsEditable) > 0:
+            return False
+
+        if event.type() == QEvent.MouseButtonPress and event.button() == Qt.LeftButton:
+            # Change the checkbox-state
+            model.toggleState(index.row())
+            return True
+
+        return False

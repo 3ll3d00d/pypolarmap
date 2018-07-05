@@ -3,7 +3,7 @@ import sys
 from PyQt5.QtWidgets import QMainWindow, QApplication, QFileDialog
 
 from model import measurement as m
-from model import plot as p
+from model import impulse as p
 from ui import pypolarmap
 
 
@@ -13,11 +13,21 @@ class PyPolarmap(QMainWindow, pypolarmap.Ui_MainWindow):
         self.setupUi(self)
         self.dataPath.setDisabled(True)
         self.mainGraph.getPlotItem().showGrid(x=True, y=True, alpha=0.75)
-        self._measurementModel = m.MeasurementModel(parent=parent)
-        self._plotModel = p.PlotModel(self.mainGraph, self.leftWindowSample, self.rightWindowSample)
+        self._impulseModel = p.ImpulseModel(self.mainGraph,
+                                            left={'position': self.leftWindowSample, 'type': self.leftWindowType,
+                                                  'percent': self.leftWindowPercent},
+                                            right={'position': self.rightWindowSample, 'type': self.rightWindowType,
+                                                   'percent': self.rightWindowPercent})
+        self._measurementModel = m.MeasurementModel(parent=parent, listener=self._impulseModel)
         self.measurementView.setModel(self._measurementModel)
 
+    # signal handlers
     def selectDirectory(self):
+        '''
+        Triggered by the select directory button. Shows a file dialog which allows a user to select a directory which is
+        used to load the set of measurements which is then passed to the various models.
+        :return:
+        '''
         dialog = QFileDialog()
         dialog.setFileMode(QFileDialog.DirectoryOnly)
         dialog.setOption(QFileDialog.ShowDirsOnly)
@@ -29,26 +39,47 @@ class PyPolarmap(QMainWindow, pypolarmap.Ui_MainWindow):
                 self.dataPath.setText(selectedDir[0])
                 measurements = m.loadFromDir(selectedDir[0], 'txt')
                 self._measurementModel.accept(measurements)
-                for x in range(0, 6):
-                    self.measurementView.resizeColumnToContents(x)
-                self._plotModel.accept(measurements)
-                self._plotModel.displayImpulses()
+                self._measurementModel.completeRendering(self.measurementView)
+                self._impulseModel.accept(measurements)
+                self._impulseModel.display()
             else:
                 self._measurementModel.accept([])
-                self._plotModel.accept([])
+                self._impulseModel.accept([])
 
     def updateLeftWindowPosition(self):
-        self._plotModel.updateLeftWindow()
-
-    def updateLeftWindowType(self):
-        pass
+        '''
+        propagates left window changes to the impulse model.
+        :return:
+        '''
+        self._impulseModel.updateLeftWindowPosition()
 
     def updateRightWindowPosition(self):
-        self._plotModel.updateRightWindow()
+        '''
+        propagates right window changes to the impulse model.
+        :return:
+        '''
+        self._impulseModel.updateRightWindowPosition()
 
-    def updateRightWindowType(self):
-        pass
+    def zoomToWindow(self):
+        '''
+        propagates the zoom button click to the impulse model.
+        :return:
+        '''
+        self._impulseModel.zoomToWindow()
 
+    def showWindowed(self):
+        '''
+        propagates the window button click to the impulse model.
+        :return:
+        '''
+        self._impulseModel.showWindowed()
+
+    def showUnwindowed(self):
+        '''
+        reverts the chart to the raw data view.
+        :return:
+        '''
+        self._impulseModel.showUnwindowed()
 
 def main():
     app = QApplication(sys.argv)

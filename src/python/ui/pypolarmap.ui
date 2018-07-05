@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1645</width>
-    <height>1022</height>
+    <width>2100</width>
+    <height>1140</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -23,28 +23,21 @@
       <x>10</x>
       <y>10</y>
       <width>581</width>
-      <height>451</height>
+      <height>1061</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="measurementSelectLayout">
-     <item row="0" column="0" colspan="3">
-      <widget class="QLabel" name="dataPathLabel">
-       <property name="text">
-        <string>Enter the path to the measurements</string>
-       </property>
-      </widget>
+     <item row="0" column="1">
+      <widget class="QLineEdit" name="dataPath"/>
      </item>
-     <item row="1" column="0">
+     <item row="0" column="0">
       <widget class="QPushButton" name="selectDirBtn">
        <property name="text">
         <string>Select Directory</string>
        </property>
       </widget>
      </item>
-     <item row="1" column="1">
-      <widget class="QLineEdit" name="dataPath"/>
-     </item>
-     <item row="2" column="1" colspan="2">
+     <item row="1" column="0" colspan="3">
       <widget class="QTreeView" name="measurementView"/>
      </item>
     </layout>
@@ -54,27 +47,50 @@
      <rect>
       <x>600</x>
       <y>10</y>
-      <width>1021</width>
-      <height>861</height>
+      <width>1491</width>
+      <height>1061</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="graphLayout">
-     <item row="2" column="1">
+     <item row="8" column="3">
       <widget class="QSpinBox" name="leftWindowSample"/>
      </item>
-     <item row="2" column="3">
+     <item row="8" column="6">
       <widget class="QSpinBox" name="rightWindowSample"/>
      </item>
-     <item row="0" column="0" colspan="4">
+     <item row="0" column="1" colspan="6">
       <widget class="PlotWidget" name="mainGraph"/>
      </item>
-     <item row="2" column="0">
-      <widget class="QComboBox" name="leftWindowType"/>
+     <item row="8" column="1">
+      <widget class="QComboBox" name="leftWindowType">
+       <item>
+        <property name="text">
+         <string>Hann</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Hamming</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Blackman-Harris</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Nuttall</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Tukey</string>
+        </property>
+       </item>
+      </widget>
      </item>
-     <item row="2" column="2">
-      <widget class="QComboBox" name="rightWindowType"/>
-     </item>
-     <item row="1" column="0" colspan="2">
+     <item row="3" column="1" colspan="3">
       <widget class="QLabel" name="label">
        <property name="text">
         <string>Left Window</string>
@@ -84,7 +100,93 @@
        </property>
       </widget>
      </item>
-     <item row="1" column="2" colspan="2">
+     <item row="0" column="0" rowspan="9">
+      <layout class="QVBoxLayout" name="chartControls">
+       <item>
+        <widget class="QPushButton" name="pushButton_2">
+         <property name="text">
+          <string>Show Windowed</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_3">
+         <property name="text">
+          <string>Show Unwindowed</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton">
+         <property name="text">
+          <string>Zoom</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="8" column="4">
+      <widget class="QComboBox" name="rightWindowType">
+       <item>
+        <property name="text">
+         <string>Hann</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Hamming</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Blackman-Harris</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Nuttall</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Tukey</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="8" column="2">
+      <widget class="QSpinBox" name="leftWindowPercent">
+       <property name="suffix">
+        <string>%</string>
+       </property>
+       <property name="minimum">
+        <number>12</number>
+       </property>
+       <property name="maximum">
+        <number>75</number>
+       </property>
+       <property name="value">
+        <number>50</number>
+       </property>
+      </widget>
+     </item>
+     <item row="8" column="5">
+      <widget class="QSpinBox" name="rightWindowPercent">
+       <property name="suffix">
+        <string>%</string>
+       </property>
+       <property name="minimum">
+        <number>12</number>
+       </property>
+       <property name="maximum">
+        <number>75</number>
+       </property>
+       <property name="value">
+        <number>50</number>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="4" colspan="3">
       <widget class="QLabel" name="label_2">
        <property name="text">
         <string>Right Window</string>
@@ -102,7 +204,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1645</width>
+     <width>2100</width>
      <height>31</height>
     </rect>
    </property>
@@ -126,7 +228,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>131</x>
-     <y>103</y>
+     <y>75</y>
     </hint>
     <hint type="destinationlabel">
      <x>418</x>
@@ -141,44 +243,12 @@
    <slot>updateLeftWindowPosition()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1015</x>
-     <y>888</y>
+     <x>1400</x>
+     <y>1088</y>
     </hint>
     <hint type="destinationlabel">
      <x>1000</x>
-     <y>961</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>leftWindowType</sender>
-   <signal>currentIndexChanged(int)</signal>
-   <receiver>MainWindow</receiver>
-   <slot>updateLeftWindowType()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>724</x>
-     <y>890</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>720</x>
-     <y>949</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>rightWindowType</sender>
-   <signal>currentIndexChanged(int)</signal>
-   <receiver>MainWindow</receiver>
-   <slot>updateRightWindowType()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>1237</x>
-     <y>886</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>1230</x>
-     <y>953</y>
+     <y>954</y>
     </hint>
    </hints>
   </connection>
@@ -189,12 +259,60 @@
    <slot>updateRightWindowPosition()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1462</x>
-     <y>889</y>
+     <x>1975</x>
+     <y>1089</y>
     </hint>
     <hint type="destinationlabel">
      <x>1455</x>
      <y>945</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>zoomToWindow()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>739</x>
+     <y>844</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>736</x>
+     <y>512</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton_2</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>showWindowed()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>715</x>
+     <y>290</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>715</x>
+     <y>391</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton_3</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>showUnwindowed()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>673</x>
+     <y>568</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>671</x>
+     <y>647</y>
     </hint>
    </hints>
   </connection>
@@ -206,5 +324,10 @@
   <slot>updateLeftWindowType()</slot>
   <slot>updateRightWindowType()</slot>
   <slot>updateRightWindowPosition()</slot>
+  <slot>zoomToWindow()</slot>
+  <slot>showWindowed()</slot>
+  <slot>updateLeftWindowPercentage()</slot>
+  <slot>updateRightWindowPercentage()</slot>
+  <slot>showUnwindowed()</slot>
  </slots>
 </ui>
