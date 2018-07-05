@@ -197,6 +197,15 @@ class ImpulseModel:
         return gated
 
     def _createWindow0(self, params, peakIdx, side):
+        '''
+        Creates a window which is made up of two sections, one which contains just ones and the other which is the left
+        or right side of a particular window. The size of each section is drive by the percent selector (so 25% means
+        75% ones and 25% actual window).
+        :param params: the params (as delivered via ui widgets)
+        :param peakIdx: the position of the peak in the measurement.
+        :param side: 0 if left, 1 if right.
+        :return: a 2 part tuple made up of the ones and the window.
+        '''
         length = abs(peakIdx - params['position'].value())
         windowLength = int(round(length * (params['percent'].value() / 100)))
         ones = np.ones(length - windowLength)
