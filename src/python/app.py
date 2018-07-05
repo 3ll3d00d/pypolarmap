@@ -3,7 +3,8 @@ import sys
 from PyQt5.QtWidgets import QMainWindow, QApplication, QFileDialog
 
 from model import measurement as m
-from model import impulse as p
+from model import impulse as imp
+from model import magnitude as mag
 from ui import pypolarmap
 
 
@@ -13,11 +14,14 @@ class PyPolarmap(QMainWindow, pypolarmap.Ui_MainWindow):
         self.setupUi(self)
         self.dataPath.setDisabled(True)
         self.mainGraph.getPlotItem().showGrid(x=True, y=True, alpha=0.75)
-        self._impulseModel = p.ImpulseModel(self.mainGraph,
-                                            left={'position': self.leftWindowSample, 'type': self.leftWindowType,
-                                                  'percent': self.leftWindowPercent},
-                                            right={'position': self.rightWindowSample, 'type': self.rightWindowType,
-                                                   'percent': self.rightWindowPercent})
+        self._impulseModel = imp.ImpulseModel(self.mainGraph,
+                                              left={'position': self.leftWindowSample,
+                                                    'type': self.leftWindowType,
+                                                    'percent': self.leftWindowPercent},
+                                              right={'position': self.rightWindowSample,
+                                                     'type': self.rightWindowType,
+                                                     'percent': self.rightWindowPercent})
+        self._magnitudeModel = mag.MagnitudeModel(self.mainGraph)
         self._measurementModel = m.MeasurementModel(parent=parent, listener=self._impulseModel)
         self.measurementView.setModel(self._measurementModel)
 
@@ -35,6 +39,7 @@ class PyPolarmap(QMainWindow, pypolarmap.Ui_MainWindow):
         if dialog.exec():
             selectedDir = dialog.selectedFiles()
             if len(selectedDir) > 0:
+                self.mainGraph.getPlotItem().clear()
                 self.dataPath.setStyleSheet("QLineEdit {background-color: white;}")
                 self.dataPath.setText(selectedDir[0])
                 measurements = m.loadFromDir(selectedDir[0], 'txt')
@@ -45,6 +50,8 @@ class PyPolarmap(QMainWindow, pypolarmap.Ui_MainWindow):
             else:
                 self._measurementModel.accept([])
                 self._impulseModel.accept([])
+                self._magnitudeModel.accept([])
+                self.mainGraph.getPlotItem().clear()
 
     def updateLeftWindowPosition(self):
         '''
@@ -72,7 +79,8 @@ class PyPolarmap(QMainWindow, pypolarmap.Ui_MainWindow):
         propagates the window button click to the impulse model.
         :return:
         '''
-        self._impulseModel.showWindowed()
+        self._magnitudeModel.accept(self._impulseModel.showWindowed())
+        self.showMagnitudeButton.setDisabled(False)
 
     def showUnwindowed(self):
         '''
@@ -80,6 +88,15 @@ class PyPolarmap(QMainWindow, pypolarmap.Ui_MainWindow):
         :return:
         '''
         self._impulseModel.showUnwindowed()
+        self.showMagnitudeButton.setDisabled(True)
+
+    def showMagnitude(self):
+        '''
+        shows the FR data.
+        :return:
+        '''
+        self._magnitudeModel.display()
+
 
 def main():
     app = QApplication(sys.argv)

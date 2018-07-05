@@ -94,7 +94,7 @@ def linToLog(linearFreqs, freqStep):
     inputData = np.require(linearFreqs, dtype=np.complex128, requirements=ALIGNED_ARR)
     freqStep = ct.c_double(freqStep)
     inputPts = ct.c_int32(linearFreqs.shape[0])
-    outputPts = 200
+    outputPts = min(200, inputPts.value)
     outputData = np.require(np.zeros(outputPts, dtype=np.complex128), dtype=np.complex128,
                             requirements=WRITEABLE_ALIGNED_ARR)
     logFreqs = np.require(erbspace(20, 24000, outputPts), dtype=np.float64, requirements=WRITEABLE_ALIGNED_ARR)

@@ -156,11 +156,12 @@ class ImpulseModel:
         '''
         creates a window based on the type and position specified, adds the window as a plot to the chart and applies
         that window to the measurements.
-        :return:
+        :return: the windowed data.
         '''
         self._windowed = [self._applyWindow(self._leftWindow, self._rightWindow, x) for x in self._measurements]
         self._activeData = self._windowed
         self._setData()
+        return self._windowed
 
     def showUnwindowed(self):
         '''

@@ -103,21 +103,28 @@
      <item row="0" column="0" rowspan="9">
       <layout class="QVBoxLayout" name="chartControls">
        <item>
-        <widget class="QPushButton" name="pushButton_2">
+        <widget class="QPushButton" name="showWindowedButton">
          <property name="text">
           <string>Show Windowed</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="pushButton_3">
+        <widget class="QPushButton" name="showMagnitudeButton">
+         <property name="text">
+          <string>Show FR</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="showUnwindowedButton">
          <property name="text">
           <string>Show Unwindowed</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="pushButton">
+        <widget class="QPushButton" name="zoomButton">
          <property name="text">
           <string>Zoom</string>
          </property>
@@ -269,14 +276,14 @@
    </hints>
   </connection>
   <connection>
-   <sender>pushButton</sender>
+   <sender>zoomButton</sender>
    <signal>clicked()</signal>
    <receiver>MainWindow</receiver>
    <slot>zoomToWindow()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>739</x>
-     <y>844</y>
+     <x>741</x>
+     <y>917</y>
     </hint>
     <hint type="destinationlabel">
      <x>736</x>
@@ -285,14 +292,14 @@
    </hints>
   </connection>
   <connection>
-   <sender>pushButton_2</sender>
+   <sender>showWindowedButton</sender>
    <signal>clicked()</signal>
    <receiver>MainWindow</receiver>
    <slot>showWindowed()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>715</x>
-     <y>290</y>
+     <x>717</x>
+     <y>254</y>
     </hint>
     <hint type="destinationlabel">
      <x>715</x>
@@ -301,18 +308,34 @@
    </hints>
   </connection>
   <connection>
-   <sender>pushButton_3</sender>
+   <sender>showUnwindowedButton</sender>
    <signal>clicked()</signal>
    <receiver>MainWindow</receiver>
    <slot>showUnwindowed()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>673</x>
-     <y>568</y>
+     <x>675</x>
+     <y>696</y>
     </hint>
     <hint type="destinationlabel">
      <x>671</x>
      <y>647</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>showMagnitudeButton</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>showMagnitude()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>765</x>
+     <y>459</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>787</x>
+     <y>523</y>
     </hint>
    </hints>
   </connection>
@@ -329,5 +352,6 @@
   <slot>updateLeftWindowPercentage()</slot>
   <slot>updateRightWindowPercentage()</slot>
   <slot>showUnwindowed()</slot>
+  <slot>showMagnitude()</slot>
  </slots>
 </ui>
