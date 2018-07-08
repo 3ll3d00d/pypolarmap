@@ -75,6 +75,7 @@ class Measurement:
         self._v = v
         self._active = True
         self.samples = np.array([])
+        self._gated = None
 
     def load(self):
         # TODO support multiple load strategies (raw samples in txt, ARTA style space delimited, REW style text, WAV)
@@ -95,6 +96,8 @@ class Measurement:
 
     def toggleState(self):
         self._active = not self._active
+        if self._gated:
+            self._gated._active = self._active
 
     def getDisplayName(self):
         return 'H' + str(self._h) + 'V' + str(self._v)
@@ -109,6 +112,7 @@ class Measurement:
         gated = Measurement(self._path, self._name, ext=self._ext, h=self._h, v=self._v)
         gated._active = self._active
         gated.samples = self.samples[left:right]
+        self._gated = gated
         return gated
 
 

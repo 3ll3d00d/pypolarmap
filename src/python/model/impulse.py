@@ -25,6 +25,7 @@ class ImpulseModel:
         self._windowed = []
         self._showWindowed = False
         self._activeData = self._measurements
+        self._activeX = None
         self._setMaxSample(0)
         self._leftLine = None
         self._rightLine = None
@@ -32,10 +33,19 @@ class ImpulseModel:
 
     def _setMaxSample(self, maxSample):
         self._maxSample = maxSample
-        self._cacheXValues()
+        self._cacheUngatedXValues()
+        self._activeX = self._ungatedXValues
 
-    def _cacheXValues(self):
-        self._xValues = np.arange(self._maxSample)
+    def _cacheUngatedXValues(self):
+        self._ungatedXValues = np.arange(self._maxSample)
+
+    def _cacheGatedXValues(self):
+        '''
+        Caches x values for the gated data which ranges from the left to the right window gate positions.
+        :return:
+        '''
+        self._gatedXValues = np.arange(start=self._leftWindow['position'].value(),
+                                          stop=self._rightWindow['position'].value())
 
     def accept(self, measurements):
         '''
@@ -60,7 +70,7 @@ class ImpulseModel:
         :param idx: the index of the toggled measurement.
         :return:
         '''
-        self._displayActiveData()
+        self._displayActiveData(updatedIdx=idx)
 
     def _findCurve(self, name):
         '''
@@ -68,8 +78,7 @@ class ImpulseModel:
         :param name: the name.
         :return: the curve.
         '''
-        return next((x for x in self._chart.getPlotItem().listDataItems() if x.name() == name),
-                    None)
+        return next((x for x in self._chart.getPlotItem().listDataItems() if x.name() == name), None)
 
     def display(self):
         '''
@@ -77,7 +86,6 @@ class ImpulseModel:
         to the edges of the samples.
         :return:
         '''
-        self._chart.getPlotItem().addLegend()
         self._displayActiveData()
         self.updateLeftWindowPosition()
         self.updateRightWindowPosition()
@@ -89,7 +97,7 @@ class ImpulseModel:
         :param measurement: the measurement itself.
         :return:
         '''
-        self._chart.plot(self._xValues, measurement.samples, pen=(idx, len(self._activeData)),
+        self._chart.plot(self._activeX, measurement.samples, pen=(idx, len(self._activeData)),
                          name=measurement.getDisplayName())
 
     def updateLeftWindowPosition(self):
@@ -158,11 +166,20 @@ class ImpulseModel:
         self._showWindowed = not self._showWindowed
         self._clearChart()
         if self._showWindowed:
+            self._leftLine.setVisible(False)
+            self._rightLine.setVisible(False)
+            self._cacheGatedXValues()
+            self._activeX = self._gatedXValues
             self._windowed = [self._applyWindow(self._leftWindow, self._rightWindow, x) for x in self._measurements]
             self._activeData = self._windowed
             self._magnitudeModel.accept(self._windowed)
         else:
+            self._leftLine.setVisible(True)
+            self._rightLine.setVisible(True)
+            self._activeX = self._ungatedXValues
             self._activeData = self._measurements
+            self.updateLeftWindowPosition()
+            self.updateRightWindowPosition()
         self._displayActiveData()
 
     def _clearChart(self):
@@ -172,24 +189,28 @@ class ImpulseModel:
         '''
         for m in self._activeData:
             self._chart.getPlotItem().legend.removeItem(m.getDisplayName())
-        self._chart.getPlotItem().clear()
+            curve = self._findCurve(m.getDisplayName)
+            if curve:
+                self._chart.getPlotItem().removeItem(curve)
 
-    def _displayActiveData(self):
+    def _displayActiveData(self, updatedIdx=None):
         '''
         Ensures the currently active data is visible on the chart.
         :return:
         '''
+        self._chart.getPlotItem().addLegend()
         for idx, m in enumerate(self._activeData):
-            curve = self._findCurve(m.getDisplayName())
-            if m._active:
-                if curve:
-                    curve.setData(m.samples)
+            if updatedIdx is None or updatedIdx == idx:
+                curve = self._findCurve(m.getDisplayName())
+                if m._active:
+                    if curve:
+                        curve.setData(m.samples)
+                    else:
+                        self._addPlotForMeasurement(idx, m)
                 else:
-                    self._addPlotForMeasurement(idx, m)
-            else:
-                if curve:
-                    self._chart.getPlotItem().removeItem(curve)
-                    self._chart.getPlotItem().legend.removeItem(m.getDisplayName())
+                    if curve:
+                        self._chart.getPlotItem().removeItem(curve)
+                        self._chart.getPlotItem().legend.removeItem(m.getDisplayName())
 
     def _applyWindow(self, left, right, measurement):
         '''
@@ -226,4 +247,4 @@ class ImpulseModel:
         if type.currentText() in WINDOW_MAPPING:
             return WINDOW_MAPPING[type.currentText()]
         else:
-            return WINDOW_MAPPING['Hann']
+            return WINDOW_MAPPING['Tukey']
