@@ -1,7 +1,7 @@
 import numpy as np
 from scipy import signal
 
-WINDOW_MAPPING={
+WINDOW_MAPPING = {
     'Hann': signal.windows.hann,
     'Hamming': signal.windows.hamming,
     'Blackman-Harris': signal.windows.blackmanharris,
@@ -9,22 +9,26 @@ WINDOW_MAPPING={
     'Tukey': signal.windows.tukey
 }
 
+
 class ImpulseModel:
     '''
     Allows a set of measurements to be displayed on a chart as impulse responses.
     '''
 
-    def __init__(self, chart, left, right):
+    def __init__(self, chart, left, right, mag):
         self._chart = chart
+        self._chart.getPlotItem().showGrid(x=True, y=True, alpha=0.75)
         self._chart.getPlotItem().enableAutoRange()
         self._leftWindow = left
         self._rightWindow = right
         self._measurements = []
         self._windowed = []
+        self._showWindowed = False
         self._activeData = self._measurements
         self._setMaxSample(0)
         self._leftLine = None
         self._rightLine = None
+        self._magnitudeModel = mag
 
     def _setMaxSample(self, maxSample):
         self._maxSample = maxSample
@@ -39,8 +43,8 @@ class ImpulseModel:
         :param measurements: the measurements.
         :return:
         '''
-        # TODO delete existing data?
         self._measurements = measurements
+        self._activeData = measurements
         if len(measurements) > 0:
             self._setMaxSample(max([x.size() for x in measurements]))
         else:
@@ -56,15 +60,7 @@ class ImpulseModel:
         :param idx: the index of the toggled measurement.
         :return:
         '''
-        updated = self._activeData[idx]
-        curve = self._findCurve(updated.getDisplayName())
-        if updated._active:
-            if not curve:
-                self._addPlotForMeasurement(idx, updated)
-        else:
-            if curve:
-                self._chart.getPlotItem().removeItem(curve)
-                self._chart.getPlotItem().legend.removeItem(updated.getDisplayName())
+        self._displayActiveData()
 
     def _findCurve(self, name):
         '''
@@ -82,9 +78,7 @@ class ImpulseModel:
         :return:
         '''
         self._chart.getPlotItem().addLegend()
-        for idx, measurement in enumerate(self._measurements):
-            if measurement._active:
-                self._addPlotForMeasurement(idx, measurement)
+        self._displayActiveData()
         self.updateLeftWindowPosition()
         self.updateRightWindowPosition()
 
@@ -95,7 +89,7 @@ class ImpulseModel:
         :param measurement: the measurement itself.
         :return:
         '''
-        self._chart.plot(self._xValues, measurement.samples, pen=(idx, len(self._measurements)),
+        self._chart.plot(self._xValues, measurement.samples, pen=(idx, len(self._activeData)),
                          name=measurement.getDisplayName())
 
     def updateLeftWindowPosition(self):
@@ -152,35 +146,50 @@ class ImpulseModel:
         self._chart.getPlotItem().getViewBox().setXRange(self._leftWindow['position'].value() - 1,
                                                          self._rightWindow['position'].value() + 1, padding=0)
 
-    def showWindowed(self):
+    def toggleWindowed(self):
         '''
-        creates a window based on the type and position specified, adds the window as a plot to the chart and applies
-        that window to the measurements.
+        toggles which charts are displayed.
+        If we switch to windowed view then it creates a window based on the type
+        and position specified, removes existing plots, adds the window as a plot to the chart, applies that window to
+        the measurements and propagates the new windowed data to the magnitude model.
+        If we switch to unwindowed then it simply reinstates the raw data.
         :return: the windowed data.
         '''
-        self._windowed = [self._applyWindow(self._leftWindow, self._rightWindow, x) for x in self._measurements]
-        self._activeData = self._windowed
-        self._setData()
-        return self._windowed
+        self._showWindowed = not self._showWindowed
+        self._clearChart()
+        if self._showWindowed:
+            self._windowed = [self._applyWindow(self._leftWindow, self._rightWindow, x) for x in self._measurements]
+            self._activeData = self._windowed
+            self._magnitudeModel.accept(self._windowed)
+        else:
+            self._activeData = self._measurements
+        self._displayActiveData()
 
-    def showUnwindowed(self):
+    def _clearChart(self):
         '''
-        Shows the unwindowed data.
-        :return:
-        '''
-        self._activeData = self._measurements
-        self._setData()
-
-    def _setData(self):
-        '''
-        Updates the named plot items from the active measurement data.
+        removes all items from the chart and legend.
         :return:
         '''
         for m in self._activeData:
+            self._chart.getPlotItem().legend.removeItem(m.getDisplayName())
+        self._chart.getPlotItem().clear()
+
+    def _displayActiveData(self):
+        '''
+        Ensures the currently active data is visible on the chart.
+        :return:
+        '''
+        for idx, m in enumerate(self._activeData):
+            curve = self._findCurve(m.getDisplayName())
             if m._active:
-                curve = self._findCurve(m.getDisplayName())
                 if curve:
                     curve.setData(m.samples)
+                else:
+                    self._addPlotForMeasurement(idx, m)
+            else:
+                if curve:
+                    self._chart.getPlotItem().removeItem(curve)
+                    self._chart.getPlotItem().legend.removeItem(m.getDisplayName())
 
     def _applyWindow(self, left, right, measurement):
         '''

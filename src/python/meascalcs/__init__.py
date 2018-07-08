@@ -1,7 +1,8 @@
+import math
+
 __all__ = ['fft', 'linToLog']
 
 import ctypes as ct
-import os
 
 import numpy as np
 
@@ -12,7 +13,7 @@ ALIGNED_ARR = ALIGNED.split(',')
 
 # Load the DLL (from a specific location)
 # TODO load this properly
-os.environ['PATH'] = 'C:\\Users\\mattk\\github\\pypolarmap\\dlls\\gl;' + os.environ['PATH']
+# os.environ['PATH'] = 'C:\\Users\\mattk\\github\\pypolarmap\\dlls\\gl;' + os.environ['PATH']
 # _path = os.path.abspath(os.path.join(os.path.dirname('__file__'), '../../dlls/gl'))
 # lib = np.ctypeslib.load_library('MeasCalcs', _path)
 lib = np.ctypeslib.load_library('MeasCalcs', 'C:\\Users\\mattk\\github\\pypolarmap\\dlls\\gl')
@@ -58,30 +59,20 @@ smooth_func.argtypes = [
 ]
 
 
-def erbspace(low, high, N, earQ=9.26449, minBW=24.7, order=1):
-    '''
-    copied from https://github.com/brian-team/brian
-    '''
-    low = float(low)
-    high = float(high)
-    cf = -(earQ * minBW) + np.exp(
-        (np.arange(N)) * (-np.log(high + earQ * minBW) + np.log(low + earQ * minBW)) / (N - 1)) * (high + earQ * minBW)
-    cf = cf[::-1]
-    return cf
-
-
 def fft(data):
     '''
     :param data: the input data.
     :return: (the complex FFT'ed data, the number of points in the FFT)
     '''
-    nextPower = np.ceil(np.log2(data.shape[0]))
+    # minimum size of 512 to provide enough space for the linToLog to work sensibly
+    nextPower = np.ceil(max(np.log2(data.shape[0]), 9))
     padding = int(np.power(2, nextPower) - data.shape[0])
-    paddedData = np.pad(data, (padding, 0), mode='constant')
+    paddedData = np.pad(data, (0, padding), mode='constant') if padding > 0 else data
     numPoints = ct.c_int32(paddedData.shape[0])
     paddedData = np.require(paddedData, dtype=np.float64, requirements=WRITEABLE_ALIGNED_ARR)
     fft_func(paddedData, numPoints)
-    return paddedData.view(dtype=np.complex128), numPoints.value
+    return np.concatenate(([complex(paddedData[0], 0)], paddedData[2:].view(dtype=np.complex128),
+                           [complex(paddedData[1], 0)])), numPoints.value
 
 
 def linToLog(linearFreqs, freqStep):
@@ -93,11 +84,12 @@ def linToLog(linearFreqs, freqStep):
     '''
     inputData = np.require(linearFreqs, dtype=np.complex128, requirements=ALIGNED_ARR)
     freqStep = ct.c_double(freqStep)
-    inputPts = ct.c_int32(linearFreqs.shape[0])
-    outputPts = min(200, inputPts.value)
+    inputPts = ct.c_int32(linearFreqs.shape[0] - 1)
+    outputPts = min(128, linearFreqs.shape[0]) + 1
     outputData = np.require(np.zeros(outputPts, dtype=np.complex128), dtype=np.complex128,
                             requirements=WRITEABLE_ALIGNED_ARR)
-    logFreqs = np.require(erbspace(20, 24000, outputPts), dtype=np.float64, requirements=WRITEABLE_ALIGNED_ARR)
-    logPoints = ct.c_int32(outputPts)
+    logFreqs = np.require(np.logspace(math.log10(20), math.log10(20000), num=outputPts, endpoint=True),
+                          dtype=np.float64, requirements=WRITEABLE_ALIGNED_ARR)
+    logPoints = ct.c_int32(outputPts - 1)
     linToLog_func(inputData, freqStep, inputPts, outputData, logPoints, logFreqs)
-    return outputData, logFreqs
+    return outputData.copy(), logFreqs.copy()

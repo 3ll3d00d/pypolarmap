@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>2100</width>
-    <height>1140</height>
+    <width>2251</width>
+    <height>1212</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -23,7 +23,7 @@
       <x>10</x>
       <y>10</y>
       <width>581</width>
-      <height>1061</height>
+      <height>1091</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="measurementSelectLayout">
@@ -42,176 +42,205 @@
      </item>
     </layout>
    </widget>
-   <widget class="QWidget" name="gridLayoutWidget_2">
+   <widget class="QTabWidget" name="graphTabs">
     <property name="geometry">
      <rect>
       <x>600</x>
       <y>10</y>
-      <width>1491</width>
-      <height>1061</height>
+      <width>1631</width>
+      <height>1091</height>
      </rect>
     </property>
-    <layout class="QGridLayout" name="graphLayout">
-     <item row="8" column="3">
-      <widget class="QSpinBox" name="leftWindowSample"/>
-     </item>
-     <item row="8" column="6">
-      <widget class="QSpinBox" name="rightWindowSample"/>
-     </item>
-     <item row="0" column="1" colspan="6">
-      <widget class="PlotWidget" name="mainGraph"/>
-     </item>
-     <item row="8" column="1">
-      <widget class="QComboBox" name="leftWindowType">
-       <item>
-        <property name="text">
-         <string>Hann</string>
-        </property>
+    <property name="currentIndex">
+     <number>0</number>
+    </property>
+    <widget class="QWidget" name="impulseTab">
+     <attribute name="title">
+      <string>Impulse</string>
+     </attribute>
+     <widget class="QWidget" name="gridLayoutWidget_2">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>1621</width>
+        <height>1061</height>
+       </rect>
+      </property>
+      <layout class="QGridLayout" name="graphLayout">
+       <item row="3" column="2">
+        <widget class="QSpinBox" name="leftWindowSample"/>
        </item>
-       <item>
-        <property name="text">
-         <string>Hamming</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Blackman-Harris</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Nuttall</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Tukey</string>
-        </property>
-       </item>
-      </widget>
-     </item>
-     <item row="3" column="1" colspan="3">
-      <widget class="QLabel" name="label">
-       <property name="text">
-        <string>Left Window</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="0" rowspan="9">
-      <layout class="QVBoxLayout" name="chartControls">
-       <item>
-        <widget class="QPushButton" name="showWindowedButton">
+       <item row="2" column="0" colspan="3">
+        <widget class="QLabel" name="label">
          <property name="text">
-          <string>Show Windowed</string>
+          <string>Left Window</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
          </property>
         </widget>
        </item>
-       <item>
-        <widget class="QPushButton" name="showMagnitudeButton">
-         <property name="text">
-          <string>Show FR</string>
+       <item row="3" column="4">
+        <widget class="QSpinBox" name="rightWindowPercent">
+         <property name="suffix">
+          <string>%</string>
+         </property>
+         <property name="minimum">
+          <number>12</number>
+         </property>
+         <property name="maximum">
+          <number>75</number>
+         </property>
+         <property name="value">
+          <number>50</number>
          </property>
         </widget>
        </item>
-       <item>
-        <widget class="QPushButton" name="showUnwindowedButton">
-         <property name="text">
-          <string>Show Unwindowed</string>
+       <item row="3" column="5">
+        <widget class="QSpinBox" name="rightWindowSample"/>
+       </item>
+       <item row="3" column="0">
+        <widget class="QComboBox" name="leftWindowType">
+         <item>
+          <property name="text">
+           <string>Tukey</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Hann</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Hamming</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Blackman-Harris</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Nuttall</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QSpinBox" name="leftWindowPercent">
+         <property name="suffix">
+          <string>%</string>
+         </property>
+         <property name="minimum">
+          <number>12</number>
+         </property>
+         <property name="maximum">
+          <number>75</number>
+         </property>
+         <property name="value">
+          <number>50</number>
          </property>
         </widget>
        </item>
-       <item>
+       <item row="2" column="3" colspan="3">
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>Right Window</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="3">
+        <widget class="QComboBox" name="rightWindowType">
+         <item>
+          <property name="text">
+           <string>Tukey</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Hann</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Hamming</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Blackman-Harris</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Nuttall</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="0" column="0" colspan="6">
+        <widget class="PlotWidget" name="impulseGraph"/>
+       </item>
+       <item row="1" column="0">
+        <widget class="QPushButton" name="toggleWindowedBtn">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>Show Windowed IR</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <property name="flat">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
         <widget class="QPushButton" name="zoomButton">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="text">
           <string>Zoom</string>
          </property>
         </widget>
        </item>
       </layout>
-     </item>
-     <item row="8" column="4">
-      <widget class="QComboBox" name="rightWindowType">
-       <item>
-        <property name="text">
-         <string>Hann</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Hamming</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Blackman-Harris</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Nuttall</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Tukey</string>
-        </property>
-       </item>
-      </widget>
-     </item>
-     <item row="8" column="2">
-      <widget class="QSpinBox" name="leftWindowPercent">
-       <property name="suffix">
-        <string>%</string>
-       </property>
-       <property name="minimum">
-        <number>12</number>
-       </property>
-       <property name="maximum">
-        <number>75</number>
-       </property>
-       <property name="value">
-        <number>50</number>
-       </property>
-      </widget>
-     </item>
-     <item row="8" column="5">
-      <widget class="QSpinBox" name="rightWindowPercent">
-       <property name="suffix">
-        <string>%</string>
-       </property>
-       <property name="minimum">
-        <number>12</number>
-       </property>
-       <property name="maximum">
-        <number>75</number>
-       </property>
-       <property name="value">
-        <number>50</number>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="4" colspan="3">
-      <widget class="QLabel" name="label_2">
-       <property name="text">
-        <string>Right Window</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-      </widget>
-     </item>
-    </layout>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="magnitudeTab">
+     <attribute name="title">
+      <string>Magnitude</string>
+     </attribute>
+     <widget class="MagnitudeWidget" name="magnitudeGraph">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>1621</width>
+        <height>954</height>
+       </rect>
+      </property>
+     </widget>
+    </widget>
    </widget>
+   <zorder>graphTabs</zorder>
+   <zorder>gridLayoutWidget</zorder>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>2100</width>
+     <width>2251</width>
      <height>31</height>
     </rect>
    </property>
@@ -223,6 +252,11 @@
    <class>PlotWidget</class>
    <extends>QGraphicsView</extends>
    <header>pyqtgraph</header>
+  </customwidget>
+  <customwidget>
+   <class>MagnitudeWidget</class>
+   <extends>QGraphicsView</extends>
+   <header>model.magnitude</header>
   </customwidget>
  </customwidgets>
  <resources/>
@@ -244,30 +278,14 @@
    </hints>
   </connection>
   <connection>
-   <sender>leftWindowSample</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>MainWindow</receiver>
-   <slot>updateLeftWindowPosition()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>1400</x>
-     <y>1088</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>1000</x>
-     <y>954</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>rightWindowSample</sender>
    <signal>valueChanged(int)</signal>
    <receiver>MainWindow</receiver>
    <slot>updateRightWindowPosition()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1975</x>
-     <y>1089</y>
+     <x>2061</x>
+     <y>1128</y>
     </hint>
     <hint type="destinationlabel">
      <x>1455</x>
@@ -282,8 +300,8 @@
    <slot>zoomToWindow()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>741</x>
-     <y>917</y>
+     <x>1015</x>
+     <y>1038</y>
     </hint>
     <hint type="destinationlabel">
      <x>736</x>
@@ -292,14 +310,30 @@
    </hints>
   </connection>
   <connection>
-   <sender>showWindowedButton</sender>
-   <signal>clicked()</signal>
+   <sender>leftWindowSample</sender>
+   <signal>valueChanged(int)</signal>
    <receiver>MainWindow</receiver>
-   <slot>showWindowed()</slot>
+   <slot>updateLeftWindowPosition()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>717</x>
-     <y>254</y>
+     <x>1296</x>
+     <y>1128</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1000</x>
+     <y>954</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>toggleWindowedBtn</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>toggleWindowed()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>746</x>
+     <y>1038</y>
     </hint>
     <hint type="destinationlabel">
      <x>715</x>
@@ -308,34 +342,18 @@
    </hints>
   </connection>
   <connection>
-   <sender>showUnwindowedButton</sender>
-   <signal>clicked()</signal>
+   <sender>graphTabs</sender>
+   <signal>currentChanged(int)</signal>
    <receiver>MainWindow</receiver>
-   <slot>showUnwindowed()</slot>
+   <slot>onGraphTabChange()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>675</x>
-     <y>696</y>
+     <x>654</x>
+     <y>53</y>
     </hint>
     <hint type="destinationlabel">
-     <x>671</x>
-     <y>647</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>showMagnitudeButton</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>showMagnitude()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>765</x>
-     <y>459</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>787</x>
-     <y>523</y>
+     <x>499</x>
+     <y>51</y>
     </hint>
    </hints>
   </connection>
@@ -348,10 +366,10 @@
   <slot>updateRightWindowType()</slot>
   <slot>updateRightWindowPosition()</slot>
   <slot>zoomToWindow()</slot>
-  <slot>showWindowed()</slot>
+  <slot>toggleWindowed()</slot>
   <slot>updateLeftWindowPercentage()</slot>
   <slot>updateRightWindowPercentage()</slot>
-  <slot>showUnwindowed()</slot>
   <slot>showMagnitude()</slot>
+  <slot>onGraphTabChange()</slot>
  </slots>
 </ui>
