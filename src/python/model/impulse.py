@@ -1,6 +1,5 @@
 import numpy as np
 from scipy import signal
-import matplotlib.pyplot as plt
 
 WINDOW_MAPPING = {
     'Hann': signal.windows.hann,
@@ -19,7 +18,6 @@ class ImpulseModel:
 
     def __init__(self, chart, left, right, mag):
         self._chart = chart
-        self._cmap = plt.cm.get_cmap('tab20')
         self._axes = self._chart.canvas.figure.add_subplot(111)
         self._axes.spines['bottom'].set_position('center')
         self._axes.spines['right'].set_color('none')
@@ -99,11 +97,9 @@ class ImpulseModel:
         :param measurement: the measurement itself.
         :return:
         '''
-        cIdx = idx if idx == 0 or idx < len(self._cmap.colors) else len(self._cmap.colors) % idx
-        colour = self._cmap.colors[cIdx]
         self._curves[measurement.getDisplayName()] = self._axes.plot(self._activeX, self._getY(measurement),
                                                                      linewidth=2, antialiased=True, linestyle='solid',
-                                                                     color=colour)[0]
+                                                                     color=self._chart.getColour(idx))[0]
 
     def _getY(self, measurement):
         '''

@@ -101,7 +101,7 @@ class Ui_MainWindow(object):
         self.graphTabs.addTab(self.impulseTab, "")
         self.magnitudeTab = QtWidgets.QWidget()
         self.magnitudeTab.setObjectName("magnitudeTab")
-        self.magnitudeGraph = MagnitudeWidget(self.magnitudeTab)
+        self.magnitudeGraph = MplWidget(self.magnitudeTab)
         self.magnitudeGraph.setGeometry(QtCore.QRect(0, 0, 1621, 954))
         self.magnitudeGraph.setObjectName("magnitudeGraph")
         self.graphTabs.addTab(self.magnitudeTab, "")
@@ -159,5 +159,4 @@ class Ui_MainWindow(object):
         self.graphTabs.setTabText(self.graphTabs.indexOf(self.polarTab), _translate("MainWindow", "Polar"))
 
 from app import MplWidget
-from model.magnitude import MagnitudeWidget
 from pyqtgraph import ImageView

@@ -11,6 +11,7 @@ from ui import pypolarmap
 from PyQt5 import QtWidgets
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as Canvas
+import matplotlib.pyplot as plt
 
 
 # Matplotlib canvas class to create figure
@@ -25,11 +26,20 @@ class MplCanvas(Canvas):
 # Matplotlib widget
 class MplWidget(QtWidgets.QWidget):
     def __init__(self, parent=None):
-        QtWidgets.QWidget.__init__(self, parent)  # Inherit from QWidget
-        self.canvas = MplCanvas()  # Create canvas object
-        self.vbl = QtWidgets.QVBoxLayout()  # Set box for plotting
+        QtWidgets.QWidget.__init__(self, parent)
+        self.canvas = MplCanvas()
+        self.vbl = QtWidgets.QVBoxLayout()
         self.vbl.addWidget(self.canvas)
         self.setLayout(self.vbl)
+        self._cmap = plt.cm.get_cmap('tab20')
+
+    def getColour(self, idx):
+        '''
+        :param idx: the colour index.
+        :return: the colour at that index.
+        '''
+        cIdx = idx if idx == 0 or idx < len(self._cmap.colors) else len(self._cmap.colors) % idx
+        return self._cmap.colors[cIdx]
 
 
 class PyPolarmap(QMainWindow, pypolarmap.Ui_MainWindow):
@@ -47,9 +57,18 @@ class PyPolarmap(QMainWindow, pypolarmap.Ui_MainWindow):
                                                      'type': self.rightWindowType,
                                                      'percent': self.rightWindowPercent},
                                               mag=self._magnitudeModel)
-        self._measurementModel = m.MeasurementModel(parent=parent, listener=self._impulseModel)
+        self._measurementModel = m.MeasurementModel(parent=parent, listener=self._broadcastMeasurementChange)
         self.measurementView.setModel(self._measurementModel)
         self._graphs = [self.impulseGraph, self.magnitudeGraph]
+
+    def _broadcastMeasurementChange(self, idx):
+        '''
+        broadcasts a change in this measurement to the relevant graphs.
+        :param idx: the measurement index.
+        :return:
+        '''
+        self._impulseModel.onMeasurementUpdate(idx)
+        self._magnitudeModel.onMeasurementUpdate(idx)
 
     # signal handlers
     def selectDirectory(self):

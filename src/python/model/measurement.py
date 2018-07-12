@@ -222,7 +222,7 @@ class MeasurementModel(QAbstractTableModel):
     def toggleState(self, idx):
         self._measurements[idx].toggleState()
         if self._listener:
-            self._listener.onMeasurementUpdate(idx)
+            self._listener(idx)
 
 
 # from https://stackoverflow.com/questions/17748546/pyqt-column-of-checkboxes-in-a-qtableview
