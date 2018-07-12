@@ -3,6 +3,7 @@ import re
 import typing
 
 import numpy as np
+from scipy import signal
 from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant, QEvent
 from PyQt5.QtWidgets import QItemDelegate
 
@@ -15,7 +16,7 @@ def asMeasurement(path, fileName, ext):
     :param ext: the extension.
     :return: the measurement if there is one.
     '''
-    name = fileName[:len(ext) - 1]
+    name, _ = os.path.splitext(fileName)
     h = _getAngle(fileName, 'H')
     v = _getAngle(fileName, 'V')
     if h is not None:
@@ -47,9 +48,10 @@ def loadFromDir(path, ext='txt'):
     :param ext: the extension.
     :return: the measurements.
     '''
-    return [x.load() for x in
-            [asMeasurement(path, fileName, ext) for fileName in os.listdir(path) if fileName.endswith('.' + ext)] if
-            x is not None]
+    return sorted([x.load() for x in
+                   [asMeasurement(path, fileName, ext) for fileName in os.listdir(path) if fileName.endswith('.' + ext)]
+                   if
+                   x is not None], key=lambda m: (m._h, m._v))
 
 
 def loadSamplesFromText(path):
@@ -66,16 +68,19 @@ class Measurement:
     '''
     Models a single measurement.
     '''
+    reflectionFreeZoneLimit = 10 ** -4
 
-    def __init__(self, path, name, ext='txt', h=0, v=0):
+    def __init__(self, path, name, ext='txt', h=0, v=0, fs=48000):
         self._path = path
         self._name = name
         self._ext = ext
         self._h = h
         self._v = v
+        self._fs = fs
         self._active = True
         self.samples = np.array([])
-        self._gated = None
+        self.window = np.array([])
+        self.gatedSamples = np.array([])
 
     def load(self):
         # TODO support multiple load strategies (raw samples in txt, ARTA style space delimited, REW style text, WAV)
@@ -83,37 +88,75 @@ class Measurement:
         return self
 
     def size(self):
+        '''
+        :return: no of samples in the measurement.
+        '''
         return self.samples.size
 
     def min(self):
+        '''
+        :return: the min value in the samples.
+        '''
         return np.amin(self.samples)
 
     def max(self):
+        '''
+        :return: the max value in the samples.
+        '''
         return np.amax(self.samples)
 
     def peakIndex(self):
+        '''
+        :return: the index of the peak value in the samples.
+        '''
         return np.argmax(self.samples)
 
+    def firstReflectionIndex(self):
+        '''
+        :return: a guess at the location of the first reflection using scipy find_peaks_cwt
+        '''
+        peak = self.peakIndex()
+        return next((i + peak for i in signal.find_peaks_cwt(self.samples[peak:], np.arange(10, 20)) if i > 40),
+                    self.size() - 1)
+
+    def startIndex(self):
+        '''
+        :return: a guess at where to put the left window.
+        '''
+        peakIdx = self.peakIndex()
+        for idx, x in np.ndenumerate(self.samples[peakIdx:0:-1]):
+            if abs(x) < self.reflectionFreeZoneLimit:
+                return peakIdx - idx
+        return 0
+
     def toggleState(self):
+        '''
+        sets whether this measurement is active or not.
+        :return:
+        '''
         self._active = not self._active
-        if self._gated:
-            self._gated._active = self._active
 
     def getDisplayName(self):
+        '''
+        :return: the display name of this measurement.
+        '''
         return 'H' + str(self._h) + 'V' + str(self._v)
 
-    def gated(self, left, right):
+    def gated(self, left, right, win=None):
         '''
         Applies the left and right gate to the measurement.
         :param left: the left gate position.
         :param right: the right gate position.
-        :return: a gated copy of this measurement.
+        :param win: the window if any
         '''
-        gated = Measurement(self._path, self._name, ext=self._ext, h=self._h, v=self._v)
-        gated._active = self._active
-        gated.samples = self.samples[left:right]
-        self._gated = gated
-        return gated
+        gatedSamples = self.samples[left:right]
+        if win is not None:
+            gatedSamples *= win
+        self.window = win
+        self.gatedSamples = gatedSamples
+
+    def __repr__(self):
+        return '{}: {}'.format(self.__class__.__name__, self.getDisplayName())
 
 
 class MeasurementModel(QAbstractTableModel):

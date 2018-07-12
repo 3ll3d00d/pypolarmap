@@ -2,10 +2,34 @@ import sys
 
 from PyQt5.QtWidgets import QMainWindow, QApplication, QFileDialog
 
-from model import impulse as imp
-from model import magnitude as mag
-from model import measurement as m
+import matplotlib
+
+matplotlib.use("Qt5Agg")
+
+from model import impulse as imp, magnitude as mag, polar, measurement as m
 from ui import pypolarmap
+from PyQt5 import QtWidgets
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as Canvas
+
+
+# Matplotlib canvas class to create figure
+class MplCanvas(Canvas):
+    def __init__(self):
+        self.figure = Figure(tight_layout=True)
+        Canvas.__init__(self, self.figure)
+        Canvas.setSizePolicy(self, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        Canvas.updateGeometry(self)
+
+
+# Matplotlib widget
+class MplWidget(QtWidgets.QWidget):
+    def __init__(self, parent=None):
+        QtWidgets.QWidget.__init__(self, parent)  # Inherit from QWidget
+        self.canvas = MplCanvas()  # Create canvas object
+        self.vbl = QtWidgets.QVBoxLayout()  # Set box for plotting
+        self.vbl.addWidget(self.canvas)
+        self.setLayout(self.vbl)
 
 
 class PyPolarmap(QMainWindow, pypolarmap.Ui_MainWindow):
@@ -13,7 +37,8 @@ class PyPolarmap(QMainWindow, pypolarmap.Ui_MainWindow):
         super(PyPolarmap, self).__init__(parent)
         self.setupUi(self)
         self.dataPath.setDisabled(True)
-        self._magnitudeModel = mag.MagnitudeModel(self.magnitudeGraph)
+        self._polarModel = polar.PolarModel(self.polarGraph)
+        self._magnitudeModel = mag.MagnitudeModel(self.magnitudeGraph, self._polarModel)
         self._impulseModel = imp.ImpulseModel(self.impulseGraph,
                                               left={'position': self.leftWindowSample,
                                                     'type': self.leftWindowType,
@@ -40,8 +65,8 @@ class PyPolarmap(QMainWindow, pypolarmap.Ui_MainWindow):
         if dialog.exec():
             selectedDir = dialog.selectedFiles()
             if len(selectedDir) > 0:
-                for g in self._graphs:
-                    g.getPlotItem().clear()
+                # for g in self._graphs:
+                #     g.getPlotItem().clear()
                 self.dataPath.setStyleSheet("QLineEdit {background-color: white;}")
                 self.dataPath.setText(selectedDir[0])
                 measurements = m.loadFromDir(selectedDir[0], 'txt')
@@ -49,6 +74,7 @@ class PyPolarmap(QMainWindow, pypolarmap.Ui_MainWindow):
                 self._measurementModel.completeRendering(self.measurementView)
                 self._impulseModel.accept(measurements)
                 self._impulseModel.display()
+                self._magnitudeModel.accept(measurements)
                 self.toggleWindowedBtn.setDisabled(False)
                 self.zoomButton.setDisabled(False)
             else:
@@ -63,9 +89,12 @@ class PyPolarmap(QMainWindow, pypolarmap.Ui_MainWindow):
     def onGraphTabChange(self):
         idx = self.graphTabs.currentIndex()
         if idx == 0:
-            self._impulseModel.display()
+            # self._impulseModel.display()
+            pass
         elif idx == 1:
             self._magnitudeModel.display()
+        elif idx == 2:
+            self._polarModel.display()
         else:
             # unknown
             pass

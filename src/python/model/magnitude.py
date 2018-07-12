@@ -44,19 +44,20 @@ class MagnitudeModel:
     Allows a set of measurements to be displayed on a chart as magnitude responses.
     '''
 
-    def __init__(self, chart):
+    def __init__(self, chart, polar):
         self._chart = chart
-        self._windowed = []
+        self._polarModel = polar
+        self._measurements = []
         self._fft = None
         self._linToLog = None
 
-    def accept(self, windowed):
+    def accept(self, measurements):
         '''
         Passes the gated, windowed data into the model.
-        :param windowed: the windowed data.
+        :param measurements: the windowed data.
         :return:
         '''
-        self._windowed = windowed
+        self._measurements = measurements
         self._fft = None
         self._linToLog = None
 
@@ -67,14 +68,23 @@ class MagnitudeModel:
         '''
         self._analyse()
         self._chart.getPlotItem().clear()
+        # todo consider making this user selectable, e.g. to allow for dB SPL output
+        ref = 1
         for idx, x in enumerate(self._linToLog):
-            self._chart.plot(x[1], 20 * np.log10(abs(x[0])), pen=(idx, len(self._linToLog)))
+            # Scale the magnitude of FFT by indow and factor of 2 because we are using half of FFT spectrum.
+            mag = np.abs(x[1]) * 2 / np.sum(x[0].window)
+            self._chart.plot(x[2], 20 * np.log10(mag/ref), pen=(idx, len(self._linToLog)))
+        self._polarModel.accept(self._linToLog)
 
     def _analyse(self):
         '''
         Runs FFT and linToLog against the windowed datas.
+        This stores 2 separate 3 element tuples
+         * _fft: (measurement, fft'ed data, no of points in the fft)
+         * _linToLog: (measurement, log spaced fft'ed data, log spaced frequencies)
         :return:
         '''
         if not self._fft:
-            self._fft = [fft(x.samples) for x in self._windowed]
-            self._linToLog = [linToLog(x[0], 48000 / x[1]) for x in self._fft]
+            self._fft = [((x,) + fft(x.samples)) for x in self._measurements]
+            # TODO get
+            self._linToLog = [(x[0],) + linToLog(x[1], x[0]._fs / x[2]) for x in self._fft]

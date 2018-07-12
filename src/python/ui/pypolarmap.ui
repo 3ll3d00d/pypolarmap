@@ -104,6 +104,11 @@
         <widget class="QComboBox" name="leftWindowType">
          <item>
           <property name="text">
+           <string>Rectangle</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
            <string>Tukey</string>
           </property>
          </item>
@@ -159,6 +164,11 @@
         <widget class="QComboBox" name="rightWindowType">
          <item>
           <property name="text">
+           <string>Rectangle</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
            <string>Tukey</string>
           </property>
          </item>
@@ -185,7 +195,7 @@
         </widget>
        </item>
        <item row="0" column="0" colspan="6">
-        <widget class="PlotWidget" name="impulseGraph"/>
+        <widget class="MplWidget" name="impulseGraph"/>
        </item>
        <item row="1" column="0">
         <widget class="QPushButton" name="toggleWindowedBtn">
@@ -231,6 +241,21 @@
       </property>
      </widget>
     </widget>
+    <widget class="QWidget" name="polarTab">
+     <attribute name="title">
+      <string>Polar</string>
+     </attribute>
+     <widget class="ImageView" name="polarGraph">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>1621</width>
+        <height>954</height>
+       </rect>
+      </property>
+     </widget>
+    </widget>
    </widget>
    <zorder>graphTabs</zorder>
    <zorder>gridLayoutWidget</zorder>
@@ -249,14 +274,19 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>PlotWidget</class>
+   <class>MagnitudeWidget</class>
+   <extends>QGraphicsView</extends>
+   <header>model.magnitude</header>
+  </customwidget>
+  <customwidget>
+   <class>ImageView</class>
    <extends>QGraphicsView</extends>
    <header>pyqtgraph</header>
   </customwidget>
   <customwidget>
-   <class>MagnitudeWidget</class>
+   <class>MplWidget</class>
    <extends>QGraphicsView</extends>
-   <header>model.magnitude</header>
+   <header>app</header>
   </customwidget>
  </customwidgets>
  <resources/>
@@ -279,7 +309,7 @@
   </connection>
   <connection>
    <sender>rightWindowSample</sender>
-   <signal>valueChanged(int)</signal>
+   <signal>editingFinished()</signal>
    <receiver>MainWindow</receiver>
    <slot>updateRightWindowPosition()</slot>
    <hints>
@@ -311,7 +341,7 @@
   </connection>
   <connection>
    <sender>leftWindowSample</sender>
-   <signal>valueChanged(int)</signal>
+   <signal>editingFinished()</signal>
    <receiver>MainWindow</receiver>
    <slot>updateLeftWindowPosition()</slot>
    <hints>

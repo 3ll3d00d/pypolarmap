@@ -75,6 +75,18 @@ def fft(data):
                            [complex(paddedData[1], 0)])), numPoints.value
 
 
+# no of log spaced points to use given a set number of linear points
+logPts = {
+    64: 15,
+    128: 30,
+    256: 50,
+    512: 100,
+    1024: 200,
+    2048: 300,
+    4096: 300
+}
+
+
 def linToLog(linearFreqs, freqStep):
     '''
     converts a linearly spaced dataset to a log spaced one.
@@ -85,7 +97,10 @@ def linToLog(linearFreqs, freqStep):
     inputData = np.require(linearFreqs, dtype=np.complex128, requirements=ALIGNED_ARR)
     freqStep = ct.c_double(freqStep)
     inputPts = ct.c_int32(linearFreqs.shape[0] - 1)
-    outputPts = min(128, linearFreqs.shape[0]) + 1
+    if inputPts.value in logPts:
+        outputPts = logPts[inputPts.value]
+    else:
+        outputPts = min(128, int(round(linearFreqs.shape[0]/4)))
     outputData = np.require(np.zeros(outputPts, dtype=np.complex128), dtype=np.complex128,
                             requirements=WRITEABLE_ALIGNED_ARR)
     logFreqs = np.require(np.logspace(math.log10(20), math.log10(20000), num=outputPts, endpoint=True),
