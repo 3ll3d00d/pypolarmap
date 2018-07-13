@@ -5,6 +5,7 @@ __pycache__/
 
 # C extensions
 *.so
+*.dll
 
 # Distribution / packaging
 .Python
@@ -24,6 +25,7 @@ wheels/
 .installed.cfg
 *.egg
 MANIFEST
+dlls/
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -102,3 +104,6 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# pycharm
+.idea/

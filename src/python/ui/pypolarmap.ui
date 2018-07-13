@@ -1,0 +1,443 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="enabled">
+   <bool>true</bool>
+  </property>
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>2229</width>
+    <height>1162</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>pypolarmap</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QWidget" name="gridLayoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>10</y>
+      <width>581</width>
+      <height>1091</height>
+     </rect>
+    </property>
+    <layout class="QGridLayout" name="measurementSelectLayout">
+     <item row="0" column="1">
+      <widget class="QLineEdit" name="dataPath"/>
+     </item>
+     <item row="0" column="0">
+      <widget class="QPushButton" name="selectDirBtn">
+       <property name="text">
+        <string>Select Directory</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0" colspan="3">
+      <widget class="QTreeView" name="measurementView"/>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QTabWidget" name="graphTabs">
+    <property name="geometry">
+     <rect>
+      <x>600</x>
+      <y>10</y>
+      <width>1631</width>
+      <height>1091</height>
+     </rect>
+    </property>
+    <property name="currentIndex">
+     <number>0</number>
+    </property>
+    <widget class="QWidget" name="impulseTab">
+     <attribute name="title">
+      <string>Impulse</string>
+     </attribute>
+     <widget class="QWidget" name="gridLayoutWidget_2">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>1621</width>
+        <height>1061</height>
+       </rect>
+      </property>
+      <layout class="QGridLayout" name="graphLayout">
+       <item row="3" column="2">
+        <widget class="QSpinBox" name="leftWindowSample"/>
+       </item>
+       <item row="2" column="0" colspan="3">
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>Left Window</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="4">
+        <widget class="QSpinBox" name="rightWindowPercent">
+         <property name="suffix">
+          <string>%</string>
+         </property>
+         <property name="minimum">
+          <number>12</number>
+         </property>
+         <property name="maximum">
+          <number>75</number>
+         </property>
+         <property name="value">
+          <number>50</number>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="5">
+        <widget class="QSpinBox" name="rightWindowSample"/>
+       </item>
+       <item row="3" column="0">
+        <widget class="QComboBox" name="leftWindowType">
+         <item>
+          <property name="text">
+           <string>Rectangle</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Tukey</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Hann</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Hamming</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Blackman-Harris</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Nuttall</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QSpinBox" name="leftWindowPercent">
+         <property name="suffix">
+          <string>%</string>
+         </property>
+         <property name="minimum">
+          <number>12</number>
+         </property>
+         <property name="maximum">
+          <number>75</number>
+         </property>
+         <property name="value">
+          <number>50</number>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="3" colspan="3">
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>Right Window</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="3">
+        <widget class="QComboBox" name="rightWindowType">
+         <item>
+          <property name="text">
+           <string>Rectangle</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Tukey</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Hann</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Hamming</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Blackman-Harris</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Nuttall</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="0" column="0" colspan="6">
+        <widget class="MplWidget" name="impulseGraph"/>
+       </item>
+       <item row="1" column="0">
+        <widget class="QPushButton" name="toggleWindowedBtn">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>Show Windowed IR</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <property name="flat">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QPushButton" name="zoomButton">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>Zoom In</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="2">
+        <widget class="QPushButton" name="pushButton">
+         <property name="text">
+          <string>Zoom Out</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="3">
+        <widget class="QPushButton" name="pushButton_2">
+         <property name="text">
+          <string>Apply Window</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="magnitudeTab">
+     <attribute name="title">
+      <string>Magnitude</string>
+     </attribute>
+     <widget class="MplWidget" name="magnitudeGraph">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>1621</width>
+        <height>954</height>
+       </rect>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="polarTab">
+     <attribute name="title">
+      <string>Polar</string>
+     </attribute>
+     <widget class="MplWidget" name="polarGraph">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>1621</width>
+        <height>954</height>
+       </rect>
+      </property>
+     </widget>
+    </widget>
+   </widget>
+   <zorder>graphTabs</zorder>
+   <zorder>gridLayoutWidget</zorder>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>2229</width>
+     <height>31</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>MplWidget</class>
+   <extends>QGraphicsView</extends>
+   <header>app</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>selectDirBtn</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>selectDirectory()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>131</x>
+     <y>75</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>418</x>
+     <y>114</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>rightWindowSample</sender>
+   <signal>editingFinished()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>updateRightWindowPosition()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>2061</x>
+     <y>1128</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1455</x>
+     <y>945</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>zoomButton</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>zoomIn()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1015</x>
+     <y>1038</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>736</x>
+     <y>512</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>leftWindowSample</sender>
+   <signal>editingFinished()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>updateLeftWindowPosition()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1296</x>
+     <y>1128</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1000</x>
+     <y>954</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>toggleWindowedBtn</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>toggleWindowed()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>746</x>
+     <y>1038</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>715</x>
+     <y>391</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>graphTabs</sender>
+   <signal>currentChanged(int)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>onGraphTabChange()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>654</x>
+     <y>53</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>499</x>
+     <y>51</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>zoomOut()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1226</x>
+     <y>1047</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>588</x>
+     <y>47</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton_2</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>updateWindow()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1597</x>
+     <y>1054</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>2237</x>
+     <y>1042</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>selectDirectory()</slot>
+  <slot>manageLoadButtonState(QString)</slot>
+  <slot>updateLeftWindowPosition()</slot>
+  <slot>updateLeftWindowType()</slot>
+  <slot>updateRightWindowType()</slot>
+  <slot>updateRightWindowPosition()</slot>
+  <slot>zoomIn()</slot>
+  <slot>toggleWindowed()</slot>
+  <slot>updateLeftWindowPercentage()</slot>
+  <slot>updateRightWindowPercentage()</slot>
+  <slot>showMagnitude()</slot>
+  <slot>onGraphTabChange()</slot>
+  <slot>zoomOut()</slot>
+  <slot>updateWindow()</slot>
+ </slots>
+</ui>
