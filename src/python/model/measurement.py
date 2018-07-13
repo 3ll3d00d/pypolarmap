@@ -1,11 +1,23 @@
 import os
 import re
 import typing
+from collections.abc import Sequence
 
 import numpy as np
-from scipy import signal
 from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant, QEvent
 from PyQt5.QtWidgets import QItemDelegate
+from scipy import signal
+
+from meascalcs import fft, linToLog
+
+WINDOW_MAPPING = {
+    'Hann': signal.windows.hann,
+    'Hamming': signal.windows.hamming,
+    'Blackman-Harris': signal.windows.blackmanharris,
+    'Nuttall': signal.windows.nuttall,
+    'Tukey': signal.windows.tukey,
+    'Rectangle': signal.windows.boxcar
+}
 
 
 def asMeasurement(path, fileName, ext):
@@ -46,12 +58,11 @@ def loadFromDir(path, ext='txt'):
     Loads measurements from the specified dir
     :param path: the path the files are in.
     :param ext: the extension.
-    :return: the measurements.
+    :return: the measurement model.
     '''
     return sorted([x.load() for x in
                    [asMeasurement(path, fileName, ext) for fileName in os.listdir(path) if fileName.endswith('.' + ext)]
-                   if
-                   x is not None], key=lambda m: (m._h, m._v))
+                   if x is not None], key=lambda m: (m._h, m._v))
 
 
 def loadSamplesFromText(path):
@@ -62,6 +73,104 @@ def loadSamplesFromText(path):
     :return: the samples as an ndarray.
     '''
     return np.genfromtxt(path, delimiter="\n")
+
+
+class MeasurementModel(Sequence):
+    '''
+    Models a related collection of measurements
+    '''
+
+    def __init__(self, m=None, listeners=None):
+        self._measurements = m if m is not None else []
+        self._listeners = listeners if listeners is not None else []
+        super().__init__()
+
+    def __getitem__(self, i):
+        return self._measurements[i]
+
+    def __len__(self):
+        return len(self._measurements)
+
+    def registerListener(self, listener):
+        '''
+        Registers a listener for changes to measurements. Must provide onMeasurementUpdate methods that take no args and
+        an idx as well as a clear method.
+        :param listener: the listener.
+        '''
+        self._listeners.append(listener)
+
+    def toggleState(self, idx):
+        '''
+        Toggles state and tells any listeners.
+        :param idx: the updated measurement index.
+        '''
+        self._measurements[idx].toggleState()
+        for l in self._listeners:
+            l.onMeasurementUpdate(idx=idx)
+
+    def load(self, selectedDir):
+        '''
+        Loads measurements from the given dir.
+        :param selectedDir: the dir.
+        '''
+        self._measurements = loadFromDir(selectedDir[0], 'txt')
+        for l in self._listeners:
+            l.onMeasurementUpdate()
+
+    def clear(self):
+        '''
+        Clears the loaded measurements.
+        '''
+        self._measurements = []
+        for l in self._listeners:
+            l.clear()
+
+    def getMaxSample(self):
+        '''
+        :return: the size of the longest measurement.
+        '''
+        return max([x.size() for x in self._measurements])
+
+    def getMaxSampleValue(self):
+        '''
+        :return: the largest sample value in the measurement set.
+        '''
+        return max([max(x.max(), abs(x.min())) for x in self._measurements])
+
+    def applyWindow(self, left, right, peak):
+        '''
+        creates a window based on the left and right parameters & applies it to all measurements.
+        :param left: the left parameters.
+        :param right: the right parameters.
+        :return:
+        '''
+        leftWin = self._createWindow0(left, peak, 0)
+        rightWin = self._createWindow0(right, peak, 1)
+        completeWindow = np.concatenate((leftWin[1], leftWin[0], rightWin[0], rightWin[1]))
+        for m in self._measurements:
+            m.analyse(left['position'].value(), right['position'].value(), win=completeWindow)
+
+    def _createWindow0(self, params, peakIdx, side):
+        '''
+        Creates a window which is made up of two sections, one which contains just ones and the other which is the left
+        or right side of a particular window. The size of each section is drive by the percent selector (so 25% means
+        75% ones and 25% actual window).
+        :param params: the params (as delivered via ui widgets)
+        :param peakIdx: the position of the peak in the measurement.
+        :param side: 0 if left, 1 if right.
+        :return: a 2 part tuple made up of the ones and the window.
+        '''
+        length = abs(peakIdx - params['position'].value())
+        windowLength = int(round(length * (params['percent'].value() / 100)))
+        ones = np.ones(length - windowLength)
+        window = np.split(self._getScipyWindowFunction(params['type'])(windowLength * 2), 2)[side]
+        return ones, window
+
+    def _getScipyWindowFunction(self, type):
+        if type.currentText() in WINDOW_MAPPING:
+            return WINDOW_MAPPING[type.currentText()]
+        else:
+            return WINDOW_MAPPING['Tukey']
 
 
 class Measurement:
@@ -81,6 +190,10 @@ class Measurement:
         self.samples = np.array([])
         self.window = np.array([])
         self.gatedSamples = np.array([])
+        self.fftOutput = np.array([])
+        self.fftPoints = 0
+        self.logData = np.array([])
+        self.logFreqs = np.array([])
 
     def load(self):
         # TODO support multiple load strategies (raw samples in txt, ARTA style space delimited, REW style text, WAV)
@@ -142,9 +255,9 @@ class Measurement:
         '''
         return 'H' + str(self._h) + 'V' + str(self._v)
 
-    def gated(self, left, right, win=None):
+    def analyse(self, left, right, win=None):
         '''
-        Applies the left and right gate to the measurement.
+        Applies the left and right gate to the measurement and runs FFT and linToLog against the windowed data.
         :param left: the left gate position.
         :param right: the right gate position.
         :param win: the window if any
@@ -154,24 +267,36 @@ class Measurement:
             gatedSamples *= win
         self.window = win
         self.gatedSamples = gatedSamples
+        self.fftData, self.fftPoints = fft(self.gatedSamples)
+        self.logData, self.logFreqs = linToLog(self.fftData, self._fs / self.fftPoints)
+
+    def getMagnitude(self, ref=None):
+        '''
+        :param ref: if given, return in decibels relative to ref.
+        :return: gets a magnitude view on the log data.
+        '''
+        # Scale the magnitude of FFT by window and factor of 2 because we are using half of FFT spectrum.
+        mag = np.abs(self.logData) * 2 / np.sum(self.window)
+        if ref:
+            return 20 * np.log10(mag / ref)
+        return mag
 
     def __repr__(self):
         return '{}: {}'.format(self.__class__.__name__, self.getDisplayName())
 
 
-class MeasurementModel(QAbstractTableModel):
+class MeasurementTableModel(QAbstractTableModel):
     '''
-    A Qt table model to feed the measurements view. Accepts a listener for state changes.
+    A Qt table model to feed the measurements view.
     '''
 
-    def __init__(self, parent=None, listener=None):
+    def __init__(self, model, parent=None):
         super().__init__(parent=parent)
         self._headers = ['File', 'Type', 'Samples', 'H', 'V', 'Active']
-        self._measurements = []
-        self._listener = listener
+        self._measurementModel = model
 
     def rowCount(self, parent: QModelIndex = ...):
-        return len(self._measurements)
+        return len(self._measurementModel)
 
     def columnCount(self, parent: QModelIndex = ...):
         return len(self._headers)
@@ -189,17 +314,17 @@ class MeasurementModel(QAbstractTableModel):
             return QVariant()
         else:
             if index.column() == 0:
-                return QVariant(self._measurements[index.row()]._name)
+                return QVariant(self._measurementModel[index.row()]._name)
             elif index.column() == 1:
-                return QVariant(self._measurements[index.row()]._ext)
+                return QVariant(self._measurementModel[index.row()]._ext)
             elif index.column() == 2:
-                return QVariant(self._measurements[index.row()].size())
+                return QVariant(self._measurementModel[index.row()].size())
             elif index.column() == 3:
-                return QVariant(self._measurements[index.row()]._h)
+                return QVariant(self._measurementModel[index.row()]._h)
             elif index.column() == 4:
-                return QVariant(self._measurements[index.row()]._v)
+                return QVariant(self._measurementModel[index.row()]._v)
             elif index.column() == 5:
-                return QVariant(self._measurements[index.row()]._active)
+                return QVariant(self._measurementModel[index.row()]._active)
             else:
                 return QVariant()
 
@@ -208,10 +333,9 @@ class MeasurementModel(QAbstractTableModel):
             return QVariant(self._headers[section])
         return QVariant()
 
-    def accept(self, measurements):
-        # TODO validate?
+    def accept(self, measurementModel):
         self.layoutAboutToBeChanged.emit()
-        self._measurements = measurements
+        self._measurementModel = measurementModel
         self.layoutChanged.emit()
 
     def completeRendering(self, view):
@@ -220,9 +344,7 @@ class MeasurementModel(QAbstractTableModel):
             view.resizeColumnToContents(x)
 
     def toggleState(self, idx):
-        self._measurements[idx].toggleState()
-        if self._listener:
-            self._listener(idx)
+        self._measurementModel.toggleState(idx)
 
 
 # from https://stackoverflow.com/questions/17748546/pyqt-column-of-checkboxes-in-a-qtableview

@@ -219,7 +219,21 @@
           <bool>false</bool>
          </property>
          <property name="text">
-          <string>Zoom</string>
+          <string>Zoom In</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="2">
+        <widget class="QPushButton" name="pushButton">
+         <property name="text">
+          <string>Zoom Out</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="3">
+        <widget class="QPushButton" name="pushButton_2">
+         <property name="text">
+          <string>Apply Window</string>
          </property>
         </widget>
        </item>
@@ -245,7 +259,7 @@
      <attribute name="title">
       <string>Polar</string>
      </attribute>
-     <widget class="ImageView" name="polarGraph">
+     <widget class="MplWidget" name="polarGraph">
       <property name="geometry">
        <rect>
         <x>0</x>
@@ -273,11 +287,6 @@
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
  <customwidgets>
-  <customwidget>
-   <class>ImageView</class>
-   <extends>QGraphicsView</extends>
-   <header>pyqtgraph</header>
-  </customwidget>
   <customwidget>
    <class>MplWidget</class>
    <extends>QGraphicsView</extends>
@@ -322,7 +331,7 @@
    <sender>zoomButton</sender>
    <signal>clicked()</signal>
    <receiver>MainWindow</receiver>
-   <slot>zoomToWindow()</slot>
+   <slot>zoomIn()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>1015</x>
@@ -382,6 +391,38 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>pushButton</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>zoomOut()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1226</x>
+     <y>1047</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>588</x>
+     <y>47</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton_2</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>updateWindow()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1597</x>
+     <y>1054</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>2237</x>
+     <y>1042</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>selectDirectory()</slot>
@@ -390,11 +431,13 @@
   <slot>updateLeftWindowType()</slot>
   <slot>updateRightWindowType()</slot>
   <slot>updateRightWindowPosition()</slot>
-  <slot>zoomToWindow()</slot>
+  <slot>zoomIn()</slot>
   <slot>toggleWindowed()</slot>
   <slot>updateLeftWindowPercentage()</slot>
   <slot>updateRightWindowPercentage()</slot>
   <slot>showMagnitude()</slot>
   <slot>onGraphTabChange()</slot>
+  <slot>zoomOut()</slot>
+  <slot>updateWindow()</slot>
  </slots>
 </ui>

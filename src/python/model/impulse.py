@@ -1,14 +1,4 @@
 import numpy as np
-from scipy import signal
-
-WINDOW_MAPPING = {
-    'Hann': signal.windows.hann,
-    'Hamming': signal.windows.hamming,
-    'Blackman-Harris': signal.windows.blackmanharris,
-    'Nuttall': signal.windows.nuttall,
-    'Tukey': signal.windows.tukey,
-    'Rectangle': signal.windows.boxcar
-}
 
 
 class ImpulseModel:
@@ -16,25 +6,29 @@ class ImpulseModel:
     Allows a set of measurements to be displayed on a chart as impulse responses.
     '''
 
-    def __init__(self, chart, left, right, mag):
+    def __init__(self, chart, left, right, measurementModel, mag):
         self._chart = chart
-        self._axes = self._chart.canvas.figure.add_subplot(111)
-        self._axes.spines['bottom'].set_position('center')
-        self._axes.spines['right'].set_color('none')
-        self._axes.spines['top'].set_color('none')
-        self._axes.xaxis.set_ticks_position('bottom')
-        self._axes.grid()
+        self._initChart()
         self._curves = {}
         self._yRange = 1
         self._leftWindow = left
         self._rightWindow = right
-        self._measurements = []
+        self._measurementModel = measurementModel
+        self._measurementModel.registerListener(self)
         self._showWindowed = False
         self._activeX = None
         self._setMaxSample(0)
         self._leftLine = None
         self._rightLine = None
         self._magnitudeModel = mag
+
+    def _initChart(self):
+        self._axes = self._chart.canvas.figure.add_subplot(111)
+        self._axes.spines['bottom'].set_position('center')
+        self._axes.spines['right'].set_color('none')
+        self._axes.spines['top'].set_color('none')
+        self._axes.xaxis.set_ticks_position('bottom')
+        self._axes.grid()
 
     def _setMaxSample(self, maxSample):
         self._maxSample = maxSample
@@ -52,43 +46,28 @@ class ImpulseModel:
         self._gatedXValues = np.arange(start=self._leftWindow['position'].value(),
                                        stop=self._rightWindow['position'].value())
 
-    def accept(self, measurements):
-        '''
-        Accepts a fresh set of measurements.
-        :param measurements: the measurements.
-        :return:
-        '''
-        self._measurements = measurements
-        if len(measurements) > 0:
-            self._setMaxSample(max([x.size() for x in measurements]))
-            self._yRange = max([max(x.max(), abs(x.min())) for x in measurements])
-        else:
-            self._setMaxSample(0)
-            self._yRange = 1
-        self._leftWindow['position'].setMaximum(self._maxSample-1)
-        self._leftWindow['position'].setValue(measurements[0].startIndex())
-        self._rightWindow['position'].setMaximum(self._maxSample)
-        self._rightWindow['position'].setValue(measurements[0].firstReflectionIndex())
-        self._axes.set_ylim(bottom=-self._yRange, top=self._yRange)
-        self._axes.set_xlim(left=0, right=np.amax(self._activeX))
-
-    def onMeasurementUpdate(self, idx):
+    def onMeasurementUpdate(self, idx=None):
         '''
         Allows the chart to react when a measurement active status is toggled.
         :param idx: the index of the toggled measurement.
         :return:
         '''
+        if idx is None:
+            if len(self._measurementModel) > 0:
+                self._setMaxSample(self._measurementModel.getMaxSample())
+                self._yRange = self._measurementModel.getMaxSampleValue()
+            else:
+                self._setMaxSample(0)
+                self._yRange = 1
+            self._leftWindow['position'].setMaximum(self._maxSample - 1)
+            self._leftWindow['position'].setValue(self._measurementModel[0].startIndex())
+            self._rightWindow['position'].setMaximum(self._maxSample)
+            self._rightWindow['position'].setValue(self._measurementModel[0].firstReflectionIndex())
+            self._axes.set_ylim(bottom=-self._yRange, top=self._yRange)
+            self.updateLeftWindowPosition()
+            self.updateRightWindowPosition()
+            self.zoomOut()
         self._displayActiveData(updatedIdx=idx)
-
-    def display(self):
-        '''
-        Renders the plot by adding the legend, displaying all active measurements and initialising the left and right windows
-        to the edges of the samples.
-        :return:
-        '''
-        self._displayActiveData()
-        self.updateLeftWindowPosition()
-        self.updateRightWindowPosition()
 
     def _addPlotForMeasurement(self, idx, measurement):
         '''
@@ -155,13 +134,21 @@ class ImpulseModel:
         self._rightWindow['position'].setValue(round(self._rightLine.value()))
         self.updateRightWindowPosition()
 
-    def zoomToWindow(self):
+    def zoomIn(self):
         '''
         sets the x axis range to the positions of the left and right windows.
         :return:
         '''
         self._axes.set_xlim(left=self._leftWindow['position'].value() - 1,
                             right=self._rightWindow['position'].value() + 1)
+        self._chart.canvas.draw()
+
+    def zoomOut(self):
+        '''
+        sets the x axis range to the x range
+        :return:
+        '''
+        self._axes.set_xlim(left=0, right=np.amax(self._activeX))
         self._chart.canvas.draw()
 
     def toggleWindowed(self):
@@ -175,23 +162,32 @@ class ImpulseModel:
         '''
         self._showWindowed = not self._showWindowed
         if self._showWindowed:
-            self._cacheGatedXValues()
-            self._activeX = self._gatedXValues
-            self._peakIndex = self._measurements[0].peakIndex()
-            for x in self._measurements:
-                self._applyWindow(self._leftWindow, self._rightWindow, self._peakIndex, x)
+            self.updateWindow()
         else:
             self._activeX = self._ungatedXValues
             self.updateLeftWindowPosition()
             self.updateRightWindowPosition()
         self._displayActiveData()
 
+    def updateWindow(self):
+        '''
+        applies the window to the data.
+        '''
+        if len(self._measurementModel) > 0:
+            self._cacheGatedXValues()
+            self._activeX = self._gatedXValues
+            self._peakIndex = self._measurementModel[0].peakIndex()
+            self._measurementModel.applyWindow(self._leftWindow, self._rightWindow, self._peakIndex)
+            self._magnitudeModel.markForRefresh()
+            self._displayActiveData()
+            self.zoomIn()
+
     def _displayActiveData(self, updatedIdx=None):
         '''
         Ensures the currently active data is visible on the chart.
         :return:
         '''
-        for idx, m in enumerate(self._measurements):
+        for idx, m in enumerate(self._measurementModel):
             if updatedIdx is None or updatedIdx == idx:
                 curve = self._curves.get(m.getDisplayName())
                 if m._active:
@@ -204,37 +200,3 @@ class ImpulseModel:
                         curve.remove()
                         del self._curves[m.getDisplayName()]
         self._chart.canvas.draw()
-
-    def _applyWindow(self, left, right, peak, measurement):
-        '''
-        creates a window based on the left and right parameters.
-        :param left: the left parameters.
-        :param right: the right parameters.
-        :return:
-        '''
-        leftWin = self._createWindow0(left, peak, 0)
-        rightWin = self._createWindow0(right, peak, 1)
-        completeWindow = np.concatenate((leftWin[1], leftWin[0], rightWin[0], rightWin[1]))
-        measurement.gated(left['position'].value(), right['position'].value(), win=completeWindow)
-
-    def _createWindow0(self, params, peakIdx, side):
-        '''
-        Creates a window which is made up of two sections, one which contains just ones and the other which is the left
-        or right side of a particular window. The size of each section is drive by the percent selector (so 25% means
-        75% ones and 25% actual window).
-        :param params: the params (as delivered via ui widgets)
-        :param peakIdx: the position of the peak in the measurement.
-        :param side: 0 if left, 1 if right.
-        :return: a 2 part tuple made up of the ones and the window.
-        '''
-        length = abs(peakIdx - params['position'].value())
-        windowLength = int(round(length * (params['percent'].value() / 100)))
-        ones = np.ones(length - windowLength)
-        window = np.split(self._getScipyWindowFunction(params['type'])(windowLength * 2), 2)[side]
-        return ones, window
-
-    def _getScipyWindowFunction(self, type):
-        if type.currentText() in WINDOW_MAPPING:
-            return WINDOW_MAPPING[type.currentText()]
-        else:
-            return WINDOW_MAPPING['Tukey']

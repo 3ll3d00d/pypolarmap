@@ -1,9 +1,6 @@
 from math import log10
 
-import pyqtgraph as pg
 import numpy as np
-
-from meascalcs import fft, linToLog
 
 
 def human_format(num):
@@ -24,25 +21,12 @@ freqTicks = [
 ]
 
 
-class MagnitudeWidget(pg.PlotWidget):
-    '''
-    Extends PlotWidget because there is way to set an axis after the widget is created and no way to pass custom
-    constructors via qtdesigner.
-    '''
-
-    def __init__(self, parent):
-        super(MagnitudeWidget, self).__init__(parent=parent)
-        self.getPlotItem().getAxis('bottom').setTicks(freqTicks)
-        self.getPlotItem().getAxis('bottom').setLabel(text='Freq', units='Hz')
-        self.getPlotItem().getAxis('left').setLabel(text='dB')
-
-
 class MagnitudeModel:
     '''
     Allows a set of measurements to be displayed on a chart as magnitude responses.
     '''
 
-    def __init__(self, chart, polar):
+    def __init__(self, chart, measurementModel, polar):
         self._chart = chart
         self._axes = self._chart.canvas.figure.add_subplot(111)
         self._axes.set_xlim(left=20, right=20000)
@@ -50,59 +34,48 @@ class MagnitudeModel:
         self._axes.grid()
         self._curves = {}
         self._polarModel = polar
-        self._measurements = []
-        self._fft = None
-        self._linToLog = None
+        self._refreshData = False
+        self._measurementModel = measurementModel
+        self._measurementModel.registerListener(self)
 
-    def accept(self, measurements):
+    def markForRefresh(self):
         '''
-        Passes the gated, windowed data into the model.
-        :param measurements: the windowed data.
-        :return:
+        Marks this model as in need of recalculation.
         '''
-        self._measurements = measurements
-        self._fft = None
-        self._linToLog = None
+        self._refreshData = True
+        self._polarModel.markForRefresh()
 
     def display(self):
         '''
-        Shows the magnitude chart
-        :return:
+        Updates the contents of the magnitude chart
         '''
-        self._analyse()
-        # todo consider making this user selectable, e.g. to allow for dB SPL output
-        ref = 1
-        for idx, x in enumerate(self._linToLog):
-            # Scale the magnitude of FFT by window and factor of 2 because we are using half of FFT spectrum.
-            mag = np.abs(x[1]) * 2 / np.sum(x[0].window)
-            self._curves[x[0].getDisplayName()] = self._axes.semilogx(x[2], 20 * np.log10(mag / ref),
-                                                                      linewidth=2, antialiased=True, linestyle='solid',
-                                                                      color=self._chart.getColour(idx))[0]
-        self._chart.canvas.draw()
-        self._polarModel.accept(self._linToLog)
+        if self._refreshData:
+            for idx, x in enumerate(self._measurementModel):
+                curve = self._curves.get(x.getDisplayName())
+                if curve:
+                    curve.set_data(x.logFreqs, x.getMagnitude(ref=1))
+                else:
+                    # todo consider making the reference user selectable, e.g. to allow for dB SPL output
+                    self._curves[x.getDisplayName()] = self._axes.semilogx(x.logFreqs, x.getMagnitude(ref=1),
+                                                                           linewidth=2, antialiased=True,
+                                                                           linestyle='solid',
+                                                                           color=self._chart.getColour(idx),
+                                                                           visible=x._active)[0]
+            self._chart.canvas.draw()
+            self._refreshData = False
 
-    def _analyse(self):
-        '''
-        Runs FFT and linToLog against the windowed datas.
-        This stores 2 separate 3 element tuples
-         * _fft: (measurement, fft'ed data, no of points in the fft)
-         * _linToLog: (measurement, log spaced fft'ed data, log spaced frequencies)
-        :return:
-        '''
-        if not self._fft:
-            self._fft = [((x,) + fft(x.gatedSamples)) for x in self._measurements]
-            # TODO get
-            self._linToLog = [(x[0],) + linToLog(x[1], x[0]._fs / x[2]) for x in self._fft]
-
-    def onMeasurementUpdate(self, idx):
+    def onMeasurementUpdate(self, idx=None):
         '''
         toggles the measurement on and off.
         :param idx: the measurement idx.
         :return:
         '''
-        m = self._measurements[idx] if idx < len(self._measurements) else None
-        if m:
-            curve = self._curves.get(m.getDisplayName())
-            if curve:
-                curve.set_visible(m._active)
-                self._chart.canvas.draw()
+        if idx is None:
+            pass
+        else:
+            m = self._measurementModel[idx] if idx < len(self._measurementModel) else None
+            if m:
+                curve = self._curves.get(m.getDisplayName())
+                if curve:
+                    curve.set_visible(m._active)
+                    self._chart.canvas.draw()

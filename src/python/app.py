@@ -1,8 +1,7 @@
 import sys
 
-from PyQt5.QtWidgets import QMainWindow, QApplication, QFileDialog
-
 import matplotlib
+from PyQt5.QtWidgets import QMainWindow, QApplication, QFileDialog
 
 matplotlib.use("Qt5Agg")
 
@@ -33,6 +32,9 @@ class MplWidget(QtWidgets.QWidget):
         self.setLayout(self.vbl)
         self._cmap = plt.cm.get_cmap('tab20')
 
+    def getColourMap(self, name):
+        return plt.cm.get_cmap(name)
+
     def getColour(self, idx):
         '''
         :param idx: the colour index.
@@ -47,28 +49,21 @@ class PyPolarmap(QMainWindow, pypolarmap.Ui_MainWindow):
         super(PyPolarmap, self).__init__(parent)
         self.setupUi(self)
         self.dataPath.setDisabled(True)
-        self._polarModel = polar.PolarModel(self.polarGraph)
-        self._magnitudeModel = mag.MagnitudeModel(self.magnitudeGraph, self._polarModel)
+        self._measurementModel = m.MeasurementModel()
+        self._polarModel = polar.PolarModel(self.polarGraph, self._measurementModel)
+        self._magnitudeModel = mag.MagnitudeModel(self.magnitudeGraph, self._measurementModel, self._polarModel)
         self._impulseModel = imp.ImpulseModel(self.impulseGraph,
-                                              left={'position': self.leftWindowSample,
-                                                    'type': self.leftWindowType,
-                                                    'percent': self.leftWindowPercent},
-                                              right={'position': self.rightWindowSample,
-                                                     'type': self.rightWindowType,
-                                                     'percent': self.rightWindowPercent},
-                                              mag=self._magnitudeModel)
-        self._measurementModel = m.MeasurementModel(parent=parent, listener=self._broadcastMeasurementChange)
-        self.measurementView.setModel(self._measurementModel)
+                                              {'position': self.leftWindowSample,
+                                               'type': self.leftWindowType,
+                                               'percent': self.leftWindowPercent},
+                                              {'position': self.rightWindowSample,
+                                               'type': self.rightWindowType,
+                                               'percent': self.rightWindowPercent},
+                                              self._measurementModel,
+                                              self._magnitudeModel)
+        self._measurementTableModel = m.MeasurementTableModel(self._measurementModel, parent=parent)
+        self.measurementView.setModel(self._measurementTableModel)
         self._graphs = [self.impulseGraph, self.magnitudeGraph]
-
-    def _broadcastMeasurementChange(self, idx):
-        '''
-        broadcasts a change in this measurement to the relevant graphs.
-        :param idx: the measurement index.
-        :return:
-        '''
-        self._impulseModel.onMeasurementUpdate(idx)
-        self._magnitudeModel.onMeasurementUpdate(idx)
 
     # signal handlers
     def selectDirectory(self):
@@ -84,24 +79,16 @@ class PyPolarmap(QMainWindow, pypolarmap.Ui_MainWindow):
         if dialog.exec():
             selectedDir = dialog.selectedFiles()
             if len(selectedDir) > 0:
-                # for g in self._graphs:
-                #     g.getPlotItem().clear()
                 self.dataPath.setStyleSheet("QLineEdit {background-color: white;}")
                 self.dataPath.setText(selectedDir[0])
-                measurements = m.loadFromDir(selectedDir[0], 'txt')
-                self._measurementModel.accept(measurements)
-                self._measurementModel.completeRendering(self.measurementView)
-                self._impulseModel.accept(measurements)
-                self._impulseModel.display()
-                self._magnitudeModel.accept(measurements)
+                self._measurementModel.load(selectedDir)
+                self._measurementTableModel.completeRendering(self.measurementView)
                 self.toggleWindowedBtn.setDisabled(False)
                 self.zoomButton.setDisabled(False)
             else:
-                self._measurementModel.accept([])
-                self._impulseModel.accept([])
-                self._magnitudeModel.accept([])
+                self._measurementModel.clear()
                 for g in self._graphs:
-                    g.getPlotItem().clear()
+                    g.clear()
                 self.toggleWindowedBtn.setDisabled(True)
                 self.zoomButton.setDisabled(True)
 
@@ -132,12 +119,15 @@ class PyPolarmap(QMainWindow, pypolarmap.Ui_MainWindow):
         '''
         self._impulseModel.updateRightWindowPosition()
 
-    def zoomToWindow(self):
+    def zoomIn(self):
         '''
         propagates the zoom button click to the impulse model.
         :return:
         '''
-        self._impulseModel.zoomToWindow()
+        self._impulseModel.zoomIn()
+
+    def zoomOut(self):
+        self._impulseModel.zoomOut()
 
     def toggleWindowed(self):
         '''
@@ -149,6 +139,12 @@ class PyPolarmap(QMainWindow, pypolarmap.Ui_MainWindow):
         else:
             self.toggleWindowedBtn.setText('Show Raw IR')
         self._impulseModel.toggleWindowed()
+
+    def updateWindow(self):
+        '''
+        Propagates the button click to the model.
+        '''
+        self._impulseModel.updateWindow()
 
 
 def main():
