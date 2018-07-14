@@ -234,6 +234,11 @@ class PyPolarmap(QMainWindow, pypolarmap.Ui_MainWindow):
         '''
         self._spatialModel.boxRadius = value
 
+    def refreshSpatial(self):
+        '''
+        Tells the spatial graph to refresh.
+        '''
+        self._spatialModel.display()
 
 def main():
     app = QApplication(sys.argv)

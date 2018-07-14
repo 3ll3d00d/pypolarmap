@@ -186,6 +186,18 @@ class MeasurementModel(Sequence):
             self.spatial = calSpatial(logData, logFreqs, angles, measurementDistance, driverRadius, coeffs, transFreq,
                                       lfGain, boxRadius, f0, q0)
 
+    def spatialMagnitude(self, ref=1):
+        '''
+        Converts the spatial data into a magnitude (in dB if ref is supplied).
+        :param ref: the reference, if any.
+        :return: the magnitude data.
+        '''
+        if self.spatial is not None:
+            mag = np.abs(self.spatial)
+            if ref:
+                return 20 * np.log10(mag / ref)
+            return mag
+
 
 class Measurement:
     '''

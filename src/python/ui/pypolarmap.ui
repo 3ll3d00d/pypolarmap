@@ -236,7 +236,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>3</number>
     </property>
     <widget class="QWidget" name="impulseTab">
      <attribute name="title">
@@ -509,6 +509,25 @@
         <height>954</height>
        </rect>
       </property>
+     </widget>
+     <widget class="QWidget" name="gridLayoutWidget_4">
+      <property name="geometry">
+       <rect>
+        <x>-1</x>
+        <y>959</y>
+        <width>131</width>
+        <height>91</height>
+       </rect>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_2">
+       <item row="0" column="0">
+        <widget class="QPushButton" name="refreshSpatialBtn">
+         <property name="text">
+          <string>Refresh</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
     </widget>
    </widget>
@@ -824,6 +843,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>refreshSpatialBtn</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>refreshSpatial()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>691</x>
+     <y>1051</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>589</x>
+     <y>856</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>selectDirectory()</slot>
@@ -850,5 +885,6 @@
   <slot>updateLFGain()</slot>
   <slot>updateTransitionFrequency()</slot>
   <slot>updateBoxRadius()</slot>
+  <slot>refreshSpatial()</slot>
  </slots>
 </ui>

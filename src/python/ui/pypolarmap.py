@@ -225,6 +225,15 @@ class Ui_MainWindow(object):
         self.spatialGraph = MplWidget(self.tab)
         self.spatialGraph.setGeometry(QtCore.QRect(0, 0, 1621, 954))
         self.spatialGraph.setObjectName("spatialGraph")
+        self.gridLayoutWidget_4 = QtWidgets.QWidget(self.tab)
+        self.gridLayoutWidget_4.setGeometry(QtCore.QRect(-1, 959, 131, 91))
+        self.gridLayoutWidget_4.setObjectName("gridLayoutWidget_4")
+        self.gridLayout_2 = QtWidgets.QGridLayout(self.gridLayoutWidget_4)
+        self.gridLayout_2.setContentsMargins(0, 0, 0, 0)
+        self.gridLayout_2.setObjectName("gridLayout_2")
+        self.refreshSpatialBtn = QtWidgets.QPushButton(self.gridLayoutWidget_4)
+        self.refreshSpatialBtn.setObjectName("refreshSpatialBtn")
+        self.gridLayout_2.addWidget(self.refreshSpatialBtn, 0, 0, 1, 1)
         self.graphTabs.addTab(self.tab, "")
         self.graphTabs.raise_()
         self.gridLayoutWidget.raise_()
@@ -238,7 +247,7 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
-        self.graphTabs.setCurrentIndex(0)
+        self.graphTabs.setCurrentIndex(3)
         self.selectDirBtn.clicked.connect(MainWindow.selectDirectory)
         self.rightWindowSample.editingFinished.connect(MainWindow.updateRightWindowPosition)
         self.zoomButton.clicked.connect(MainWindow.zoomIn)
@@ -257,6 +266,7 @@ class Ui_MainWindow(object):
         self.transFreq.valueChanged['int'].connect(MainWindow.updateTransitionFrequency)
         self.lfGain.valueChanged['double'].connect(MainWindow.updateLFGain)
         self.boxRadius.valueChanged['double'].connect(MainWindow.updateBoxRadius)
+        self.refreshSpatialBtn.clicked.connect(MainWindow.refreshSpatial)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -296,6 +306,7 @@ class Ui_MainWindow(object):
         self.label_3.setText(_translate("MainWindow", "Colour Map"))
         self.label_4.setText(_translate("MainWindow", "Contour Interval (dB)"))
         self.graphTabs.setTabText(self.graphTabs.indexOf(self.polarTab), _translate("MainWindow", "Polar"))
+        self.refreshSpatialBtn.setText(_translate("MainWindow", "Refresh"))
         self.graphTabs.setTabText(self.graphTabs.indexOf(self.tab), _translate("MainWindow", "Spatial"))
 
 from app import MplWidget
