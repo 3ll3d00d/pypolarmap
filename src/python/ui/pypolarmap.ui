@@ -269,6 +269,48 @@
        </rect>
       </property>
      </widget>
+     <widget class="QWidget" name="gridLayoutWidget_3">
+      <property name="geometry">
+       <rect>
+        <x>-1</x>
+        <y>960</y>
+        <width>531</width>
+        <height>61</height>
+       </rect>
+      </property>
+      <layout class="QGridLayout" name="gridLayout">
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_3">
+         <property name="text">
+          <string>Colour Map</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QComboBox" name="colourMapSelector"/>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_4">
+         <property name="text">
+          <string>Contour Interval (dB)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QSpinBox" name="contourInterval">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>12</number>
+         </property>
+         <property name="value">
+          <number>3</number>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
     </widget>
    </widget>
    <zorder>graphTabs</zorder>
@@ -423,6 +465,38 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>colourMapSelector</sender>
+   <signal>currentIndexChanged(QString)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>updateColourMap()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1050</x>
+     <y>1045</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>593</x>
+     <y>1069</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>contourInterval</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>updateContourInterval()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>962</x>
+     <y>1084</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>596</x>
+     <y>1121</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>selectDirectory()</slot>
@@ -439,5 +513,7 @@
   <slot>onGraphTabChange()</slot>
   <slot>zoomOut()</slot>
   <slot>updateWindow()</slot>
+  <slot>updateColourMap()</slot>
+  <slot>updateContourInterval()</slot>
  </slots>
 </ui>

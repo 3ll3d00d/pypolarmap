@@ -79,3 +79,10 @@ class MagnitudeModel:
                 if curve:
                     curve.set_visible(m._active)
                     self._chart.canvas.draw()
+
+    def clear(self):
+        '''
+        clears the graph.
+        '''
+        self._axes.clear()
+        self._curves = {}

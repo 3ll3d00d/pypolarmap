@@ -6,15 +6,27 @@ class PolarModel:
     Allows a set of FRs to be displayed as a directivity sonargram.
     '''
 
-    def __init__(self, chart, measurementModel):
+    def __init__(self, chart, measurementModel, contourInterval):
         self._chart = chart
-        self._axes = self._chart.canvas.figure.add_subplot(111)
-        self._axes.set_xscale('log')
+        self._axes = None
+        self._initChart()
         self._measurementModel = measurementModel
-        self._imgData = None
-        self._im = None
-        self._cb = None
+        self._selectedCmap = 'plasma'
+        self._contourInterval = contourInterval
+        self._x = None
+        self._y = None
+        self._z = None
+        self._tc = None
+        self._tcf = None
         self._refreshData = False
+
+    def _initChart(self):
+        '''
+        Initialises the chart with the default configuration.
+        '''
+        self._axes = self._chart.canvas.figure.add_subplot(111)
+        self._axes.axis('auto')
+        self._axes.set_xscale('log')
 
     def markForRefresh(self):
         '''
@@ -27,15 +39,52 @@ class PolarModel:
         Updates the contents of the chart.
         '''
         if self._refreshData and len(self._measurementModel) > 0:
-            freqs = self._measurementModel[0].logFreqs
-            angles = [x._h for x in self._measurementModel]
-            self._extents = [freqs[0], freqs[-1], -angles[-1], angles[0]]
-            self._imgData = np.array([x.getMagnitude(ref=1) for x in self._measurementModel])
-            if self._im:
-                self._im.set_data(self._imgData)
-                self._cb.set_array(self._imgData)
-            else:
-                self._im = self._axes.imshow(self._imgData, cmap=self._chart.getColourMap('tab20'), extent=self._extents)
-                self._cb = self._chart.canvas.figure.colorbar(self._im)
+            # convert to a table of xyz coordinates where x = frequencies, y = angles, z = magnitude
+            self._x = np.array([x.logFreqs for x in self._measurementModel]).flatten()
+            self._y = np.array([x._h for x in self._measurementModel]).repeat(self._measurementModel[0].logFreqs.size)
+            self._z = np.array([x.getMagnitude(ref=1) for x in self._measurementModel]).flatten()
+            self._extents = [np.amin(self._x), np.amax(self._x), np.amax(self._y), np.amin(self._y)]
+            vmax = np.math.ceil(np.amax(self._z))
+            vmin = np.math.floor(np.amin(self._z))
+
+            if self._tcf:
+                self.clear()
+
+            steps = np.flip(np.arange(vmax, vmin, -self._contourInterval), 0)
+            self._tc = self._axes.tricontour(self._x, self._y, self._z, steps, linewidths=0.5, colors='k')
+            self._tcf = self._axes.tricontourf(self._x, self._y, self._z, steps,
+                                               cmap=self._chart.getColourMap(self._selectedCmap))
+            self._cb = self._chart.canvas.figure.colorbar(self._tcf)
+            self._tcf.set_clim(vmin=vmin, vmax=vmax)
             self._chart.canvas.draw()
             self._refreshData = False
+
+    def updateColourMap(self, cmap):
+        '''
+        Updates the currently selected colour map.
+        :param cmap: the cmap name.
+        '''
+        if self._tcf:
+            self._tcf.set_cmap(cmap)
+            self._chart.canvas.draw()
+        self._selectedCmap = cmap
+
+    def clear(self):
+        '''
+        clears the graph.
+        '''
+        if self._tcf:
+            self._chart.canvas.figure.clear()
+            self._initChart()
+            self._chart.canvas.draw()
+            self._tc = None
+            self._tcf = None
+
+    def updateContourInterval(self, interval):
+        '''
+        Redraws with a new contour interval.
+        :param interval: the interval
+        '''
+        self._contourInterval = interval
+        self.markForRefresh()
+        self.display()

@@ -59,6 +59,13 @@ smooth_func.argtypes = [
 ]
 
 
+# calspatial setup
+calspatial_func = getattr(lib, 'CalSpatial')
+calspatial_func.restype = None
+calspatial_func.argtypes = [
+
+]
+
 def fft(data):
     '''
     :param data: the input data.
@@ -108,3 +115,40 @@ def linToLog(linearFreqs, freqStep):
     logPoints = ct.c_int32(outputPts - 1)
     linToLog_func(inputData, freqStep, inputPts, outputData, logPoints, logFreqs)
     return outputData.copy(), logFreqs.copy()
+
+def calSpatial():
+    pass
+
+# SUBROUTINE CalSpatial(  DataIn,            &    ! The raw data from Holm
+#                         AnglesIn,          &    ! the angles the data is taken (radians)
+#                         NumAngleIn,        &    ! The number of angles for the data
+#                         Freqs,             &    ! array of frequencies
+#                         NumLogPts,         &    ! The number of frequency points
+#                         DataOut,           &    ! Modal parameters by frequency
+#                         NumCoefs,          &    ! Number of fit coefficients
+#                         MeasureR,          &    ! distance of measurements
+#                         TransFreq,         &    ! blend frequency
+#                         LFGain,            &    ! blend adjust
+#                         BoxRadius,         &    ! blend adjust
+#                         Radius,            &    ! The driver radius
+#                         F0,                &    ! The source resonance
+#                         Q0,                &    ! the source Q
+#                         SourceType             )    ! flag for dipole system
+# use deffs
+#
+# IMPLICIT NONE
+# ! Specify that CalSpatial is exported to a DLL
+# !DEC$ ATTRIBUTES DLLEXPORT :: CalSpatial
+# ! and that the external name is 'CalSpatial'
+# !DEC$ ATTRIBUTES ALIAS:'CalSpatial' :: CalSpatial
+# !DEC$ ATTRIBUTES REFERENCE :: DataIn, AnglesIn, Dataout, freqs
+# !DEC$ ATTRIBUTES value :: LFGain, BoxRadius, Radius, F0, Q0, NumLogPts, NumAngleIn, NumCoefs, MeasureR, TransFreq, SourceType
+#
+# integer, intent(in):: NumAngleIn, NumLogPts, NumCoefs
+#
+# COMPLEX(8), intent(out):: DataOut( 0:NumCoefs-1, 0:NumLogPts-1 )
+# COMPLEX(8), intent(in):: DataIn( 0:NumAngleIn-1, 0:NumLogPts-1)
+# REAL(8), intent(in):: AnglesIn( 0:NumAngleIn-1)  ! must be in radians
+# REAL(8), intent(in):: Freqs(0:NumLogPts-1)
+# Real(8), intent(in) :: MeasureR, TransFreq, LFGain, BoxRadius, Radius, F0, Q0
+# integer, intent(in) :: SourceType

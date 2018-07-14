@@ -7,10 +7,12 @@ matplotlib.use("Qt5Agg")
 
 from model import impulse as imp, magnitude as mag, polar, measurement as m
 from ui import pypolarmap
-from PyQt5 import QtWidgets
+from PyQt5 import QtCore, QtWidgets
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as Canvas
 import matplotlib.pyplot as plt
+
+colourMaps = sorted((m for m in plt.colormaps() if not m.endswith("_r")), key=str.lower)
 
 
 # Matplotlib canvas class to create figure
@@ -48,9 +50,10 @@ class PyPolarmap(QMainWindow, pypolarmap.Ui_MainWindow):
     def __init__(self, parent=None):
         super(PyPolarmap, self).__init__(parent)
         self.setupUi(self)
+        self.loadColourMaps()
         self.dataPath.setDisabled(True)
         self._measurementModel = m.MeasurementModel()
-        self._polarModel = polar.PolarModel(self.polarGraph, self._measurementModel)
+        self._polarModel = polar.PolarModel(self.polarGraph, self._measurementModel, self.contourInterval.value())
         self._magnitudeModel = mag.MagnitudeModel(self.magnitudeGraph, self._measurementModel, self._polarModel)
         self._impulseModel = imp.ImpulseModel(self.impulseGraph,
                                               {'position': self.leftWindowSample,
@@ -64,6 +67,15 @@ class PyPolarmap(QMainWindow, pypolarmap.Ui_MainWindow):
         self._measurementTableModel = m.MeasurementTableModel(self._measurementModel, parent=parent)
         self.measurementView.setModel(self._measurementTableModel)
         self._graphs = [self.impulseGraph, self.magnitudeGraph]
+
+    def loadColourMaps(self):
+        _translate = QtCore.QCoreApplication.translate
+        defaultIdx = 0
+        for idx, cm in enumerate(colourMaps):
+            self.colourMapSelector.addItem(_translate("MainWindow", cm))
+            if cm == 'plasma':
+                defaultIdx = idx
+        self.colourMapSelector.setCurrentIndex(defaultIdx)
 
     # signal handlers
     def selectDirectory(self):
@@ -87,8 +99,6 @@ class PyPolarmap(QMainWindow, pypolarmap.Ui_MainWindow):
                 self.zoomButton.setDisabled(False)
             else:
                 self._measurementModel.clear()
-                for g in self._graphs:
-                    g.clear()
                 self.toggleWindowedBtn.setDisabled(True)
                 self.zoomButton.setDisabled(True)
 
@@ -145,6 +155,21 @@ class PyPolarmap(QMainWindow, pypolarmap.Ui_MainWindow):
         Propagates the button click to the model.
         '''
         self._impulseModel.updateWindow()
+
+    def updateColourMap(self, cmap):
+        '''
+        Updates the colour map in the charts.
+        :param cmap: the named colour map.
+        '''
+        if hasattr(self, '_polarModel'):
+            self._polarModel.updateColourMap(cmap)
+
+    def updateContourInterval(self, interval):
+        '''
+        Redraws the contours with the new interval.
+        :param interval:  the interval.
+        '''
+        self._polarModel.updateContourInterval(interval)
 
 
 def main():

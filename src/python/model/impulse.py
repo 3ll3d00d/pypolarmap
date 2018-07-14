@@ -8,6 +8,7 @@ class ImpulseModel:
 
     def __init__(self, chart, left, right, measurementModel, mag):
         self._chart = chart
+        self._axes = self._chart.canvas.figure.add_subplot(111)
         self._initChart()
         self._curves = {}
         self._yRange = 1
@@ -23,7 +24,6 @@ class ImpulseModel:
         self._magnitudeModel = mag
 
     def _initChart(self):
-        self._axes = self._chart.canvas.figure.add_subplot(111)
         self._axes.spines['bottom'].set_position('center')
         self._axes.spines['right'].set_color('none')
         self._axes.spines['top'].set_color('none')
@@ -56,17 +56,22 @@ class ImpulseModel:
             if len(self._measurementModel) > 0:
                 self._setMaxSample(self._measurementModel.getMaxSample())
                 self._yRange = self._measurementModel.getMaxSampleValue()
+                self._leftWindow['position'].setMaximum(self._maxSample - 1)
+                self._leftWindow['position'].setValue(self._measurementModel[0].startIndex())
+                self._rightWindow['position'].setMaximum(self._maxSample)
+                self._rightWindow['position'].setValue(self._measurementModel[0].firstReflectionIndex())
+                self.zoomOut()
             else:
                 self._setMaxSample(0)
                 self._yRange = 1
-            self._leftWindow['position'].setMaximum(self._maxSample - 1)
-            self._leftWindow['position'].setValue(self._measurementModel[0].startIndex())
-            self._rightWindow['position'].setMaximum(self._maxSample)
-            self._rightWindow['position'].setValue(self._measurementModel[0].firstReflectionIndex())
+                self._leftWindow['position'].setMaximum(0)
+                self._leftWindow['position'].setValue(0)
+                self._rightWindow['position'].setMaximum(1)
+                self._rightWindow['position'].setValue(1)
+                self.clear()
             self._axes.set_ylim(bottom=-self._yRange, top=self._yRange)
             self.updateLeftWindowPosition()
             self.updateRightWindowPosition()
-            self.zoomOut()
         self._displayActiveData(updatedIdx=idx)
 
     def _addPlotForMeasurement(self, idx, measurement):
@@ -200,3 +205,11 @@ class ImpulseModel:
                         curve.remove()
                         del self._curves[m.getDisplayName()]
         self._chart.canvas.draw()
+
+    def clear(self):
+        '''
+        clears the graph.
+        '''
+        self._axes.clear()
+        self._initChart()
+        self._curves = {}
