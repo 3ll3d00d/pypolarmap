@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QFileDialog
 
 matplotlib.use("Qt5Agg")
 
-from model import impulse as imp, magnitude as mag, polar, measurement as m
+from model import impulse as imp, magnitude as mag, polar, measurement as m, spatial
 from ui import pypolarmap
 from PyQt5 import QtCore, QtWidgets
 from matplotlib.figure import Figure
@@ -53,7 +53,12 @@ class PyPolarmap(QMainWindow, pypolarmap.Ui_MainWindow):
         self.loadColourMaps()
         self.dataPath.setDisabled(True)
         self._measurementModel = m.MeasurementModel()
-        self._polarModel = polar.PolarModel(self.polarGraph, self._measurementModel, self.contourInterval.value())
+        self._spatialModel = spatial.SpatialModel(self.spatialGraph, self._measurementModel,
+                                                  self.measurementDistance.value(), self.driverRadius.value() / 100,
+                                                  self.modalCoeffs.value(), self.f0.value(), self.q0.value(),
+                                                  self.transFreq.value(), self.lfGain.value(), self.boxRadius.value())
+        self._polarModel = polar.PolarModel(self.polarGraph, self._measurementModel, self._spatialModel,
+                                            self.contourInterval.value())
         self._magnitudeModel = mag.MagnitudeModel(self.magnitudeGraph, self._measurementModel, self._polarModel)
         self._impulseModel = imp.ImpulseModel(self.impulseGraph,
                                               {'position': self.leftWindowSample,
@@ -111,6 +116,8 @@ class PyPolarmap(QMainWindow, pypolarmap.Ui_MainWindow):
             self._magnitudeModel.display()
         elif idx == 2:
             self._polarModel.display()
+        elif idx == 3:
+            self._spatialModel.display()
         else:
             # unknown
             pass
@@ -170,6 +177,62 @@ class PyPolarmap(QMainWindow, pypolarmap.Ui_MainWindow):
         :param interval:  the interval.
         '''
         self._polarModel.updateContourInterval(interval)
+
+    def updateMeasurementDistance(self, value):
+        '''
+        propagates UI field to spatial model
+        :param value: the value
+        '''
+        self._spatialModel.measurementDistance = value
+
+    def updateDriverRadius(self, value):
+        '''
+        propagates UI field to spatial model
+        :param value: the value
+        '''
+        self._spatialModel.driverRadius = value / 100  # convert cm to m
+
+    def updateModalCoeffs(self, value):
+        '''
+        propagates UI field to spatial model
+        :param value: the value
+        '''
+        self._spatialModel.modalCoeffs = value
+
+    def updateF0(self, value):
+        '''
+        propagates UI field to spatial model
+        :param value: the value
+        '''
+        self._spatialModel.f0 = value
+
+    def updateQ0(self, value):
+        '''
+        propagates UI field to spatial model
+        :param value: the value
+        '''
+        self._spatialModel.q0 = value
+
+    def updateTransitionFrequency(self, value):
+        '''
+        propagates UI field to spatial model
+        :param value: the value
+        '''
+        self._spatialModel.transFreq = value
+
+    def updateLFGain(self, value):
+        '''
+        propagates UI field to spatial model
+        :param value: the value
+        '''
+        self._spatialModel.lfGain = value
+
+    def updateBoxRadius(self, value):
+        '''
+        propagates UI field to spatial model
+        :param value: the value
+        '''
+        self._spatialModel.boxRadius = value
 
 
 def main():

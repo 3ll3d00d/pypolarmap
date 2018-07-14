@@ -26,45 +26,6 @@ fft_func.argtypes = [
     ct.POINTER(ct.c_int32)
 ]
 
-# LinToLog setup
-linToLog_func = getattr(lib, 'LinToLog')
-linToLog_func.restype = None
-linToLog_func.argtypes = [
-    # COMPLEX(8), intent(in):: DataIn(0:NumFFTPts)        ! FFT data in at all angles
-    np.ctypeslib.ndpointer(dtype=np.complex128, ndim=1, flags=ALIGNED),
-    # real(8), intent(in) :: DeltaF                      ! the frequency delta
-    ct.c_double,
-    # integer, intent(in):: NumFFTPts                    ! the number of FFT points in the input
-    ct.c_int32,
-    # COMPLEX(8), intent(out) :: DataOut(0:NumLogPts)    ! The interpolated log frequency output
-    np.ctypeslib.ndpointer(dtype=np.complex128, ndim=1, flags=WRITEABLE_ALIGNED),
-    # integer, intent(in) :: NumLogPts                   ! number of smoothed output points ‐ log scaled
-    ct.c_int32,
-    # real(8), intent(out) :: Freqs(0:NumLogPts)          ! the Array of output frequencies
-    np.ctypeslib.ndpointer(dtype=np.float64, ndim=1, flags=WRITEABLE_ALIGNED),
-]
-
-# smooth setup
-smooth_func = getattr(lib, 'Smooth')
-smooth_func.restype = None
-smooth_func.argtypes = [
-    # ByRef Data_in As Double
-    ct.POINTER(ct.c_double),
-    # ByVal Freqs() As Double
-    np.ctypeslib.ndpointer(dtype=np.float64, ndim=1, flags=WRITEABLE_ALIGNED),
-    # ByVal numpts_ As Integer
-    ct.c_int32,
-    # ByVal atype As Integer
-    ct.c_int32
-]
-
-
-# calspatial setup
-calspatial_func = getattr(lib, 'CalSpatial')
-calspatial_func.restype = None
-calspatial_func.argtypes = [
-
-]
 
 def fft(data):
     '''
@@ -93,6 +54,24 @@ logPts = {
     4096: 300
 }
 
+# LinToLog setup
+linToLog_func = getattr(lib, 'LinToLog')
+linToLog_func.restype = None
+linToLog_func.argtypes = [
+    # COMPLEX(8), intent(in):: DataIn(0:NumFFTPts)        ! FFT data in at all angles
+    np.ctypeslib.ndpointer(dtype=np.complex128, ndim=1, flags=ALIGNED),
+    # real(8), intent(in) :: DeltaF                      ! the frequency delta
+    ct.c_double,
+    # integer, intent(in):: NumFFTPts                    ! the number of FFT points in the input
+    ct.c_int32,
+    # COMPLEX(8), intent(out) :: DataOut(0:NumLogPts)    ! The interpolated log frequency output
+    np.ctypeslib.ndpointer(dtype=np.complex128, ndim=1, flags=WRITEABLE_ALIGNED),
+    # integer, intent(in) :: NumLogPts                   ! number of smoothed output points ‐ log scaled
+    ct.c_int32,
+    # real(8), intent(out) :: Freqs(0:NumLogPts)          ! the Array of output frequencies
+    np.ctypeslib.ndpointer(dtype=np.float64, ndim=1, flags=WRITEABLE_ALIGNED),
+]
+
 
 def linToLog(linearFreqs, freqStep):
     '''
@@ -107,7 +86,7 @@ def linToLog(linearFreqs, freqStep):
     if inputPts.value in logPts:
         outputPts = logPts[inputPts.value]
     else:
-        outputPts = min(128, int(round(linearFreqs.shape[0]/4)))
+        outputPts = min(128, int(round(linearFreqs.shape[0] / 4)))
     outputData = np.require(np.zeros(outputPts, dtype=np.complex128), dtype=np.complex128,
                             requirements=WRITEABLE_ALIGNED_ARR)
     logFreqs = np.require(np.logspace(math.log10(20), math.log10(20000), num=outputPts, endpoint=True),
@@ -116,39 +95,94 @@ def linToLog(linearFreqs, freqStep):
     linToLog_func(inputData, freqStep, inputPts, outputData, logPoints, logFreqs)
     return outputData.copy(), logFreqs.copy()
 
-def calSpatial():
-    pass
 
-# SUBROUTINE CalSpatial(  DataIn,            &    ! The raw data from Holm
-#                         AnglesIn,          &    ! the angles the data is taken (radians)
-#                         NumAngleIn,        &    ! The number of angles for the data
-#                         Freqs,             &    ! array of frequencies
-#                         NumLogPts,         &    ! The number of frequency points
-#                         DataOut,           &    ! Modal parameters by frequency
-#                         NumCoefs,          &    ! Number of fit coefficients
-#                         MeasureR,          &    ! distance of measurements
-#                         TransFreq,         &    ! blend frequency
-#                         LFGain,            &    ! blend adjust
-#                         BoxRadius,         &    ! blend adjust
-#                         Radius,            &    ! The driver radius
-#                         F0,                &    ! The source resonance
-#                         Q0,                &    ! the source Q
-#                         SourceType             )    ! flag for dipole system
-# use deffs
-#
-# IMPLICIT NONE
-# ! Specify that CalSpatial is exported to a DLL
-# !DEC$ ATTRIBUTES DLLEXPORT :: CalSpatial
-# ! and that the external name is 'CalSpatial'
-# !DEC$ ATTRIBUTES ALIAS:'CalSpatial' :: CalSpatial
-# !DEC$ ATTRIBUTES REFERENCE :: DataIn, AnglesIn, Dataout, freqs
-# !DEC$ ATTRIBUTES value :: LFGain, BoxRadius, Radius, F0, Q0, NumLogPts, NumAngleIn, NumCoefs, MeasureR, TransFreq, SourceType
-#
-# integer, intent(in):: NumAngleIn, NumLogPts, NumCoefs
-#
-# COMPLEX(8), intent(out):: DataOut( 0:NumCoefs-1, 0:NumLogPts-1 )
-# COMPLEX(8), intent(in):: DataIn( 0:NumAngleIn-1, 0:NumLogPts-1)
-# REAL(8), intent(in):: AnglesIn( 0:NumAngleIn-1)  ! must be in radians
-# REAL(8), intent(in):: Freqs(0:NumLogPts-1)
-# Real(8), intent(in) :: MeasureR, TransFreq, LFGain, BoxRadius, Radius, F0, Q0
-# integer, intent(in) :: SourceType
+# calspatial setup
+calspatial_func = getattr(lib, 'CalSpatial')
+calspatial_func.restype = None
+calspatial_func.argtypes = [
+    # DataIn( 0:NumAngleIn-1, 0:NumLogPts-1) - COMPLEX(8), intent(in)
+    np.ctypeslib.ndpointer(dtype=np.complex128, ndim=2, flags=ALIGNED),
+    # AnglesIn( 0:NumAngleIn-1) - REAL(8), intent(in)
+    np.ctypeslib.ndpointer(dtype=np.float64, ndim=1, flags=ALIGNED),
+    # NumAngleIn - integer, intent(in)
+    ct.c_int32,
+    # Freqs - REAL(8), intent(in):: Freqs(0:NumLogPts-1)
+    np.ctypeslib.ndpointer(dtype=np.float64, ndim=1, flags=ALIGNED),
+    # NumLogPts - integer, intent(in)
+    ct.c_int32,
+    # DataOut - COMPLEX(8), intent(out):: DataOut( 0:NumCoefs-1, 0:NumLogPts-1 )
+    np.ctypeslib.ndpointer(dtype=np.complex128, ndim=2, flags=WRITEABLE_ALIGNED),
+    # NumCoefs - integer, intent(in)
+    ct.c_int32,
+    # MeasureR - Real(8), intent(in)
+    ct.c_double,
+    # TransFreq - Real(8), intent(in)
+    ct.c_double,
+    # LFGain - Real(8), intent(in)
+    ct.c_double,
+    # BoxRadius - Real(8), intent(in)
+    ct.c_double,
+    # Radius - Real(8), intent(in)
+    ct.c_double,
+    # F0 - Real(8), intent(in)
+    ct.c_double,
+    # Q0 - Real(8), intent(in)
+    ct.c_double,
+    # SourceType - integer, intent(in)
+    ct.c_int32
+]
+
+
+def calSpatial(logSpacedMeasurements, logSpacedFreqs, anglesInRadians, measurementDistance, driverRadius,
+               fitCoefficientsExpected=14, transFreq=200, lowFreqGain=0.0, boxRadius=0.25, f0=70, q0=0.7,
+               sourceType=0):
+    '''
+    :param logSpacedMeasurements: The measurement data as output by linToLog
+    :param logSpacedFreqs: The frequencies for the logSpaced data
+    :param anglesInRadians: the angles the data is taken (radians)
+    :param fitCoefficientsExpected: Number of fit coefficients
+    :param measurementDistance: Measurement distance in m
+    :param transFreq: blend frequency
+    :param lowFreqGain: blend adjust
+    :param boxRadius: blend adjust
+    :param driverRadius: driver radius
+    :param f0: source resonance
+    :param q0: source Q
+    :param sourceType: dipole f
+    :return: the modal parameters by frequency.
+    '''
+    if driverRadius >= boxRadius:
+        raise ValueError('driverRadius must be less than boxRadius')
+    dataOut = np.require(np.zeros((fitCoefficientsExpected, logSpacedFreqs.shape[0]), dtype=np.complex128),
+                         dtype=np.complex128, requirements=WRITEABLE_ALIGNED_ARR)
+    calspatial_func(np.require(logSpacedMeasurements, dtype=np.complex128, requirements=ALIGNED_ARR),
+                    np.require(anglesInRadians, dtype=np.float64, requirements=ALIGNED_ARR),
+                    ct.c_int32(anglesInRadians.shape[0]),
+                    np.require(logSpacedFreqs, dtype=np.float64, requirements=ALIGNED_ARR),
+                    ct.c_int32(logSpacedFreqs.shape[0]),
+                    dataOut,
+                    ct.c_int32(fitCoefficientsExpected),
+                    ct.c_double(measurementDistance),
+                    ct.c_double(transFreq),
+                    ct.c_double(lowFreqGain),
+                    ct.c_double(boxRadius),
+                    ct.c_double(driverRadius),
+                    ct.c_double(f0),
+                    ct.c_double(q0),
+                    ct.c_int32(sourceType))
+    return dataOut.copy()
+
+
+# smooth setup
+smooth_func = getattr(lib, 'Smooth')
+smooth_func.restype = None
+smooth_func.argtypes = [
+    # ByRef Data_in As Double
+    ct.POINTER(ct.c_double),
+    # ByVal Freqs() As Double
+    np.ctypeslib.ndpointer(dtype=np.float64, ndim=1, flags=WRITEABLE_ALIGNED),
+    # ByVal numpts_ As Integer
+    ct.c_int32,
+    # ByVal atype As Integer
+    ct.c_int32
+]

@@ -8,7 +8,7 @@ from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant, QEvent
 from PyQt5.QtWidgets import QItemDelegate
 from scipy import signal
 
-from meascalcs import fft, linToLog
+from meascalcs import fft, linToLog, calSpatial
 
 WINDOW_MAPPING = {
     'Hann': signal.windows.hann,
@@ -83,6 +83,8 @@ class MeasurementModel(Sequence):
     def __init__(self, m=None, listeners=None):
         self._measurements = m if m is not None else []
         self._listeners = listeners if listeners is not None else []
+        self._analysed = False
+        self.spatial = None
         super().__init__()
 
     def __getitem__(self, i):
@@ -149,6 +151,7 @@ class MeasurementModel(Sequence):
         completeWindow = np.concatenate((leftWin[1], leftWin[0], rightWin[0], rightWin[1]))
         for m in self._measurements:
             m.analyse(left['position'].value(), right['position'].value(), win=completeWindow)
+        self._analysed = True
 
     def _createWindow0(self, params, peakIdx, side):
         '''
@@ -171,6 +174,17 @@ class MeasurementModel(Sequence):
             return WINDOW_MAPPING[type.currentText()]
         else:
             return WINDOW_MAPPING['Tukey']
+
+    def calSpatial(self, measurementDistance, driverRadius, coeffs, transFreq, lfGain, boxRadius, f0, q0):
+        '''
+        Calls calSpatial against this set of measurements.
+        '''
+        if self._analysed:
+            logData = [x.logData for x in self._measurements]
+            logFreqs = self._measurements[0].logFreqs
+            angles = np.radians([x._h for x in self._measurements])
+            self.spatial = calSpatial(logData, logFreqs, angles, measurementDistance, driverRadius, coeffs, transFreq,
+                                      lfGain, boxRadius, f0, q0)
 
 
 class Measurement:

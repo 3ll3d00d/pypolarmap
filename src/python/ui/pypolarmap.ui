@@ -27,8 +27,146 @@
      </rect>
     </property>
     <layout class="QGridLayout" name="measurementSelectLayout">
-     <item row="0" column="1">
-      <widget class="QLineEdit" name="dataPath"/>
+     <item row="3" column="0">
+      <widget class="QLabel" name="label_5">
+       <property name="text">
+        <string>Measurement Distance (m)</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QDoubleSpinBox" name="measurementDistance">
+       <property name="minimum">
+        <double>0.100000000000000</double>
+       </property>
+       <property name="maximum">
+        <double>10.000000000000000</double>
+       </property>
+       <property name="singleStep">
+        <double>0.010000000000000</double>
+       </property>
+       <property name="value">
+        <double>1.000000000000000</double>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="1">
+      <widget class="QDoubleSpinBox" name="driverRadius">
+       <property name="decimals">
+        <number>1</number>
+       </property>
+       <property name="minimum">
+        <double>1.000000000000000</double>
+       </property>
+       <property name="maximum">
+        <double>40.000000000000000</double>
+       </property>
+       <property name="singleStep">
+        <double>0.100000000000000</double>
+       </property>
+       <property name="value">
+        <double>15.000000000000000</double>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="0">
+      <widget class="QLabel" name="label_6">
+       <property name="text">
+        <string>Driver Radius (cm)</string>
+       </property>
+      </widget>
+     </item>
+     <item row="9" column="1">
+      <widget class="QSpinBox" name="transFreq">
+       <property name="minimum">
+        <number>1</number>
+       </property>
+       <property name="maximum">
+        <number>1000</number>
+       </property>
+       <property name="value">
+        <number>200</number>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0" colspan="3">
+      <widget class="QTreeView" name="measurementView"/>
+     </item>
+     <item row="7" column="0">
+      <widget class="QLabel" name="label_8">
+       <property name="text">
+        <string>f0</string>
+       </property>
+      </widget>
+     </item>
+     <item row="6" column="0">
+      <widget class="QLabel" name="label_7">
+       <property name="text">
+        <string>Modal Coefficients</string>
+       </property>
+      </widget>
+     </item>
+     <item row="6" column="1">
+      <widget class="QSpinBox" name="modalCoeffs">
+       <property name="minimum">
+        <number>5</number>
+       </property>
+       <property name="maximum">
+        <number>14</number>
+       </property>
+       <property name="value">
+        <number>14</number>
+       </property>
+      </widget>
+     </item>
+     <item row="7" column="1">
+      <widget class="QSpinBox" name="f0">
+       <property name="minimum">
+        <number>1</number>
+       </property>
+       <property name="maximum">
+        <number>200</number>
+       </property>
+       <property name="value">
+        <number>70</number>
+       </property>
+      </widget>
+     </item>
+     <item row="8" column="1">
+      <widget class="QDoubleSpinBox" name="q0">
+       <property name="decimals">
+        <number>3</number>
+       </property>
+       <property name="minimum">
+        <double>0.200000000000000</double>
+       </property>
+       <property name="maximum">
+        <double>1.500000000000000</double>
+       </property>
+       <property name="singleStep">
+        <double>0.001000000000000</double>
+       </property>
+       <property name="value">
+        <double>0.700000000000000</double>
+       </property>
+      </widget>
+     </item>
+     <item row="8" column="0">
+      <widget class="QLabel" name="label_9">
+       <property name="text">
+        <string>q0</string>
+       </property>
+      </widget>
+     </item>
+     <item row="11" column="0">
+      <layout class="QFormLayout" name="formLayout"/>
+     </item>
+     <item row="9" column="0">
+      <widget class="QLabel" name="label_10">
+       <property name="text">
+        <string>Transition Frequency (Hz)</string>
+       </property>
+      </widget>
      </item>
      <item row="0" column="0">
       <widget class="QPushButton" name="selectDirBtn">
@@ -37,8 +175,54 @@
        </property>
       </widget>
      </item>
-     <item row="1" column="0" colspan="3">
-      <widget class="QTreeView" name="measurementView"/>
+     <item row="0" column="1">
+      <widget class="QLineEdit" name="dataPath"/>
+     </item>
+     <item row="10" column="0">
+      <widget class="QLabel" name="label_11">
+       <property name="text">
+        <string>LF Gain (dB)</string>
+       </property>
+      </widget>
+     </item>
+     <item row="10" column="1">
+      <widget class="QDoubleSpinBox" name="lfGain">
+       <property name="decimals">
+        <number>1</number>
+       </property>
+       <property name="minimum">
+        <double>-10.000000000000000</double>
+       </property>
+       <property name="maximum">
+        <double>10.000000000000000</double>
+       </property>
+       <property name="singleStep">
+        <double>0.100000000000000</double>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="0">
+      <widget class="QLabel" name="label_12">
+       <property name="text">
+        <string>Box Radius (m)</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="1">
+      <widget class="QDoubleSpinBox" name="boxRadius">
+       <property name="minimum">
+        <double>0.010000000000000</double>
+       </property>
+       <property name="maximum">
+        <double>3.000000000000000</double>
+       </property>
+       <property name="singleStep">
+        <double>0.010000000000000</double>
+       </property>
+       <property name="value">
+        <double>0.250000000000000</double>
+       </property>
+      </widget>
      </item>
     </layout>
    </widget>
@@ -312,6 +496,21 @@
       </layout>
      </widget>
     </widget>
+    <widget class="QWidget" name="tab">
+     <attribute name="title">
+      <string>Spatial</string>
+     </attribute>
+     <widget class="MplWidget" name="spatialGraph">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>1621</width>
+        <height>954</height>
+       </rect>
+      </property>
+     </widget>
+    </widget>
    </widget>
    <zorder>graphTabs</zorder>
    <zorder>gridLayoutWidget</zorder>
@@ -497,6 +696,134 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>measurementDistance</sender>
+   <signal>valueChanged(double)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>updateMeasurementDistance()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>496</x>
+     <y>869</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>593</x>
+     <y>907</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>driverRadius</sender>
+   <signal>valueChanged(double)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>updateDriverRadius()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>541</x>
+     <y>936</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>593</x>
+     <y>971</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>modalCoeffs</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>updateModalCoeffs()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>492</x>
+     <y>972</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>593</x>
+     <y>1013</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>f0</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>updateF0()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>461</x>
+     <y>1005</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>590</x>
+     <y>1096</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>q0</sender>
+   <signal>valueChanged(double)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>updateQ0()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>542</x>
+     <y>1031</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>588</x>
+     <y>1055</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>transFreq</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>updateTransitionFrequency()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>527</x>
+     <y>1076</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>591</x>
+     <y>937</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>lfGain</sender>
+   <signal>valueChanged(double)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>updateLFGain()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>480</x>
+     <y>1109</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>589</x>
+     <y>884</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>boxRadius</sender>
+   <signal>valueChanged(double)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>updateBoxRadius()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>315</x>
+     <y>906</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>203</x>
+     <y>896</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>selectDirectory()</slot>
@@ -515,5 +842,13 @@
   <slot>updateWindow()</slot>
   <slot>updateColourMap()</slot>
   <slot>updateContourInterval()</slot>
+  <slot>updateMeasurementDistance()</slot>
+  <slot>updateDriverRadius()</slot>
+  <slot>updateModalCoeffs()</slot>
+  <slot>updateF0()</slot>
+  <slot>updateQ0()</slot>
+  <slot>updateLFGain()</slot>
+  <slot>updateTransitionFrequency()</slot>
+  <slot>updateBoxRadius()</slot>
  </slots>
 </ui>

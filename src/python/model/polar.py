@@ -6,11 +6,12 @@ class PolarModel:
     Allows a set of FRs to be displayed as a directivity sonargram.
     '''
 
-    def __init__(self, chart, measurementModel, contourInterval):
+    def __init__(self, chart, measurementModel, spatialModel, contourInterval):
         self._chart = chart
         self._axes = None
         self._initChart()
         self._measurementModel = measurementModel
+        self._spatialModel = spatialModel
         self._selectedCmap = 'plasma'
         self._contourInterval = contourInterval
         self._x = None
@@ -33,6 +34,7 @@ class PolarModel:
         Marks this model as in need of recalculation.
         '''
         self._refreshData = True
+        self._spatialModel.markForRefresh()
 
     def display(self):
         '''
