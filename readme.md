@@ -21,3 +21,10 @@ to compile a test dll
     conda create -n scanner32 numpy pyqtgraph
     activate scanner32
     conda info
+
+### natgrid
+
+https://download.lfd.uci.edu/pythonlibs/l8ulg3xw/natgrid-0.2.1-cp36-cp36m-win32.whl
+
+    pip install <file>
+    

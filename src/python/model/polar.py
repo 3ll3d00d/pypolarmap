@@ -1,5 +1,7 @@
 import numpy as np
 
+from model import configureFreqAxisFormatting
+
 
 class PolarModel:
     '''
@@ -28,6 +30,10 @@ class PolarModel:
         self._axes = self._chart.canvas.figure.add_subplot(111)
         self._axes.axis('auto')
         self._axes.set_xscale('log')
+        self._axes.set_xlabel('Hz')
+        self._axes.set_ylabel('Degrees')
+        self._axes.grid(linestyle='-', which='major', linewidth=1, alpha=0.5)
+        self._axes.grid(linestyle='--', which='minor', linewidth=1, alpha=0.5)
 
     def markForRefresh(self):
         '''
@@ -57,6 +63,7 @@ class PolarModel:
             self._tcf = self._axes.tricontourf(self._x, self._y, self._z, steps,
                                                cmap=self._chart.getColourMap(self._selectedCmap))
             self._cb = self._chart.canvas.figure.colorbar(self._tcf)
+            configureFreqAxisFormatting(self._axes)
             self._tcf.set_clim(vmin=vmin, vmax=vmax)
             self._chart.canvas.draw()
             self._refreshData = False

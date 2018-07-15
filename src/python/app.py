@@ -1,12 +1,15 @@
 import sys
 
 import matplotlib
-from PyQt5.QtWidgets import QMainWindow, QApplication, QFileDialog
+from PyQt5.QtWidgets import QMainWindow, QApplication, QFileDialog, QDialog, QDialogButtonBox, QMessageBox
+
+from model.load import WavLoader, HolmLoader, TxtLoader, DblLoader, REWLoader, ARTALoader
+from ui.loadMeasurements import Ui_loadMeasurementDialog
+from ui.pypolarmap import Ui_MainWindow
 
 matplotlib.use("Qt5Agg")
 
 from model import impulse as imp, magnitude as mag, polar, measurement as m, spatial
-from ui import pypolarmap
 from PyQt5 import QtCore, QtWidgets
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as Canvas
@@ -46,7 +49,93 @@ class MplWidget(QtWidgets.QWidget):
         return self._cmap.colors[cIdx]
 
 
-class PyPolarmap(QMainWindow, pypolarmap.Ui_MainWindow):
+class LoadMeasurementsDialog(QDialog, Ui_loadMeasurementDialog):
+    '''
+    Load Measurement dialog
+    '''
+
+    def __init__(self, parent=None):
+        super(LoadMeasurementsDialog, self).__init__(parent)
+        self.setupUi(self)
+        self.buttonBox.button(QDialogButtonBox.Ok).setText("Load")
+        _translate = QtCore.QCoreApplication.translate
+        self.fs.setCurrentText(_translate("loadMeasurementDialog", "48000"))
+        self.__dialog = QFileDialog(parent=self)
+
+    def accept(self):
+        '''
+        Shows the file select dialog based on the chosen options.
+        :return:
+        '''
+        loadType = self.fileType.currentText()
+        fileMode = None
+        option = QFileDialog.ShowDirsOnly
+        if loadType == 'txt' or loadType == 'dbl':
+            fileMode = QFileDialog.DirectoryOnly
+        elif loadType == 'wav':
+            fileMode = QFileDialog.DirectoryOnly
+        elif loadType == 'HolmImpulse':
+            fileMode = QFileDialog.ExistingFile
+            option = QFileDialog.DontConfirmOverwrite
+        elif loadType == 'REW':
+            fileMode = QFileDialog.DirectoryOnly
+        elif loadType == 'ARTA':
+            fileMode = QFileDialog.DirectoryOnly
+        else:
+            QMessageBox.about(self, "Error", "Unknown format " + loadType)
+        if fileMode is not None:
+            self.__dialog.setFileMode(fileMode)
+            self.__dialog.setOption(option)
+            self.__dialog.setWindowTitle("Load Measurements")
+            self.__dialog.exec()
+        QDialog.accept(self)
+
+    def load(self, measurementModel, dataPathField):
+        '''
+        Loads the measurements by looking in the selected directory.
+        :param measurementModel: the model to load.
+        :param dataPathField: the display field.
+        :return:
+        '''
+        selected = self.__dialog.selectedFiles()
+        loadType = self.fileType.currentText()
+        if len(selected) > 0:
+            dataPathField.setText(selected[0])
+            if loadType == 'txt':
+                measurementModel.load(TxtLoader(selected[0], int(self.fs.currentText())).load())
+            elif loadType == 'dbl':
+                measurementModel.load(DblLoader(selected[0], int(self.fs.currentText())).load())
+            elif loadType == 'wav':
+                measurementModel.load(WavLoader(selected[0]).load())
+            elif loadType == 'HolmImpulse':
+                measurementModel.load(HolmLoader(selected[0]).load())
+            elif loadType == 'REW':
+                measurementModel.load(REWLoader(selected[0]).load())
+            elif loadType == 'ARTA':
+                measurementModel.load(ARTALoader(selected[0]).load())
+        else:
+            measurementModel.clear()
+            dataPathField.setText('')
+
+    def fileTypeChanged(self, text):
+        '''
+        Hides the fs field if the fs is determined by the source file.
+        :param text: the selected text.
+        '''
+        visible = True
+        if text == 'txt' or text == 'dbl':
+            pass
+        else:
+            visible = False
+        self.fs.setVisible(visible)
+        self.fsLabel.setVisible(visible)
+
+
+class PyPolarmap(QMainWindow, Ui_MainWindow):
+    '''
+    The main UI.
+    '''
+
     def __init__(self, parent=None):
         super(PyPolarmap, self).__init__(parent)
         self.setupUi(self)
@@ -89,21 +178,14 @@ class PyPolarmap(QMainWindow, pypolarmap.Ui_MainWindow):
         used to load the set of measurements which is then passed to the various models.
         :return:
         '''
-        dialog = QFileDialog()
-        dialog.setFileMode(QFileDialog.DirectoryOnly)
-        dialog.setOption(QFileDialog.ShowDirsOnly)
-        dialog.setWindowTitle("Load Measurements")
+        dialog = LoadMeasurementsDialog(self)
         if dialog.exec():
-            selectedDir = dialog.selectedFiles()
-            if len(selectedDir) > 0:
-                self.dataPath.setStyleSheet("QLineEdit {background-color: white;}")
-                self.dataPath.setText(selectedDir[0])
-                self._measurementModel.load(selectedDir)
+            dialog.load(self._measurementModel, self.dataPath)
+            if len(self._measurementModel) > 0:
                 self._measurementTableModel.completeRendering(self.measurementView)
                 self.toggleWindowedBtn.setDisabled(False)
                 self.zoomButton.setDisabled(False)
             else:
-                self._measurementModel.clear()
                 self.toggleWindowedBtn.setDisabled(True)
                 self.zoomButton.setDisabled(True)
 
@@ -239,6 +321,7 @@ class PyPolarmap(QMainWindow, pypolarmap.Ui_MainWindow):
         Tells the spatial graph to refresh.
         '''
         self._spatialModel.display()
+
 
 def main():
     app = QApplication(sys.argv)
