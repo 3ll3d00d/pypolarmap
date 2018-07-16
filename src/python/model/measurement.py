@@ -1,5 +1,3 @@
-import os
-import re
 import typing
 from collections.abc import Sequence
 
@@ -18,61 +16,6 @@ WINDOW_MAPPING = {
     'Tukey': signal.windows.tukey,
     'Rectangle': signal.windows.boxcar
 }
-
-
-def asMeasurement(path, fileName, ext):
-    '''
-    Converts a file into a measurement object.
-    :param path: the path to the file.
-    :param fileName: the filename.
-    :param ext: the extension.
-    :return: the measurement if there is one.
-    '''
-    name, _ = os.path.splitext(fileName)
-    h = _getAngle(fileName, 'H')
-    v = _getAngle(fileName, 'V')
-    if h is not None:
-        return Measurement(path, name, ext=ext, h=h)
-    elif v is not None:
-        return Measurement(path, name, ext=ext, v=v)
-    else:
-        return None  # ignore - filename format is invalid
-
-
-def _getAngle(fileName, angle):
-    '''
-    Extracts the specified angle from the filename, expects angle to be embedded in the form _<ANGLE><DEGREES>
-    :param fileName:
-    :param angle:
-    :return:
-    '''
-    matches = re.match('.*_?(' + angle + '([0-9]+)).*', fileName)
-    if matches:
-        return int(matches.group(2))
-    else:
-        return None
-
-
-def loadFromDir(path, ext='txt'):
-    '''
-    Loads measurements from the specified dir
-    :param path: the path the files are in.
-    :param ext: the extension.
-    :return: the measurement model.
-    '''
-    return sorted([x.load() for x in
-                   [asMeasurement(path, fileName, ext) for fileName in os.listdir(path) if fileName.endswith('.' + ext)]
-                   if x is not None], key=lambda m: (m._h, m._v))
-
-
-def loadSamplesFromText(path):
-    '''
-    Loads samples from a text file that contains a single float per sample with 1 sample per line. The file must contain
-    no other data.
-    :param path: the path to the text file.
-    :return: the samples as an ndarray.
-    '''
-    return np.genfromtxt(path, delimiter="\n")
 
 
 class MeasurementModel(Sequence):
@@ -110,12 +53,12 @@ class MeasurementModel(Sequence):
         for l in self._listeners:
             l.onMeasurementUpdate(idx=idx)
 
-    def load(self, selectedDir):
+    def load(self, measurements):
         '''
-        Loads measurements from the given dir.
-        :param selectedDir: the dir.
+        Loads measurements.
+        :param measurements: the measurements.
         '''
-        self._measurements = loadFromDir(selectedDir[0], 'txt')
+        self._measurements = measurements
         for l in self._listeners:
             l.onMeasurementUpdate()
 
@@ -205,10 +148,8 @@ class Measurement:
     '''
     reflectionFreeZoneLimit = 10 ** -4
 
-    def __init__(self, path, name, ext='txt', h=0, v=0, fs=48000):
-        self._path = path
+    def __init__(self, name, h=0, v=0, fs=48000):
         self._name = name
-        self._ext = ext
         self._h = h
         self._v = v
         self._fs = fs
@@ -220,11 +161,6 @@ class Measurement:
         self.fftPoints = 0
         self.logData = np.array([])
         self.logFreqs = np.array([])
-
-    def load(self):
-        # TODO support multiple load strategies (raw samples in txt, ARTA style space delimited, REW style text, WAV)
-        self.samples = loadSamplesFromText(os.path.join(self._path, self._name + "." + self._ext))
-        return self
 
     def size(self):
         '''
@@ -318,7 +254,7 @@ class MeasurementTableModel(QAbstractTableModel):
 
     def __init__(self, model, parent=None):
         super().__init__(parent=parent)
-        self._headers = ['File', 'Type', 'Samples', 'H', 'V', 'Active']
+        self._headers = ['File', 'Samples', 'H', 'V', 'Active']
         self._measurementModel = model
 
     def rowCount(self, parent: QModelIndex = ...):
@@ -328,7 +264,7 @@ class MeasurementTableModel(QAbstractTableModel):
         return len(self._headers)
 
     def flags(self, index: QModelIndex) -> Qt.ItemFlags:
-        if (index.column() == 5):
+        if (index.column() == 4):
             return super().flags(index) | Qt.ItemIsEditable
         else:
             return super().flags(index)
@@ -342,14 +278,12 @@ class MeasurementTableModel(QAbstractTableModel):
             if index.column() == 0:
                 return QVariant(self._measurementModel[index.row()]._name)
             elif index.column() == 1:
-                return QVariant(self._measurementModel[index.row()]._ext)
-            elif index.column() == 2:
                 return QVariant(self._measurementModel[index.row()].size())
-            elif index.column() == 3:
+            elif index.column() == 2:
                 return QVariant(self._measurementModel[index.row()]._h)
-            elif index.column() == 4:
+            elif index.column() == 3:
                 return QVariant(self._measurementModel[index.row()]._v)
-            elif index.column() == 5:
+            elif index.column() == 4:
                 return QVariant(self._measurementModel[index.row()]._active)
             else:
                 return QVariant()
@@ -365,8 +299,8 @@ class MeasurementTableModel(QAbstractTableModel):
         self.layoutChanged.emit()
 
     def completeRendering(self, view):
-        view.setItemDelegateForColumn(5, CheckBoxDelegate(None))
-        for x in range(0, 6):
+        view.setItemDelegateForColumn(4, CheckBoxDelegate(None))
+        for x in range(0, 5):
             view.resizeColumnToContents(x)
 
     def toggleState(self, idx):

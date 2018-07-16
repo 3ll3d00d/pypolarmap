@@ -1,24 +1,6 @@
-from math import log10
+from matplotlib.ticker import EngFormatter
 
-import numpy as np
-
-
-def human_format(num):
-    num = float('{:.3g}'.format(num))
-    magnitude = 0
-    while abs(num) >= 1000:
-        magnitude += 1
-        num /= 1000.0
-    return '{}{}'.format('{:f}'.format(num).rstrip('0').rstrip('.'), ['', 'K', 'M', 'B', 'T'][magnitude])
-
-
-majorFreq = [20, 100, 1000, 10000, 20000]
-minorFreq = [30, 40, 50, 200, 300, 400, 500, 2000, 3000, 4000, 5000, 20000]
-
-freqTicks = [
-    [(log10(x), human_format(x)) for x in majorFreq],
-    [(log10(x), human_format(x)) for x in minorFreq],
-]
+from model import PrintFirstHalfFormatter, configureFreqAxisFormatting
 
 
 class MagnitudeModel:
@@ -30,8 +12,10 @@ class MagnitudeModel:
         self._chart = chart
         self._axes = self._chart.canvas.figure.add_subplot(111)
         self._axes.set_xlim(left=20, right=20000)
-        # TODO format xticks, add grid
-        self._axes.grid()
+        self._axes.grid(linestyle='-', which='major')
+        self._axes.grid(linestyle='--', which='minor')
+        self._axes.set_ylabel('dBFS')
+        self._axes.set_xlabel('Hz')
         self._curves = {}
         self._polarModel = polar
         self._refreshData = False
@@ -61,6 +45,7 @@ class MagnitudeModel:
                                                                            linestyle='solid',
                                                                            color=self._chart.getColour(idx),
                                                                            visible=x._active)[0]
+            configureFreqAxisFormatting(self._axes)
             self._chart.canvas.draw()
             self._refreshData = False
 

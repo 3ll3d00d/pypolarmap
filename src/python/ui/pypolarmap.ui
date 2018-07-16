@@ -76,6 +76,13 @@
        </property>
       </widget>
      </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="label_13">
+       <property name="text">
+        <string>Fs</string>
+       </property>
+      </widget>
+     </item>
      <item row="9" column="1">
       <widget class="QSpinBox" name="transFreq">
        <property name="minimum">
@@ -86,6 +93,29 @@
        </property>
        <property name="value">
         <number>200</number>
+       </property>
+      </widget>
+     </item>
+     <item row="10" column="0">
+      <widget class="QLabel" name="label_11">
+       <property name="text">
+        <string>LF Gain (dB)</string>
+       </property>
+      </widget>
+     </item>
+     <item row="10" column="1">
+      <widget class="QDoubleSpinBox" name="lfGain">
+       <property name="decimals">
+        <number>1</number>
+       </property>
+       <property name="minimum">
+        <double>-10.000000000000000</double>
+       </property>
+       <property name="maximum">
+        <double>10.000000000000000</double>
+       </property>
+       <property name="singleStep">
+        <double>0.100000000000000</double>
        </property>
       </widget>
      </item>
@@ -168,46 +198,6 @@
        </property>
       </widget>
      </item>
-     <item row="0" column="0">
-      <widget class="QPushButton" name="selectDirBtn">
-       <property name="text">
-        <string>Select Directory</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="1">
-      <widget class="QLineEdit" name="dataPath"/>
-     </item>
-     <item row="10" column="0">
-      <widget class="QLabel" name="label_11">
-       <property name="text">
-        <string>LF Gain (dB)</string>
-       </property>
-      </widget>
-     </item>
-     <item row="10" column="1">
-      <widget class="QDoubleSpinBox" name="lfGain">
-       <property name="decimals">
-        <number>1</number>
-       </property>
-       <property name="minimum">
-        <double>-10.000000000000000</double>
-       </property>
-       <property name="maximum">
-        <double>10.000000000000000</double>
-       </property>
-       <property name="singleStep">
-        <double>0.100000000000000</double>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="0">
-      <widget class="QLabel" name="label_12">
-       <property name="text">
-        <string>Box Radius (m)</string>
-       </property>
-      </widget>
-     </item>
      <item row="4" column="1">
       <widget class="QDoubleSpinBox" name="boxRadius">
        <property name="minimum">
@@ -224,6 +214,48 @@
        </property>
       </widget>
      </item>
+     <item row="4" column="0">
+      <widget class="QLabel" name="label_12">
+       <property name="text">
+        <string>Box Radius (m)</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QPushButton" name="selectDirBtn">
+       <property name="text">
+        <string>Load Measurements</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QLineEdit" name="dataPath"/>
+     </item>
+     <item row="2" column="1">
+      <widget class="QComboBox" name="fs">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="currentText">
+        <string>48000</string>
+       </property>
+       <item>
+        <property name="text">
+         <string>44100</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>48000</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>96000</string>
+        </property>
+       </item>
+      </widget>
+     </item>
     </layout>
    </widget>
    <widget class="QTabWidget" name="graphTabs">
@@ -236,7 +268,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>3</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="impulseTab">
      <attribute name="title">
@@ -851,7 +883,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>691</x>
-     <y>1051</y>
+     <y>1078</y>
     </hint>
     <hint type="destinationlabel">
      <x>589</x>
