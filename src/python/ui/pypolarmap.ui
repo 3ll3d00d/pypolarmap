@@ -530,9 +530,9 @@
     </widget>
     <widget class="QWidget" name="tab">
      <attribute name="title">
-      <string>Spatial</string>
+      <string>Modal</string>
      </attribute>
-     <widget class="MplWidget" name="spatialGraph">
+     <widget class="MplWidget" name="modalGraph">
       <property name="geometry">
        <rect>
         <x>0</x>
@@ -879,7 +879,7 @@
    <sender>refreshSpatialBtn</sender>
    <signal>clicked()</signal>
    <receiver>MainWindow</receiver>
-   <slot>refreshSpatial()</slot>
+   <slot>refreshModal()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>691</x>
@@ -917,6 +917,6 @@
   <slot>updateLFGain()</slot>
   <slot>updateTransitionFrequency()</slot>
   <slot>updateBoxRadius()</slot>
-  <slot>refreshSpatial()</slot>
+  <slot>refreshModal()</slot>
  </slots>
 </ui>

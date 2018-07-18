@@ -4,12 +4,13 @@ import matplotlib
 from PyQt5.QtWidgets import QMainWindow, QApplication, QFileDialog, QDialog, QDialogButtonBox, QMessageBox
 
 from model.load import WavLoader, HolmLoader, TxtLoader, DblLoader, REWLoader, ARTALoader
+from model.measurement import FR_MAGNITUDE_DATA
 from ui.loadMeasurements import Ui_loadMeasurementDialog
 from ui.pypolarmap import Ui_MainWindow
 
 matplotlib.use("Qt5Agg")
 
-from model import impulse as imp, magnitude as mag, polar, measurement as m, spatial
+from model import impulse as imp, magnitude as mag, contour, measurement as m, modal
 from PyQt5 import QtCore, QtWidgets
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as Canvas
@@ -142,13 +143,16 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
         self.loadColourMaps()
         self.dataPath.setDisabled(True)
         self._measurementModel = m.MeasurementModel()
-        self._spatialModel = spatial.SpatialModel(self.spatialGraph, self._measurementModel,
-                                                  self.measurementDistance.value(), self.driverRadius.value() / 100,
-                                                  self.modalCoeffs.value(), self.f0.value(), self.q0.value(),
-                                                  self.transFreq.value(), self.lfGain.value(), self.boxRadius.value())
-        self._polarModel = polar.PolarModel(self.polarGraph, self._measurementModel, self._spatialModel,
-                                            self.contourInterval.value())
-        self._magnitudeModel = mag.MagnitudeModel(self.magnitudeGraph, self._measurementModel, self._polarModel)
+        self._modalParameterModel = modal.ModalParameterModel(self.measurementDistance.value(),
+                                                              self.driverRadius.value() / 100,
+                                                              self.modalCoeffs.value(), self.f0.value(),
+                                                              self.q0.value(),
+                                                              self.transFreq.value(), self.lfGain.value(),
+                                                              self.boxRadius.value())
+        self._modalModel = modal.ModalModel(self.modalGraph, self._measurementModel, self._modalParameterModel)
+        self._polarModel = contour.ContourModel(self.polarGraph, self._measurementModel, self.contourInterval.value(),
+                                                type=FR_MAGNITUDE_DATA)
+        self._magnitudeModel = mag.MagnitudeModel(self.magnitudeGraph, self._measurementModel, type=FR_MAGNITUDE_DATA)
         self._impulseModel = imp.ImpulseModel(self.impulseGraph,
                                               {'position': self.leftWindowSample,
                                                'type': self.leftWindowType,
@@ -156,8 +160,7 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
                                               {'position': self.rightWindowSample,
                                                'type': self.rightWindowType,
                                                'percent': self.rightWindowPercent},
-                                              self._measurementModel,
-                                              self._magnitudeModel)
+                                              self._measurementModel)
         self._measurementTableModel = m.MeasurementTableModel(self._measurementModel, parent=parent)
         self.measurementView.setModel(self._measurementTableModel)
         self._graphs = [self.impulseGraph, self.magnitudeGraph]
@@ -199,7 +202,7 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
         elif idx == 2:
             self._polarModel.display()
         elif idx == 3:
-            self._spatialModel.display()
+            self._modalModel.display()
         else:
             # unknown
             pass
@@ -265,62 +268,62 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
         propagates UI field to spatial model
         :param value: the value
         '''
-        self._spatialModel.measurementDistance = value
+        self._modalParameterModel.measurementDistance = value
 
     def updateDriverRadius(self, value):
         '''
         propagates UI field to spatial model
         :param value: the value
         '''
-        self._spatialModel.driverRadius = value / 100  # convert cm to m
+        self._modalParameterModel.driverRadius = value / 100  # convert cm to m
 
     def updateModalCoeffs(self, value):
         '''
         propagates UI field to spatial model
         :param value: the value
         '''
-        self._spatialModel.modalCoeffs = value
+        self._modalParameterModel.modalCoeffs = value
 
     def updateF0(self, value):
         '''
         propagates UI field to spatial model
         :param value: the value
         '''
-        self._spatialModel.f0 = value
+        self._modalParameterModel.f0 = value
 
     def updateQ0(self, value):
         '''
         propagates UI field to spatial model
         :param value: the value
         '''
-        self._spatialModel.q0 = value
+        self._modalParameterModel.q0 = value
 
     def updateTransitionFrequency(self, value):
         '''
         propagates UI field to spatial model
         :param value: the value
         '''
-        self._spatialModel.transFreq = value
+        self._modalParameterModel.transFreq = value
 
     def updateLFGain(self, value):
         '''
         propagates UI field to spatial model
         :param value: the value
         '''
-        self._spatialModel.lfGain = value
+        self._modalParameterModel.lfGain = value
 
     def updateBoxRadius(self, value):
         '''
         propagates UI field to spatial model
         :param value: the value
         '''
-        self._spatialModel.boxRadius = value
+        self._modalParameterModel.boxRadius = value
 
-    def refreshSpatial(self):
+    def refreshModal(self):
         '''
-        Tells the spatial graph to refresh.
+        Tells the modal graph to refresh.
         '''
-        self._spatialModel.display()
+        self._modalModel.display()
 
 
 def main():
