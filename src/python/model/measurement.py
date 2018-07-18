@@ -17,6 +17,15 @@ WINDOW_MAPPING = {
     'Rectangle': signal.windows.boxcar
 }
 
+FR_MAGNITUDE_DATA = 'FR'
+MODAL_MAGNITUDE_DATA = 'MODAL'
+
+# events that listeners have to handle
+LOAD_MEASUREMENTS = 'LOAD'
+TOGGLE_MEASUREMENT = 'TOGGLE'
+ANALYSED = 'ANALYSED'
+CLEAR_MEASUREMENTS = 'CLEAR'
+
 
 class MeasurementModel(Sequence):
     '''
@@ -26,8 +35,8 @@ class MeasurementModel(Sequence):
     def __init__(self, m=None, listeners=None):
         self._measurements = m if m is not None else []
         self._listeners = listeners if listeners is not None else []
-        self._analysed = False
-        self.spatial = None
+        self.modalResponse = None
+        self.magnitudeData = {FR_MAGNITUDE_DATA: None, MODAL_MAGNITUDE_DATA: None}
         super().__init__()
 
     def __getitem__(self, i):
@@ -44,14 +53,22 @@ class MeasurementModel(Sequence):
         '''
         self._listeners.append(listener)
 
+    def _propagateEvent(self, type, **kwargs):
+        '''
+        propagates the specified event to all listeners.
+        :param type: the event type.
+        :param kwargs: the event args.
+        '''
+        for l in self._listeners:
+            l.onUpdate(type, **kwargs)
+
     def toggleState(self, idx):
         '''
         Toggles state and tells any listeners.
         :param idx: the updated measurement index.
         '''
         self._measurements[idx].toggleState()
-        for l in self._listeners:
-            l.onMeasurementUpdate(idx=idx)
+        self._propagateEvent(TOGGLE_MEASUREMENT, idx=idx)
 
     def load(self, measurements):
         '''
@@ -59,16 +76,14 @@ class MeasurementModel(Sequence):
         :param measurements: the measurements.
         '''
         self._measurements = measurements
-        for l in self._listeners:
-            l.onMeasurementUpdate()
+        self._propagateEvent(LOAD_MEASUREMENTS)
 
     def clear(self):
         '''
         Clears the loaded measurements.
         '''
         self._measurements = []
-        for l in self._listeners:
-            l.clear()
+        self._propagateEvent(CLEAR_MEASUREMENTS)
 
     def getMaxSample(self):
         '''
@@ -82,7 +97,7 @@ class MeasurementModel(Sequence):
         '''
         return max([max(x.max(), abs(x.min())) for x in self._measurements])
 
-    def applyWindow(self, left, right, peak):
+    def generateMagnitudeResponse(self, left, right, peak):
         '''
         creates a window based on the left and right parameters & applies it to all measurements.
         :param left: the left parameters.
@@ -94,7 +109,13 @@ class MeasurementModel(Sequence):
         completeWindow = np.concatenate((leftWin[1], leftWin[0], rightWin[0], rightWin[1]))
         for m in self._measurements:
             m.analyse(left['position'].value(), right['position'].value(), win=completeWindow)
-        self._analysed = True
+        self.magnitudeData[FR_MAGNITUDE_DATA] = [self._createFRMagnitudeData(x) for x in self._measurements]
+        self._propagateEvent(ANALYSED)
+
+    def _createFRMagnitudeData(self, measurement):
+        logData, logFreqs = linToLog(measurement.fftData, measurement._fs / measurement.fftPoints)
+        return MagnitudeData(measurement.getDisplayName(), x=logFreqs, y=np.abs(logData) * 2 / measurement.fftPoints,
+                             visibleFunc=measurement.isActive)
 
     def _createWindow0(self, params, peakIdx, side):
         '''
@@ -118,28 +139,75 @@ class MeasurementModel(Sequence):
         else:
             return WINDOW_MAPPING['Tukey']
 
-    def calSpatial(self, measurementDistance, driverRadius, coeffs, transFreq, lfGain, boxRadius, f0, q0):
+    def generateModalResponse(self, modalParameters):
         '''
         Calls calSpatial against this set of measurements.
         '''
-        if self._analysed:
-            logData = [x.logData for x in self._measurements]
-            logFreqs = self._measurements[0].logFreqs
-            angles = np.radians([x._h for x in self._measurements])
-            self.spatial = calSpatial(logData, logFreqs, angles, measurementDistance, driverRadius, coeffs, transFreq,
-                                      lfGain, boxRadius, f0, q0)
+        if FR_MAGNITUDE_DATA in self.magnitudeData:
+            self.__modalResponse = calSpatial([x.y for x in self.magnitudeData[FR_MAGNITUDE_DATA]],
+                                              self.magnitudeData[FR_MAGNITUDE_DATA][0].x,
+                                              np.radians([x._h for x in self._measurements]),
+                                              modalParameters.measurementDistance,
+                                              modalParameters.driverRadius, modalParameters.modalCoeffs,
+                                              modalParameters.transFreq, modalParameters.lfGain,
+                                              modalParameters.boxRadius, modalParameters.f0, modalParameters.q0)
+            modal = []
+            for idx, x in enumerate(self.magnitudeData[FR_MAGNITUDE_DATA]):
+                modal.append(MagnitudeData('mode ' + str(idx), x.x, np.abs(self.__modalResponse[idx]), lambda: True))
+            self.magnitudeData[MODAL_MAGNITUDE_DATA] = modal
 
-    def spatialMagnitude(self, ref=1):
+    def getMagnitudeData(self, type=FR_MAGNITUDE_DATA, ref=1):
         '''
-        Converts the spatial data into a magnitude (in dB if ref is supplied).
-        :param ref: the reference, if any.
-        :return: the magnitude data.
+        Gets the magnitude data of the specified type from the model.
+        :param type: the type.
+        :param ref: the reference against which to scale the result in dB.
+        :return: the data (if any)
         '''
-        if self.spatial is not None:
-            mag = np.abs(self.spatial)
-            if ref:
-                return 20 * np.log10(mag / ref)
-            return mag
+        return [x.rescale(ref) for x in self.magnitudeData[type]] if type in self.magnitudeData else []
+
+    def getContourData(self, type=FR_MAGNITUDE_DATA):
+        '''
+        Generates data for contour plots from the analysed data sets.
+        :param type: the type of data to retrieve.
+        :return: the data as a dict with xyz keys.
+        '''
+        if type == FR_MAGNITUDE_DATA:
+            # convert to a table of xyz coordinates where x = frequencies, y = angles, z = magnitude
+            mag = self.getMagnitudeData(type)
+            return {
+                'x': np.array([d.x for d in mag]).flatten(),
+                'y': np.array([x._h for x in self]).repeat(mag[0].x.size),
+                'z': np.array([d.y for d in mag]).flatten()
+            }
+        elif type == MODAL_MAGNITUDE_DATA:
+            pass
+            # mag = self.getMagnitudeData(type)
+            # return {
+            #     'x': np.array([d.x for d in mag]).flatten(),
+            #     'y': np.array([x._h for x in self]).repeat(mag[0].x.size),
+            #     'z': np.array([d.y for d in mag]).flatten()
+            # }
+        else:
+            return None
+
+
+class MagnitudeData:
+    '''
+    Value object for showing data on a magnitude graph.
+    '''
+
+    def __init__(self, name, x, y, visibleFunc):
+        self.name = name
+        self.x = x
+        self.y = y
+        self.__visibleFunc = visibleFunc
+
+    @property
+    def visible(self):
+        return self.__visibleFunc()
+
+    def rescale(self, ref):
+        return MagnitudeData(self.name, self.x, 20 * np.log10(self.y / ref), self.__visibleFunc)
 
 
 class Measurement:
@@ -159,8 +227,6 @@ class Measurement:
         self.gatedSamples = np.array([])
         self.fftOutput = np.array([])
         self.fftPoints = 0
-        self.logData = np.array([])
-        self.logFreqs = np.array([])
 
     def size(self):
         '''
@@ -230,18 +296,12 @@ class Measurement:
         self.window = win
         self.gatedSamples = gatedSamples
         self.fftData, self.fftPoints = fft(self.gatedSamples)
-        self.logData, self.logFreqs = linToLog(self.fftData, self._fs / self.fftPoints)
 
-    def getMagnitude(self, ref=None):
+    def isActive(self):
         '''
-        :param ref: if given, return in decibels relative to ref.
-        :return: gets a magnitude view on the log data.
+        :return: if the measurement is currently active.
         '''
-        # Scale the magnitude of FFT by window and factor of 2 because we are using half of FFT spectrum.
-        mag = np.abs(self.logData) * 2 / np.sum(self.window)
-        if ref:
-            return 20 * np.log10(mag / ref)
-        return mag
+        return self._active
 
     def __repr__(self):
         return '{}: {}'.format(self.__class__.__name__, self.getDisplayName())

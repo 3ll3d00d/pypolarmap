@@ -1,27 +1,27 @@
 import numpy as np
 
 from model import configureFreqAxisFormatting
+from model.measurement import CLEAR_MEASUREMENTS, ANALYSED, FR_MAGNITUDE_DATA
 
 
-class PolarModel:
+class ContourModel:
     '''
     Allows a set of FRs to be displayed as a directivity sonargram.
     '''
 
-    def __init__(self, chart, measurementModel, spatialModel, contourInterval):
+    def __init__(self, chart, measurementModel, contourInterval, type):
         self._chart = chart
         self._axes = None
         self._initChart()
         self._measurementModel = measurementModel
-        self._spatialModel = spatialModel
         self._selectedCmap = 'plasma'
         self._contourInterval = contourInterval
-        self._x = None
-        self._y = None
-        self._z = None
+        self._type = type
+        self._data = None
         self._tc = None
         self._tcf = None
         self._refreshData = False
+        self._measurementModel.registerListener(self)
 
     def _initChart(self):
         '''
@@ -35,32 +35,36 @@ class PolarModel:
         self._axes.grid(linestyle='-', which='major', linewidth=1, alpha=0.5)
         self._axes.grid(linestyle='--', which='minor', linewidth=1, alpha=0.5)
 
-    def markForRefresh(self):
+    def onUpdate(self, type, **kwargs):
         '''
-        Marks this model as in need of recalculation.
+        Handles events from the measurement model.
+        :param type: the type.
+        :param kwargs: any additional args.
+        :return:
         '''
-        self._refreshData = True
-        self._spatialModel.markForRefresh()
+        if type == ANALYSED:
+            self._refreshData = True
+        elif type == CLEAR_MEASUREMENTS:
+            self.clear()
 
     def display(self):
         '''
         Updates the contents of the chart.
         '''
         if self._refreshData and len(self._measurementModel) > 0:
-            # convert to a table of xyz coordinates where x = frequencies, y = angles, z = magnitude
-            self._x = np.array([x.logFreqs for x in self._measurementModel]).flatten()
-            self._y = np.array([x._h for x in self._measurementModel]).repeat(self._measurementModel[0].logFreqs.size)
-            self._z = np.array([x.getMagnitude(ref=1) for x in self._measurementModel]).flatten()
-            self._extents = [np.amin(self._x), np.amax(self._x), np.amax(self._y), np.amin(self._y)]
-            vmax = np.math.ceil(np.amax(self._z))
-            vmin = np.math.floor(np.amin(self._z))
+            self._data = self._measurementModel.getContourData(type=self._type)
+            self._extents = [np.amin(self._data['x']), np.amax(self._data['x']),
+                             np.amax(self._data['y']), np.amin(self._data['y'])]
+            vmax = np.math.ceil(np.amax(self._data['z']))
+            vmin = np.math.floor(np.amin(self._data['z']))
 
             if self._tcf:
                 self.clear()
 
             steps = np.flip(np.arange(vmax, vmin, -self._contourInterval), 0)
-            self._tc = self._axes.tricontour(self._x, self._y, self._z, steps, linewidths=0.5, colors='k')
-            self._tcf = self._axes.tricontourf(self._x, self._y, self._z, steps,
+            self._tc = self._axes.tricontour(self._data['x'], self._data['y'], self._data['z'], steps, linewidths=0.5,
+                                             colors='k')
+            self._tcf = self._axes.tricontourf(self._data['x'], self._data['y'], self._data['z'], steps,
                                                cmap=self._chart.getColourMap(self._selectedCmap))
             self._cb = self._chart.canvas.figure.colorbar(self._tcf)
             configureFreqAxisFormatting(self._axes)
@@ -95,5 +99,5 @@ class PolarModel:
         :param interval: the interval
         '''
         self._contourInterval = interval
-        self.markForRefresh()
+        self._refreshData = True
         self.display()

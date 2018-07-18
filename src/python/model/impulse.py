@@ -1,12 +1,14 @@
 import numpy as np
 
+from model.measurement import TOGGLE_MEASUREMENT, CLEAR_MEASUREMENTS, LOAD_MEASUREMENTS, ANALYSED
+
 
 class ImpulseModel:
     '''
     Allows a set of measurements to be displayed on a chart as impulse responses.
     '''
 
-    def __init__(self, chart, left, right, measurementModel, mag):
+    def __init__(self, chart, left, right, measurementModel):
         self._chart = chart
         self._axes = self._chart.canvas.figure.add_subplot(111)
         self._initChart()
@@ -21,7 +23,6 @@ class ImpulseModel:
         self._setMaxSample(0)
         self._leftLine = None
         self._rightLine = None
-        self._magnitudeModel = mag
 
     def _initChart(self):
         self._axes.spines['bottom'].set_position('center')
@@ -46,33 +47,38 @@ class ImpulseModel:
         self._gatedXValues = np.arange(start=self._leftWindow['position'].value(),
                                        stop=self._rightWindow['position'].value())
 
-    def onMeasurementUpdate(self, idx=None):
+    def onUpdate(self, type, **kwargs):
         '''
-        Allows the chart to react when a measurement active status is toggled.
+        Allows the chart to react when the measurement model changes, handles active status toggle events only.
         :param idx: the index of the toggled measurement.
         :return:
         '''
-        if idx is None:
-            if len(self._measurementModel) > 0:
-                self._setMaxSample(self._measurementModel.getMaxSample())
-                self._yRange = self._measurementModel.getMaxSampleValue()
-                self._leftWindow['position'].setMaximum(self._maxSample - 1)
-                self._leftWindow['position'].setValue(self._measurementModel[0].startIndex())
-                self._rightWindow['position'].setMaximum(self._maxSample)
-                self._rightWindow['position'].setValue(self._measurementModel[0].firstReflectionIndex())
-                self.zoomOut()
-            else:
-                self._setMaxSample(0)
-                self._yRange = 1
-                self._leftWindow['position'].setMaximum(0)
-                self._leftWindow['position'].setValue(0)
-                self._rightWindow['position'].setMaximum(1)
-                self._rightWindow['position'].setValue(1)
-                self.clear()
+        updateChart = True
+        if type == LOAD_MEASUREMENTS:
+            self._setMaxSample(self._measurementModel.getMaxSample())
+            self._yRange = self._measurementModel.getMaxSampleValue()
+            self._leftWindow['position'].setMaximum(self._maxSample - 1)
+            self._leftWindow['position'].setValue(self._measurementModel[0].startIndex())
+            self._rightWindow['position'].setMaximum(self._maxSample)
+            self._rightWindow['position'].setValue(self._measurementModel[0].firstReflectionIndex())
+        elif type == TOGGLE_MEASUREMENT:
+            updateChart = True
+        elif type == CLEAR_MEASUREMENTS:
+            self._setMaxSample(0)
+            self._yRange = 1
+            self._leftWindow['position'].setMaximum(0)
+            self._leftWindow['position'].setValue(0)
+            self._rightWindow['position'].setMaximum(1)
+            self._rightWindow['position'].setValue(1)
+            self.clear()
+        elif type == ANALYSED:
+            updateChart = False
+        if updateChart:
+            self.zoomOut()
             self._axes.set_ylim(bottom=-self._yRange, top=self._yRange)
             self.updateLeftWindowPosition()
             self.updateRightWindowPosition()
-        self._displayActiveData(updatedIdx=idx)
+            self._displayActiveData(updatedIdx=kwargs.get('idx', None))
 
     def _addPlotForMeasurement(self, idx, measurement):
         '''
@@ -182,8 +188,7 @@ class ImpulseModel:
             self._cacheGatedXValues()
             self._activeX = self._gatedXValues
             self._peakIndex = self._measurementModel[0].peakIndex()
-            self._measurementModel.applyWindow(self._leftWindow, self._rightWindow, self._peakIndex)
-            self._magnitudeModel.markForRefresh()
+            self._measurementModel.generateMagnitudeResponse(self._leftWindow, self._rightWindow, self._peakIndex)
             self._displayActiveData()
             self.zoomIn()
 

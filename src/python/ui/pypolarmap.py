@@ -232,9 +232,9 @@ class Ui_MainWindow(object):
         self.graphTabs.addTab(self.polarTab, "")
         self.tab = QtWidgets.QWidget()
         self.tab.setObjectName("tab")
-        self.spatialGraph = MplWidget(self.tab)
-        self.spatialGraph.setGeometry(QtCore.QRect(0, 0, 1621, 954))
-        self.spatialGraph.setObjectName("spatialGraph")
+        self.modalGraph = MplWidget(self.tab)
+        self.modalGraph.setGeometry(QtCore.QRect(0, 0, 1621, 954))
+        self.modalGraph.setObjectName("modalGraph")
         self.gridLayoutWidget_4 = QtWidgets.QWidget(self.tab)
         self.gridLayoutWidget_4.setGeometry(QtCore.QRect(-1, 959, 131, 91))
         self.gridLayoutWidget_4.setObjectName("gridLayoutWidget_4")
@@ -276,7 +276,7 @@ class Ui_MainWindow(object):
         self.transFreq.valueChanged['int'].connect(MainWindow.updateTransitionFrequency)
         self.lfGain.valueChanged['double'].connect(MainWindow.updateLFGain)
         self.boxRadius.valueChanged['double'].connect(MainWindow.updateBoxRadius)
-        self.refreshSpatialBtn.clicked.connect(MainWindow.refreshSpatial)
+        self.refreshSpatialBtn.clicked.connect(MainWindow.refreshModal)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -322,6 +322,6 @@ class Ui_MainWindow(object):
         self.label_4.setText(_translate("MainWindow", "Contour Interval (dB)"))
         self.graphTabs.setTabText(self.graphTabs.indexOf(self.polarTab), _translate("MainWindow", "Polar"))
         self.refreshSpatialBtn.setText(_translate("MainWindow", "Refresh"))
-        self.graphTabs.setTabText(self.graphTabs.indexOf(self.tab), _translate("MainWindow", "Spatial"))
+        self.graphTabs.setTabText(self.graphTabs.indexOf(self.tab), _translate("MainWindow", "Modal"))
 
 from app import MplWidget
