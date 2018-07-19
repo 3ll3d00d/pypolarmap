@@ -1,3 +1,4 @@
+from model.contour import ContourModel
 from model.magnitude import MagnitudeModel
 from model.measurement import MODAL_MAGNITUDE_DATA
 
@@ -95,13 +96,13 @@ class ModalParameterModel:
         return self.__refreshData
 
 
-class ModalModel(MagnitudeModel):
+class ModalModel(ContourModel):
     '''
     Displays the
     '''
 
-    def __init__(self, chart, measurementModel, modalParameters):
-        super().__init__(chart, measurementModel, type=MODAL_MAGNITUDE_DATA)
+    def __init__(self, chart, measurementModel, contourInterval, modalParameters):
+        super().__init__(chart, measurementModel, contourInterval, type=MODAL_MAGNITUDE_DATA)
         self._modalParams = modalParameters
 
     def display(self):

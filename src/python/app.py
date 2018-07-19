@@ -149,7 +149,8 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
                                                               self.q0.value(),
                                                               self.transFreq.value(), self.lfGain.value(),
                                                               self.boxRadius.value())
-        self._modalModel = modal.ModalModel(self.modalGraph, self._measurementModel, self._modalParameterModel)
+        self._modalModel = modal.ModalModel(self.modalGraph, self._measurementModel, self.contourInterval.value(),
+                                            self._modalParameterModel)
         self._polarModel = contour.ContourModel(self.polarGraph, self._measurementModel, self.contourInterval.value(),
                                                 type=FR_MAGNITUDE_DATA)
         self._magnitudeModel = mag.MagnitudeModel(self.magnitudeGraph, self._measurementModel, type=FR_MAGNITUDE_DATA)

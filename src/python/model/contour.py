@@ -1,7 +1,7 @@
 import numpy as np
 
 from model import configureFreqAxisFormatting
-from model.measurement import CLEAR_MEASUREMENTS, ANALYSED, FR_MAGNITUDE_DATA
+from model.measurement import CLEAR_MEASUREMENTS, ANALYSED
 
 
 class ContourModel:
@@ -22,6 +22,9 @@ class ContourModel:
         self._tcf = None
         self._refreshData = False
         self._measurementModel.registerListener(self)
+
+    def shouldRefresh(self):
+        return self._refreshData
 
     def _initChart(self):
         '''
@@ -60,8 +63,7 @@ class ContourModel:
 
             if self._tcf:
                 self.clear()
-
-            steps = np.flip(np.arange(vmax, vmin, -self._contourInterval), 0)
+            steps = np.flip(np.concatenate(([vmax-2, vmax-4], np.arange(vmax-6, vmin, -6))), 0)
             self._tc = self._axes.tricontour(self._data['x'], self._data['y'], self._data['z'], steps, linewidths=0.5,
                                              colors='k')
             self._tcf = self._axes.tricontourf(self._data['x'], self._data['y'], self._data['z'], steps,
