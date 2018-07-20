@@ -215,11 +215,33 @@ smooth_func = getattr(lib, 'Smooth')
 smooth_func.restype = None
 smooth_func.argtypes = [
     # ByRef Data_in As Double
-    ct.POINTER(ct.c_double),
-    # ByVal Freqs() As Double
     np.ctypeslib.ndpointer(dtype=np.float64, ndim=1, flags=WRITEABLE_ALIGNED),
+    # ByVal Freqs() As Double
+    np.ctypeslib.ndpointer(dtype=np.float64, ndim=1, flags=ALIGNED),
     # ByVal numpts_ As Integer
     ct.c_int32,
     # ByVal atype As Integer
     ct.c_int32
 ]
+
+# mapping of supporting smoothing types to indexes to pass to the smooth function
+SMOOTH_TYPES = dict(
+    [(a[1], a[0]) for a in enumerate(['1/3 Octave', '1/6 Octave', '1/12 Octave', 'CB Zwicker', 'CB Moore', 'Narrow'])]
+)
+
+
+def smooth(data, freqs, smoothingType):
+    '''
+    Smoothes the data according to the specified type.
+    :param data: the data to smooth.
+    :param freqs: the log spaced frequencies.
+    :param smoothingType: the smoothing algorithm to use.
+    :return: the smoothed data.
+    '''
+    dataIn = np.require(np.copy(data), dtype=np.float64, requirements=WRITEABLE_ALIGNED_ARR)
+    freqs = np.require(freqs, dtype=np.float64, requirements=ALIGNED_ARR)
+    if smoothingType in SMOOTH_TYPES:
+        smooth_func(dataIn, freqs, ct.c_int32(freqs.size - 1), ct.c_int32(SMOOTH_TYPES[smoothingType]))
+        return dataIn.copy()
+    else:
+        raise ValueError('Unknown smoothing algorithm ' + str(smoothingType))

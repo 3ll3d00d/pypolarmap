@@ -37,21 +37,30 @@ class MagnitudeModel:
                 else:
                     # todo consider making the reference user selectable, e.g. to allow for dB SPL output
                     self._curves[x.name] = self._axes.semilogx(x.x, x.y,
-                                                               linewidth=2, antialiased=True,
+                                                               linewidth=2,
+                                                               antialiased=True,
                                                                linestyle='solid',
-                                                               color=self._chart.getColour(idx),
+                                                               color=self._chart.getColour(idx,
+                                                                                           len(self._measurementModel)),
                                                                visible=x.visible,
                                                                label=x.name)[0]
             configureFreqAxisFormatting(self._axes)
-            self.makeClickableLegend()
+            if self._axes.get_legend() is None:
+                self.makeClickableLegend()
             self._chart.canvas.draw()
             self._refreshData = False
 
     def makeClickableLegend(self):
         '''
+        Add a legend that allows you to make a line visible or invisible by clicking on it.
         ripped from https://matplotlib.org/2.0.0/examples/event_handling/legend_picking.html
+        and https://stackoverflow.com/questions/4700614/how-to-put-the-legend-out-of-the-plot
         '''
-        legend = self._axes.legend()
+        # box = self._axes.get_position()
+        # self._axes.set_position([box.x0, box.y0 + box.height * 0.2, box.width, box.height * 0.8])
+        # # Put a legend below current axis
+        # legend = self._axes.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=5)
+        legend = self._axes.legend(loc='best', fancybox=True, shadow=True)
         lined = dict()
         for legline, origline in zip(legend.get_lines(), self._curves.values()):
             legline.set_picker(5)  # 5 pts tolerance

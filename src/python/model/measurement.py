@@ -6,7 +6,7 @@ from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant, QEvent
 from PyQt5.QtWidgets import QItemDelegate
 from scipy import signal
 
-from meascalcs import fft, linToLog, calSpatial, calPolar
+from meascalcs import fft, linToLog, calSpatial, calPolar, smooth
 
 WINDOW_MAPPING = {
     'Hann': signal.windows.hann,
@@ -48,6 +48,7 @@ class MeasurementModel(Sequence):
         self.__listeners = listeners if listeners is not None else []
         self.__modalResponse = None
         self.__polarModel = None
+        self.__smoothingType = None
         self.__complexData = {}
         super().__init__()
 
@@ -194,7 +195,8 @@ class MeasurementModel(Sequence):
         :param ref: the reference against which to scale the result in dB.
         :return: the data (if any)
         '''
-        return [x.getMagnitude(ref) for x in self.__complexData[type]] if type in self.__complexData else []
+        return [x.getMagnitude(ref, self.__smoothingType) for x in
+                self.__complexData[type]] if type in self.__complexData else []
 
     def getContourData(self, type=REAL_WORLD_DATA):
         '''
@@ -209,6 +211,16 @@ class MeasurementModel(Sequence):
             'y': np.array([d.hAngle for d in mag]).repeat(mag[0].x.size),
             'z': np.array([d.y for d in mag]).flatten()
         }
+
+    def smooth(self, smoothingType):
+        '''
+        Sets the smoothing type for log spaced data.
+        :param smoothingType:
+        '''
+        self.__smoothingType = smoothingType
+        if REAL_WORLD_DATA in self.__complexData:
+            self._propagateEvent(ANALYSED)
+        # TODO update data if we have it
 
 
 class ComplexData:
@@ -228,9 +240,11 @@ class ComplexData:
     def visible(self):
         return self.__visibleFunc()
 
-    def getMagnitude(self, ref):
-        return XYData(self.name, self.hAngle, self.x, 20 * np.log10(np.abs(self.y) * self.scaleFactor / ref),
-                      self.__visibleFunc)
+    def getMagnitude(self, ref, smoothingType):
+        y = np.abs(self.y) * self.scaleFactor / ref
+        if smoothingType is not None and smoothingType != 'None':
+            y = smooth(y, self.x, smoothingType)
+        return XYData(self.name, self.hAngle, self.x, 20 * np.log10(y), self.__visibleFunc)
 
     def getPhase(self):
         return XYData(self.name, self.hAngle, self.x, np.angle(self.y), self.__visibleFunc)

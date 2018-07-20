@@ -14,9 +14,16 @@ from model import impulse as imp, magnitude as mag, contour, measurement as m, m
 from PyQt5 import QtCore, QtWidgets
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as Canvas
-import matplotlib.pyplot as plt
+import colorcet as cc
 
-colourMaps = sorted((m for m in plt.colormaps() if not m.endswith("_r")), key=str.lower)
+# from http://colorcet.pyviz.org/index.html
+inverse = {}
+for k, v in cc.cm_n.items():
+    if not k[-2:] == "_r":
+        inverse[v] = inverse.get(v, [])
+        inverse[v].insert(0, k)
+all_cms = sorted({',  '.join(reversed(v)): k for (k, v) in inverse.items()}.items())
+cms_by_name = dict(all_cms)
 
 
 # Matplotlib canvas class to create figure
@@ -36,18 +43,17 @@ class MplWidget(QtWidgets.QWidget):
         self.vbl = QtWidgets.QVBoxLayout()
         self.vbl.addWidget(self.canvas)
         self.setLayout(self.vbl)
-        self._cmap = plt.cm.get_cmap('tab20')
+        self._cmap = self.getColourMap('rainbow')
 
     def getColourMap(self, name):
-        return plt.cm.get_cmap(name)
+        return cms_by_name.get(name, cms_by_name.get('bgyw'))
 
-    def getColour(self, idx):
+    def getColour(self, idx, count):
         '''
         :param idx: the colour index.
         :return: the colour at that index.
         '''
-        cIdx = idx if idx == 0 or idx < len(self._cmap.colors) else len(self._cmap.colors) % idx
-        return self._cmap.colors[cIdx]
+        return self._cmap(idx / count)
 
 
 class LoadMeasurementsDialog(QDialog, Ui_loadMeasurementDialog):
@@ -149,11 +155,21 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
                                                               self.q0.value(),
                                                               self.transFreq.value(), self.lfGain.value(),
                                                               self.boxRadius.value())
-        self._modalModel = modal.ModalModel(self.modalGraph, self._measurementModel, self.contourInterval.value(),
-                                            self._modalParameterModel)
-        self._polarModel = contour.ContourModel(self.polarGraph, self._measurementModel, self.contourInterval.value(),
-                                                type=REAL_WORLD_DATA)
-        self._magnitudeModel = mag.MagnitudeModel(self.magnitudeGraph, self._measurementModel, type=REAL_WORLD_DATA)
+        # modal graphs
+        self._modalPolarModel = modal.ModalPolarModel(self.modalPolarGraph,
+                                                      self._measurementModel,
+                                                      self._modalParameterModel)
+        self._modalMagnitudeModel = modal.ModalMagnitudeModel(self.modalMagnitudeGraph,
+                                                              self._measurementModel,
+                                                              self._modalParameterModel)
+        # measured graphs
+        self._measuredPolarModel = contour.ContourModel(self.measuredPolarGraph,
+                                                        self._measurementModel,
+                                                        type=REAL_WORLD_DATA)
+        self._measuredMagnitudeModel = mag.MagnitudeModel(self.measuredMagnitudeGraph,
+                                                          self._measurementModel,
+                                                          type=REAL_WORLD_DATA)
+        # impulse graph
         self._impulseModel = imp.ImpulseModel(self.impulseGraph,
                                               {'position': self.leftWindowSample,
                                                'type': self.leftWindowType,
@@ -164,14 +180,13 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
                                               self._measurementModel)
         self._measurementTableModel = m.MeasurementTableModel(self._measurementModel, parent=parent)
         self.measurementView.setModel(self._measurementTableModel)
-        self._graphs = [self.impulseGraph, self.magnitudeGraph]
 
     def loadColourMaps(self):
         _translate = QtCore.QCoreApplication.translate
         defaultIdx = 0
-        for idx, cm in enumerate(colourMaps):
-            self.colourMapSelector.addItem(_translate("MainWindow", cm))
-            if cm == 'plasma':
+        for idx, (name, cm) in enumerate(cms_by_name.items()):
+            self.colourMapSelector.addItem(_translate("MainWindow", name))
+            if name == 'bgyw':
                 defaultIdx = idx
         self.colourMapSelector.setCurrentIndex(defaultIdx)
 
@@ -186,6 +201,7 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
         if dialog.exec():
             dialog.load(self._measurementModel, self.dataPath)
             if len(self._measurementModel) > 0:
+                self.fs.setValue(self._measurementModel[0]._fs)
                 self._measurementTableModel.completeRendering(self.measurementView)
                 self.toggleWindowedBtn.setDisabled(False)
                 self.zoomButton.setDisabled(False)
@@ -199,11 +215,13 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
             # self._impulseModel.display()
             pass
         elif idx == 1:
-            self._magnitudeModel.display()
+            self._measuredMagnitudeModel.display()
         elif idx == 2:
-            self._polarModel.display()
+            self._measuredPolarModel.display()
         elif idx == 3:
-            self._modalModel.display()
+            self._modalMagnitudeModel.display()
+        elif idx == 4:
+            self._modalPolarModel.display()
         else:
             # unknown
             pass
@@ -254,15 +272,9 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
         Updates the colour map in the charts.
         :param cmap: the named colour map.
         '''
-        if hasattr(self, '_polarModel'):
-            self._polarModel.updateColourMap(cmap)
-
-    def updateContourInterval(self, interval):
-        '''
-        Redraws the contours with the new interval.
-        :param interval:  the interval.
-        '''
-        self._polarModel.updateContourInterval(interval)
+        if hasattr(self, '_measuredPolarModel'):
+            self._measuredPolarModel.updateColourMap(cmap)
+            self._modalPolarModel.updateColourMap(cmap)
 
     def updateMeasurementDistance(self, value):
         '''
@@ -324,8 +336,16 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
         '''
         Tells the modal graph to refresh.
         '''
-        self._modalModel.display()
+        self._modalPolarModel.display()
+        self._modalMagnitudeModel.display()
 
+    def updateSmoothing(self, smoothingType):
+        '''
+        Smooths the data in the measurement mode.
+        :param smoothingType: the smoothing type.
+        '''
+        self._measurementModel.smooth(smoothingType)
+        self.onGraphTabChange()
 
 def main():
     app = QApplication(sys.argv)

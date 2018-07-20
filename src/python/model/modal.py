@@ -96,13 +96,34 @@ class ModalParameterModel:
         return self.__refreshData
 
 
-class ModalModel(ContourModel):
+class ModalPolarModel(ContourModel):
     '''
-    Displays the
+    Displays the modal model in contour format.
     '''
 
-    def __init__(self, chart, measurementModel, contourInterval, modalParameters):
-        super().__init__(chart, measurementModel, contourInterval, type=COMPUTED_MODAL_DATA)
+    def __init__(self, chart, measurementModel, modalParameters):
+        super().__init__(chart, measurementModel, type=COMPUTED_MODAL_DATA)
+        self._modalParams = modalParameters
+
+    def display(self):
+        '''
+        Updates the contents of the chart.
+        '''
+        if self.shouldRefresh() and len(self._measurementModel) > 0:
+            self._measurementModel.generateModalResponse(self._modalParams)
+            super().display()
+
+    def shouldRefresh(self):
+        return self._modalParams.shouldRefresh or super().shouldRefresh()
+
+
+class ModalMagnitudeModel(MagnitudeModel):
+    '''
+    Displays the modal model in line chart format.
+    '''
+
+    def __init__(self, chart, measurementModel, modalParameters):
+        super().__init__(chart, measurementModel, type=COMPUTED_MODAL_DATA)
         self._modalParams = modalParameters
 
     def display(self):

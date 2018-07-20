@@ -188,13 +188,20 @@
        </property>
       </widget>
      </item>
-     <item row="11" column="0">
+     <item row="15" column="0">
       <layout class="QFormLayout" name="formLayout"/>
      </item>
      <item row="9" column="0">
       <widget class="QLabel" name="label_10">
        <property name="text">
         <string>Transition Frequency (Hz)</string>
+       </property>
+      </widget>
+     </item>
+     <item row="12" column="0">
+      <widget class="QLabel" name="label_14">
+       <property name="text">
+        <string>Smoothing</string>
        </property>
       </widget>
      </item>
@@ -231,29 +238,85 @@
      <item row="0" column="1">
       <widget class="QLineEdit" name="dataPath"/>
      </item>
+     <item row="14" column="0">
+      <widget class="QLabel" name="label_3">
+       <property name="text">
+        <string>Colour Map</string>
+       </property>
+      </widget>
+     </item>
+     <item row="15" column="1">
+      <widget class="QPushButton" name="refreshSpatialBtn">
+       <property name="text">
+        <string>Update</string>
+       </property>
+      </widget>
+     </item>
+     <item row="14" column="1">
+      <widget class="QComboBox" name="colourMapSelector"/>
+     </item>
+     <item row="12" column="1">
+      <widget class="QComboBox" name="smoothingType">
+       <item>
+        <property name="text">
+         <string>None</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>1/3 Octave</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>1/6 Octave</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>1/12 Octave</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>CB Zwicker</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>CB Moore</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Narrow</string>
+        </property>
+       </item>
+      </widget>
+     </item>
      <item row="2" column="1">
-      <widget class="QComboBox" name="fs">
+      <widget class="QSpinBox" name="fs">
        <property name="enabled">
         <bool>false</bool>
        </property>
-       <property name="currentText">
-        <string>48000</string>
+       <property name="suffix">
+        <string> Hz</string>
        </property>
-       <item>
-        <property name="text">
-         <string>44100</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>48000</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>96000</string>
-        </property>
-       </item>
+       <property name="minimum">
+        <number>44100</number>
+       </property>
+       <property name="maximum">
+        <number>384000</number>
+       </property>
+       <property name="singleStep">
+        <number>100</number>
+       </property>
+       <property name="value">
+        <number>48000</number>
+       </property>
+       <property name="displayIntegerBase">
+        <number>10</number>
+       </property>
       </widget>
      </item>
     </layout>
@@ -264,7 +327,7 @@
       <x>600</x>
       <y>10</y>
       <width>1631</width>
-      <height>1091</height>
+      <height>1101</height>
      </rect>
     </property>
     <property name="currentIndex">
@@ -458,108 +521,62 @@
     </widget>
     <widget class="QWidget" name="magnitudeTab">
      <attribute name="title">
-      <string>Magnitude</string>
+      <string>Measured - Magnitude</string>
      </attribute>
-     <widget class="MplWidget" name="magnitudeGraph">
+     <widget class="MplWidget" name="measuredMagnitudeGraph">
       <property name="geometry">
        <rect>
         <x>0</x>
         <y>0</y>
         <width>1621</width>
-        <height>954</height>
+        <height>1061</height>
        </rect>
       </property>
      </widget>
     </widget>
     <widget class="QWidget" name="polarTab">
      <attribute name="title">
-      <string>Polar</string>
+      <string>Measured - Polar</string>
      </attribute>
-     <widget class="MplWidget" name="polarGraph">
+     <widget class="MplWidget" name="measuredPolarGraph">
       <property name="geometry">
        <rect>
         <x>0</x>
         <y>0</y>
         <width>1621</width>
-        <height>954</height>
+        <height>1061</height>
        </rect>
       </property>
      </widget>
-     <widget class="QWidget" name="gridLayoutWidget_3">
+    </widget>
+    <widget class="QWidget" name="tab_2">
+     <attribute name="title">
+      <string>Modal - Magnitude</string>
+     </attribute>
+     <widget class="MplWidget" name="modalMagnitudeGraph">
       <property name="geometry">
        <rect>
-        <x>-1</x>
-        <y>960</y>
-        <width>531</width>
-        <height>61</height>
+        <x>0</x>
+        <y>0</y>
+        <width>1621</width>
+        <height>1061</height>
        </rect>
       </property>
-      <layout class="QGridLayout" name="gridLayout">
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_3">
-         <property name="text">
-          <string>Colour Map</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QComboBox" name="colourMapSelector"/>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_4">
-         <property name="text">
-          <string>Contour Interval (dB)</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QSpinBox" name="contourInterval">
-         <property name="minimum">
-          <number>1</number>
-         </property>
-         <property name="maximum">
-          <number>12</number>
-         </property>
-         <property name="value">
-          <number>3</number>
-         </property>
-        </widget>
-       </item>
-      </layout>
      </widget>
     </widget>
     <widget class="QWidget" name="tab">
      <attribute name="title">
-      <string>Modal</string>
+      <string>Modal - Polar</string>
      </attribute>
-     <widget class="MplWidget" name="modalGraph">
+     <widget class="MplWidget" name="modalPolarGraph">
       <property name="geometry">
        <rect>
         <x>0</x>
         <y>0</y>
         <width>1621</width>
-        <height>954</height>
+        <height>1061</height>
        </rect>
       </property>
-     </widget>
-     <widget class="QWidget" name="gridLayoutWidget_4">
-      <property name="geometry">
-       <rect>
-        <x>-1</x>
-        <y>959</y>
-        <width>131</width>
-        <height>91</height>
-       </rect>
-      </property>
-      <layout class="QGridLayout" name="gridLayout_2">
-       <item row="0" column="0">
-        <widget class="QPushButton" name="refreshSpatialBtn">
-         <property name="text">
-          <string>Refresh</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
      </widget>
     </widget>
    </widget>
@@ -722,28 +739,12 @@
    <slot>updateColourMap()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1050</x>
-     <y>1045</y>
+     <x>388</x>
+     <y>1078</y>
     </hint>
     <hint type="destinationlabel">
      <x>593</x>
      <y>1069</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>contourInterval</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>MainWindow</receiver>
-   <slot>updateContourInterval()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>962</x>
-     <y>1084</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>596</x>
-     <y>1121</y>
     </hint>
    </hints>
   </connection>
@@ -755,7 +756,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>496</x>
-     <y>869</y>
+     <y>769</y>
     </hint>
     <hint type="destinationlabel">
      <x>593</x>
@@ -771,7 +772,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>541</x>
-     <y>936</y>
+     <y>836</y>
     </hint>
     <hint type="destinationlabel">
      <x>593</x>
@@ -787,7 +788,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>492</x>
-     <y>972</y>
+     <y>872</y>
     </hint>
     <hint type="destinationlabel">
      <x>593</x>
@@ -803,7 +804,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>461</x>
-     <y>1005</y>
+     <y>905</y>
     </hint>
     <hint type="destinationlabel">
      <x>590</x>
@@ -819,7 +820,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>542</x>
-     <y>1031</y>
+     <y>931</y>
     </hint>
     <hint type="destinationlabel">
      <x>588</x>
@@ -835,7 +836,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>527</x>
-     <y>1076</y>
+     <y>976</y>
     </hint>
     <hint type="destinationlabel">
      <x>591</x>
@@ -851,7 +852,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>480</x>
-     <y>1109</y>
+     <y>1009</y>
     </hint>
     <hint type="destinationlabel">
      <x>589</x>
@@ -867,7 +868,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>315</x>
-     <y>906</y>
+     <y>806</y>
     </hint>
     <hint type="destinationlabel">
      <x>203</x>
@@ -882,12 +883,28 @@
    <slot>refreshModal()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>691</x>
-     <y>1078</y>
+     <x>298</x>
+     <y>1119</y>
     </hint>
     <hint type="destinationlabel">
      <x>589</x>
      <y>856</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>smoothingType</sender>
+   <signal>currentIndexChanged(QString)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>updateSmoothing()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>268</x>
+     <y>1039</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>163</x>
+     <y>1123</y>
     </hint>
    </hints>
   </connection>
@@ -918,5 +935,6 @@
   <slot>updateTransitionFrequency()</slot>
   <slot>updateBoxRadius()</slot>
   <slot>refreshModal()</slot>
+  <slot>updateSmoothing()</slot>
  </slots>
 </ui>

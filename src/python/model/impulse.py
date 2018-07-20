@@ -80,7 +80,7 @@ class ImpulseModel:
             self.updateRightWindowPosition()
             self._displayActiveData(updatedIdx=kwargs.get('idx', None))
 
-    def _addPlotForMeasurement(self, idx, measurement):
+    def _addPlotForMeasurement(self, idx, measurement, mCount):
         '''
         adds the measurement to the chart (using the measurement idx to control which pen is used to ensure consistent colour schemes)
         :param idx: the idx.
@@ -89,7 +89,7 @@ class ImpulseModel:
         '''
         self._curves[measurement.getDisplayName()] = self._axes.plot(self._activeX, self._getY(measurement),
                                                                      linewidth=2, antialiased=True, linestyle='solid',
-                                                                     color=self._chart.getColour(idx))[0]
+                                                                     color=self._chart.getColour(idx, mCount))[0]
 
     def _getY(self, measurement):
         '''
@@ -204,7 +204,7 @@ class ImpulseModel:
                     if curve:
                         curve.set_data(self._activeX, self._getY(m))
                     else:
-                        self._addPlotForMeasurement(idx, m)
+                        self._addPlotForMeasurement(idx, m, len(self._measurementModel))
                 else:
                     if curve:
                         curve.remove()

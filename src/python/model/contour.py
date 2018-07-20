@@ -9,13 +9,12 @@ class ContourModel:
     Allows a set of FRs to be displayed as a directivity sonargram.
     '''
 
-    def __init__(self, chart, measurementModel, contourInterval, type):
+    def __init__(self, chart, measurementModel, type):
         self._chart = chart
         self._axes = None
         self._initChart()
         self._measurementModel = measurementModel
-        self._selectedCmap = 'plasma'
-        self._contourInterval = contourInterval
+        self._selectedCmap = 'bgyw'
         self._type = type
         self._data = None
         self._tc = None
@@ -80,6 +79,7 @@ class ContourModel:
         Updates the currently selected colour map.
         :param cmap: the cmap name.
         '''
+        cmap = self._chart.getColourMap(cmap)
         if self._tcf:
             self._tcf.set_cmap(cmap)
             self._chart.canvas.draw()
@@ -96,11 +96,3 @@ class ContourModel:
             self._tc = None
             self._tcf = None
 
-    def updateContourInterval(self, interval):
-        '''
-        Redraws with a new contour interval.
-        :param interval: the interval
-        '''
-        self._contourInterval = interval
-        self._refreshData = True
-        self.display()
