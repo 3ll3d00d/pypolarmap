@@ -205,7 +205,7 @@ def calPolar(modalData, angle, freq, boxRadius):
     :return:
     '''
     arg1 = np.require(modalData, dtype=np.complex128, requirements=ALIGNED_ARR)
-    result = calpolar_func(arg1, modalData.size, angle, freq, 0.10, boxRadius)
+    result = calpolar_func(arg1, modalData.size, math.radians(angle), freq, 0.10, boxRadius)
     retVal = complex(result.real, result.imag)
     return retVal
 

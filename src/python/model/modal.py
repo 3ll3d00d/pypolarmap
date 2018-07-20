@@ -1,6 +1,6 @@
 from model.contour import ContourModel
 from model.magnitude import MagnitudeModel
-from model.measurement import MODAL_MAGNITUDE_DATA
+from model.measurement import COMPUTED_MODAL_DATA
 
 
 class ModalParameterModel:
@@ -102,7 +102,7 @@ class ModalModel(ContourModel):
     '''
 
     def __init__(self, chart, measurementModel, contourInterval, modalParameters):
-        super().__init__(chart, measurementModel, contourInterval, type=MODAL_MAGNITUDE_DATA)
+        super().__init__(chart, measurementModel, contourInterval, type=COMPUTED_MODAL_DATA)
         self._modalParams = modalParameters
 
     def display(self):

@@ -17,8 +17,8 @@ WINDOW_MAPPING = {
     'Rectangle': signal.windows.boxcar
 }
 
-FR_MAGNITUDE_DATA = 'FR'
-MODAL_MAGNITUDE_DATA = 'MODAL'
+REAL_WORLD_DATA = 'REALWORLD'
+COMPUTED_MODAL_DATA = 'MODAL'
 
 # events that listeners have to handle
 LOAD_MEASUREMENTS = 'LOAD'
@@ -44,19 +44,18 @@ class MeasurementModel(Sequence):
     '''
 
     def __init__(self, m=None, listeners=None):
-        self._measurements = m if m is not None else []
-        self._listeners = listeners if listeners is not None else []
+        self.__measurements = m if m is not None else []
+        self.__listeners = listeners if listeners is not None else []
         self.__modalResponse = None
         self.__polarModel = None
-        self.__magnitudeData = {}
-        self.__modalMagnitudeData = {}
+        self.__complexData = {}
         super().__init__()
 
     def __getitem__(self, i):
-        return self._measurements[i]
+        return self.__measurements[i]
 
     def __len__(self):
-        return len(self._measurements)
+        return len(self.__measurements)
 
     def registerListener(self, listener):
         '''
@@ -64,7 +63,7 @@ class MeasurementModel(Sequence):
         an idx as well as a clear method.
         :param listener: the listener.
         '''
-        self._listeners.append(listener)
+        self.__listeners.append(listener)
 
     def _propagateEvent(self, type, **kwargs):
         '''
@@ -72,7 +71,7 @@ class MeasurementModel(Sequence):
         :param type: the event type.
         :param kwargs: the event args.
         '''
-        for l in self._listeners:
+        for l in self.__listeners:
             l.onUpdate(type, **kwargs)
 
     def toggleState(self, idx):
@@ -80,7 +79,7 @@ class MeasurementModel(Sequence):
         Toggles state and tells any listeners.
         :param idx: the updated measurement index.
         '''
-        self._measurements[idx].toggleState()
+        self.__measurements[idx].toggleState()
         self._propagateEvent(TOGGLE_MEASUREMENT, idx=idx)
 
     def load(self, measurements):
@@ -88,27 +87,27 @@ class MeasurementModel(Sequence):
         Loads measurements.
         :param measurements: the measurements.
         '''
-        self._measurements = measurements
+        self.__measurements = measurements
         self._propagateEvent(LOAD_MEASUREMENTS)
 
     def clear(self):
         '''
         Clears the loaded measurements.
         '''
-        self._measurements = []
+        self.__measurements = []
         self._propagateEvent(CLEAR_MEASUREMENTS)
 
     def getMaxSample(self):
         '''
         :return: the size of the longest measurement.
         '''
-        return max([x.size() for x in self._measurements])
+        return max([x.size() for x in self.__measurements])
 
     def getMaxSampleValue(self):
         '''
         :return: the largest sample value in the measurement set.
         '''
-        return max([max(x.max(), abs(x.min())) for x in self._measurements])
+        return max([max(x.max(), abs(x.min())) for x in self.__measurements])
 
     def generateMagnitudeResponse(self, left, right, peak):
         '''
@@ -120,15 +119,19 @@ class MeasurementModel(Sequence):
         leftWin = self._createWindow0(left, peak, 0)
         rightWin = self._createWindow0(right, peak, 1)
         completeWindow = np.concatenate((leftWin[1], leftWin[0], rightWin[0], rightWin[1]))
-        for m in self._measurements:
+        for m in self.__measurements:
             m.analyse(left['position'].value(), right['position'].value(), win=completeWindow)
-        self.__magnitudeData[FR_MAGNITUDE_DATA] = [self._createFRMagnitudeData(x) for x in self._measurements]
+        self.__complexData[REAL_WORLD_DATA] = [self._createFRData(x) for x in self.__measurements]
         self._propagateEvent(ANALYSED)
 
-    def _createFRMagnitudeData(self, measurement):
+    def _createFRData(self, measurement):
         logData, logFreqs = linToLog(measurement.fftData, measurement._fs / measurement.fftPoints)
-        return MagnitudeData(measurement.getDisplayName(), x=logFreqs, y=np.abs(logData) * 2 / measurement.fftPoints,
-                             visibleFunc=measurement.isActive)
+        return ComplexData(name=measurement.getDisplayName(),
+                           hAngle=measurement._h,
+                           x=logFreqs,
+                           y=logData,
+                           scaleFactor=2 / measurement.fftPoints,
+                           visibleFunc=measurement.isActive)
 
     def _createWindow0(self, params, peakIdx, side):
         '''
@@ -156,10 +159,10 @@ class MeasurementModel(Sequence):
         '''
         Calls calSpatial against this set of measurements and then calPolar to generate the computed polar model.
         '''
-        if FR_MAGNITUDE_DATA in self.__magnitudeData:
-            self.__modalResponse = calSpatial([x.y for x in self.__magnitudeData[FR_MAGNITUDE_DATA]],
-                                              self.__magnitudeData[FR_MAGNITUDE_DATA][0].x,
-                                              np.radians([x._h for x in self._measurements]),
+        if REAL_WORLD_DATA in self.__complexData:
+            self.__modalResponse = calSpatial([x.y for x in self.__complexData[REAL_WORLD_DATA]],
+                                              self.__complexData[REAL_WORLD_DATA][0].x,
+                                              np.radians([x._h for x in self.__measurements]),
                                               modalParameters.measurementDistance,
                                               modalParameters.driverRadius, modalParameters.modalCoeffs,
                                               modalParameters.transFreq, modalParameters.lfGain,
@@ -171,55 +174,76 @@ class MeasurementModel(Sequence):
         Generates the reconstructed polar model.
         :param modalParameters: the modal parameters.
         '''
-        x = []
-        y = []
-        z = []
-        for idx, lf in enumerate(self.__magnitudeData[FR_MAGNITUDE_DATA][0].x):
-            for angle in range(0, 185, 5):
+        modal = []
+        logFreqs = self.__complexData[REAL_WORLD_DATA][0].x
+        for angle in range(0, 182, 2):
+            name = 'modal ' + str(angle)
+            x = logFreqs
+            y = []
+            for idx, lf in enumerate(self.__complexData[REAL_WORLD_DATA][0].x):
                 modalData = self.__modalResponse[:, idx]
                 result = calPolar(modalData, angle, lf, modalParameters.boxRadius)
-                x.append(lf)
-                y.append(angle)
-                z.append(result)
-        self.__modalMagnitudeData = {'x': np.array(x), 'y': np.array(y),
-                                     'z': 20 * np.log10(np.abs(np.array(z)))}
+                y.append(result)
+            modal.append(ComplexData(name=name, hAngle=angle, x=x, y=np.array(y)))
+        self.__complexData[COMPUTED_MODAL_DATA] = modal
 
-    def getMagnitudeData(self, type=FR_MAGNITUDE_DATA, ref=1):
+    def getMagnitudeData(self, type=REAL_WORLD_DATA, ref=1):
         '''
         Gets the magnitude data of the specified type from the model.
         :param type: the type.
         :param ref: the reference against which to scale the result in dB.
         :return: the data (if any)
         '''
-        return [x.rescale(ref) for x in self.__magnitudeData[type]] if type in self.__magnitudeData else []
+        return [x.getMagnitude(ref) for x in self.__complexData[type]] if type in self.__complexData else []
 
-    def getContourData(self, type=FR_MAGNITUDE_DATA):
+    def getContourData(self, type=REAL_WORLD_DATA):
         '''
         Generates data for contour plots from the analysed data sets.
         :param type: the type of data to retrieve.
         :return: the data as a dict with xyz keys.
         '''
-        if type == FR_MAGNITUDE_DATA:
-            # convert to a table of xyz coordinates where x = frequencies, y = angles, z = magnitude
-            mag = self.getMagnitudeData(type)
-            return {
-                'x': np.array([d.x for d in mag]).flatten(),
-                'y': np.array([x._h for x in self]).repeat(mag[0].x.size),
-                'z': np.array([d.y for d in mag]).flatten()
-            }
-        elif type == MODAL_MAGNITUDE_DATA:
-            return self.__modalMagnitudeData
-        else:
-            return None
+        # convert to a table of xyz coordinates where x = frequencies, y = angles, z = magnitude
+        mag = self.getMagnitudeData(type)
+        return {
+            'x': np.array([d.x for d in mag]).flatten(),
+            'y': np.array([d.hAngle for d in mag]).repeat(mag[0].x.size),
+            'z': np.array([d.y for d in mag]).flatten()
+        }
 
 
-class MagnitudeData:
+class ComplexData:
+    '''
+    Value object for storing computed data derived, directly or indirectly, from a measurement.
+    '''
+
+    def __init__(self, name, hAngle, x, y, scaleFactor=1, visibleFunc=lambda: True):
+        self.name = name
+        self.hAngle = hAngle
+        self.x = x
+        self.y = y
+        self.scaleFactor = scaleFactor
+        self.__visibleFunc = visibleFunc
+
+    @property
+    def visible(self):
+        return self.__visibleFunc()
+
+    def getMagnitude(self, ref):
+        return XYData(self.name, self.hAngle, self.x, 20 * np.log10(np.abs(self.y) * self.scaleFactor / ref),
+                      self.__visibleFunc)
+
+    def getPhase(self):
+        return XYData(self.name, self.hAngle, self.x, np.angle(self.y), self.__visibleFunc)
+
+
+class XYData:
     '''
     Value object for showing data on a magnitude graph.
     '''
 
-    def __init__(self, name, x, y, visibleFunc):
+    def __init__(self, name, hAngle, x, y, visibleFunc=lambda: True):
         self.name = name
+        self.hAngle = hAngle
         self.x = x
         self.y = y
         self.__visibleFunc = visibleFunc
@@ -228,13 +252,10 @@ class MagnitudeData:
     def visible(self):
         return self.__visibleFunc()
 
-    def rescale(self, ref):
-        return MagnitudeData(self.name, self.x, 20 * np.log10(self.y / ref), self.__visibleFunc)
-
 
 class Measurement:
     '''
-    Models a single measurement.
+    A single measurement taken in the real world.
     '''
     reflectionFreeZoneLimit = 10 ** -4
 

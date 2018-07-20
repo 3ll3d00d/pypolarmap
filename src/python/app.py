@@ -4,7 +4,7 @@ import matplotlib
 from PyQt5.QtWidgets import QMainWindow, QApplication, QFileDialog, QDialog, QDialogButtonBox, QMessageBox
 
 from model.load import WavLoader, HolmLoader, TxtLoader, DblLoader, REWLoader, ARTALoader
-from model.measurement import FR_MAGNITUDE_DATA
+from model.measurement import REAL_WORLD_DATA
 from ui.loadMeasurements import Ui_loadMeasurementDialog
 from ui.pypolarmap import Ui_MainWindow
 
@@ -152,8 +152,8 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
         self._modalModel = modal.ModalModel(self.modalGraph, self._measurementModel, self.contourInterval.value(),
                                             self._modalParameterModel)
         self._polarModel = contour.ContourModel(self.polarGraph, self._measurementModel, self.contourInterval.value(),
-                                                type=FR_MAGNITUDE_DATA)
-        self._magnitudeModel = mag.MagnitudeModel(self.magnitudeGraph, self._measurementModel, type=FR_MAGNITUDE_DATA)
+                                                type=REAL_WORLD_DATA)
+        self._magnitudeModel = mag.MagnitudeModel(self.magnitudeGraph, self._measurementModel, type=REAL_WORLD_DATA)
         self._impulseModel = imp.ImpulseModel(self.impulseGraph,
                                               {'position': self.leftWindowSample,
                                                'type': self.leftWindowType,
