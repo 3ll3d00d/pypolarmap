@@ -1,6 +1,6 @@
 import math
 
-__all__ = ['fft', 'linToLog']
+__all__ = ['fft', 'linToLog', 'calSpatial', 'calPolar']
 
 import ctypes as ct
 
@@ -171,6 +171,43 @@ def calSpatial(logSpacedMeasurements, logSpacedFreqs, anglesInRadians, measureme
                     ct.c_double(q0),
                     ct.c_int32(sourceType))
     return dataOut.copy()
+
+
+class Complex64(ct.Structure):
+    _fields_ = [("real", ct.c_double), ("imag", ct.c_double)]
+
+
+# CalPolar setup
+calpolar_func = getattr(lib, 'CalPolar')
+calpolar_func.restype = Complex64
+calpolar_func.argtypes = [
+    # ByRef DataIn As Complex
+    np.ctypeslib.ndpointer(dtype=np.complex128, ndim=1, flags=ALIGNED),
+    # ByVal NumCoef As Integer
+    ct.c_int32,
+    # ByVal angl As Double
+    ct.c_double,
+    # ByVal freq As Double
+    ct.c_double,
+    # ByVal farnum As Double
+    ct.c_double,
+    # ByVal Velnum As Double
+    ct.c_double
+]
+
+
+def calPolar(modalData, angle, freq, boxRadius):
+    '''
+    :param modalData: a vector of modal parameters at the specified frequency.
+    :param angle: the angle we want to calculate the pressure response at.
+    :param freq: the frequency we want to calculate the pressure response at.
+    :param boxRadius: the radius of enclosure.
+    :return:
+    '''
+    arg1 = np.require(modalData, dtype=np.complex128, requirements=ALIGNED_ARR)
+    result = calpolar_func(arg1, modalData.size, math.radians(angle), freq, 0.10, boxRadius)
+    retVal = complex(result.real, result.imag)
+    return retVal
 
 
 # smooth setup

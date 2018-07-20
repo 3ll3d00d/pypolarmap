@@ -1,5 +1,5 @@
 from model import configureFreqAxisFormatting
-from model.measurement import FR_MAGNITUDE_DATA, ANALYSED, CLEAR_MEASUREMENTS, LOAD_MEASUREMENTS
+from model.measurement import REAL_WORLD_DATA, ANALYSED, CLEAR_MEASUREMENTS, LOAD_MEASUREMENTS
 
 
 class MagnitudeModel:
@@ -7,7 +7,7 @@ class MagnitudeModel:
     Allows a set of measurements to be displayed on a chart as magnitude responses.
     '''
 
-    def __init__(self, chart, measurementModel, type=FR_MAGNITUDE_DATA, modelListener=None):
+    def __init__(self, chart, measurementModel, type=REAL_WORLD_DATA, modelListener=None):
         self._chart = chart
         self._axes = self._chart.canvas.figure.add_subplot(111)
         self._axes.set_xlim(left=20, right=20000)
