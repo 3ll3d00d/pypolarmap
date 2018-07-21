@@ -2,8 +2,7 @@ import typing
 from collections.abc import Sequence
 
 import numpy as np
-from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant, QEvent
-from PyQt5.QtWidgets import QItemDelegate
+from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant
 from scipy import signal
 
 from meascalcs import fft, linToLog, calSpatial, calPolar, smooth
@@ -22,7 +21,6 @@ COMPUTED_MODAL_DATA = 'MODAL'
 
 # events that listeners have to handle
 LOAD_MEASUREMENTS = 'LOAD'
-TOGGLE_MEASUREMENT = 'TOGGLE'
 ANALYSED = 'ANALYSED'
 CLEAR_MEASUREMENTS = 'CLEAR'
 
@@ -75,14 +73,6 @@ class MeasurementModel(Sequence):
         for l in self.__listeners:
             l.onUpdate(type, **kwargs)
 
-    def toggleState(self, idx):
-        '''
-        Toggles state and tells any listeners.
-        :param idx: the updated measurement index.
-        '''
-        self.__measurements[idx].toggleState()
-        self._propagateEvent(TOGGLE_MEASUREMENT, idx=idx)
-
     def load(self, measurements):
         '''
         Loads measurements.
@@ -131,8 +121,7 @@ class MeasurementModel(Sequence):
                            hAngle=measurement._h,
                            x=logFreqs,
                            y=logData,
-                           scaleFactor=2 / measurement.fftPoints,
-                           visibleFunc=measurement.isActive)
+                           scaleFactor=2 / measurement.fftPoints)
 
     def _createWindow0(self, params, peakIdx, side):
         '''
@@ -228,26 +217,21 @@ class ComplexData:
     Value object for storing computed data derived, directly or indirectly, from a measurement.
     '''
 
-    def __init__(self, name, hAngle, x, y, scaleFactor=1, visibleFunc=lambda: True):
+    def __init__(self, name, hAngle, x, y, scaleFactor=1):
         self.name = name
         self.hAngle = hAngle
         self.x = x
         self.y = y
         self.scaleFactor = scaleFactor
-        self.__visibleFunc = visibleFunc
-
-    @property
-    def visible(self):
-        return self.__visibleFunc()
 
     def getMagnitude(self, ref, smoothingType):
         y = np.abs(self.y) * self.scaleFactor / ref
         if smoothingType is not None and smoothingType != 'None':
             y = smooth(y, self.x, smoothingType)
-        return XYData(self.name, self.hAngle, self.x, 20 * np.log10(y), self.__visibleFunc)
+        return XYData(self.name, self.hAngle, self.x, 20 * np.log10(y))
 
     def getPhase(self):
-        return XYData(self.name, self.hAngle, self.x, np.angle(self.y), self.__visibleFunc)
+        return XYData(self.name, self.hAngle, self.x, np.angle(self.y))
 
 
 class XYData:
@@ -255,16 +239,11 @@ class XYData:
     Value object for showing data on a magnitude graph.
     '''
 
-    def __init__(self, name, hAngle, x, y, visibleFunc=lambda: True):
+    def __init__(self, name, hAngle, x, y):
         self.name = name
         self.hAngle = hAngle
         self.x = x
         self.y = y
-        self.__visibleFunc = visibleFunc
-
-    @property
-    def visible(self):
-        return self.__visibleFunc()
 
 
 class Measurement:
@@ -278,7 +257,6 @@ class Measurement:
         self._h = h
         self._v = v
         self._fs = fs
-        self._active = True
         self.samples = np.array([])
         self.window = np.array([])
         self.gatedSamples = np.array([])
@@ -327,13 +305,6 @@ class Measurement:
                 return peakIdx - idx
         return 0
 
-    def toggleState(self):
-        '''
-        sets whether this measurement is active or not.
-        :return:
-        '''
-        self._active = not self._active
-
     def getDisplayName(self):
         '''
         :return: the display name of this measurement.
@@ -354,12 +325,6 @@ class Measurement:
         self.gatedSamples = gatedSamples
         self.fftData, self.fftPoints = fft(self.gatedSamples)
 
-    def isActive(self):
-        '''
-        :return: if the measurement is currently active.
-        '''
-        return self._active
-
     def __repr__(self):
         return '{}: {}'.format(self.__class__.__name__, self.getDisplayName())
 
@@ -371,7 +336,7 @@ class MeasurementTableModel(QAbstractTableModel):
 
     def __init__(self, model, parent=None):
         super().__init__(parent=parent)
-        self._headers = ['File', 'Samples', 'H', 'V', 'Active']
+        self._headers = ['File', 'Samples', 'H', 'V']
         self._measurementModel = model
 
     def rowCount(self, parent: QModelIndex = ...):
@@ -379,12 +344,6 @@ class MeasurementTableModel(QAbstractTableModel):
 
     def columnCount(self, parent: QModelIndex = ...):
         return len(self._headers)
-
-    def flags(self, index: QModelIndex) -> Qt.ItemFlags:
-        if (index.column() == 4):
-            return super().flags(index) | Qt.ItemIsEditable
-        else:
-            return super().flags(index)
 
     def data(self, index: QModelIndex, role: int = ...) -> typing.Any:
         if not index.isValid():
@@ -400,8 +359,6 @@ class MeasurementTableModel(QAbstractTableModel):
                 return QVariant(self._measurementModel[index.row()]._h)
             elif index.column() == 3:
                 return QVariant(self._measurementModel[index.row()]._v)
-            elif index.column() == 4:
-                return QVariant(self._measurementModel[index.row()]._active)
             else:
                 return QVariant()
 
@@ -416,47 +373,5 @@ class MeasurementTableModel(QAbstractTableModel):
         self.layoutChanged.emit()
 
     def completeRendering(self, view):
-        view.setItemDelegateForColumn(4, CheckBoxDelegate(None))
-        for x in range(0, 5):
+        for x in range(0, 4):
             view.resizeColumnToContents(x)
-
-    def toggleState(self, idx):
-        self._measurementModel.toggleState(idx)
-
-
-# from https://stackoverflow.com/questions/17748546/pyqt-column-of-checkboxes-in-a-qtableview
-class CheckBoxDelegate(QItemDelegate):
-    """
-    A delegate that places a fully functioning QCheckBox cell of the column to which it's applied & which propagates
-    state changes to the owning measurement model.
-    """
-
-    def __init__(self, parent):
-        QItemDelegate.__init__(self, parent)
-
-    def createEditor(self, parent, option, index):
-        """
-        Important, otherwise an editor is created if the user clicks in this cell.
-        """
-        return None
-
-    def paint(self, painter, option, index):
-        """
-        Paint a checkbox without the label.
-        """
-        self.drawCheck(painter, option, option.rect, Qt.Unchecked if int(index.data()) == 0 else Qt.Checked)
-
-    def editorEvent(self, event, model, option, index):
-        '''
-        Change the data in the model and the state of the checkbox
-        if the user presses the left mousebutton and this cell is editable. Otherwise do nothing.
-        '''
-        if not int(index.flags() & Qt.ItemIsEditable) > 0:
-            return False
-
-        if event.type() == QEvent.MouseButtonPress and event.button() == Qt.LeftButton:
-            # Change the checkbox-state
-            model.toggleState(index.row())
-            return True
-
-        return False

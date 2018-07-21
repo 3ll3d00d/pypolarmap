@@ -42,7 +42,6 @@ class MagnitudeModel:
                                                                linestyle='solid',
                                                                color=self._chart.getColour(idx,
                                                                                            len(self._measurementModel)),
-                                                               visible=x.visible,
                                                                label=x.name)[0]
             configureFreqAxisFormatting(self._axes)
             if self._axes.get_legend() is None:

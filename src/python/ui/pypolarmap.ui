@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>2229</width>
+    <width>2234</width>
     <height>1162</height>
    </rect>
   </property>
@@ -22,212 +22,11 @@
      <rect>
       <x>10</x>
       <y>10</y>
-      <width>581</width>
+      <width>361</width>
       <height>1091</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="measurementSelectLayout">
-     <item row="3" column="0">
-      <widget class="QLabel" name="label_5">
-       <property name="text">
-        <string>Measurement Distance (m)</string>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="1">
-      <widget class="QDoubleSpinBox" name="measurementDistance">
-       <property name="minimum">
-        <double>0.100000000000000</double>
-       </property>
-       <property name="maximum">
-        <double>10.000000000000000</double>
-       </property>
-       <property name="singleStep">
-        <double>0.010000000000000</double>
-       </property>
-       <property name="value">
-        <double>1.000000000000000</double>
-       </property>
-      </widget>
-     </item>
-     <item row="5" column="1">
-      <widget class="QDoubleSpinBox" name="driverRadius">
-       <property name="decimals">
-        <number>1</number>
-       </property>
-       <property name="minimum">
-        <double>1.000000000000000</double>
-       </property>
-       <property name="maximum">
-        <double>40.000000000000000</double>
-       </property>
-       <property name="singleStep">
-        <double>0.100000000000000</double>
-       </property>
-       <property name="value">
-        <double>15.000000000000000</double>
-       </property>
-      </widget>
-     </item>
-     <item row="5" column="0">
-      <widget class="QLabel" name="label_6">
-       <property name="text">
-        <string>Driver Radius (cm)</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="0">
-      <widget class="QLabel" name="label_13">
-       <property name="text">
-        <string>Fs</string>
-       </property>
-      </widget>
-     </item>
-     <item row="9" column="1">
-      <widget class="QSpinBox" name="transFreq">
-       <property name="minimum">
-        <number>1</number>
-       </property>
-       <property name="maximum">
-        <number>1000</number>
-       </property>
-       <property name="value">
-        <number>200</number>
-       </property>
-      </widget>
-     </item>
-     <item row="10" column="0">
-      <widget class="QLabel" name="label_11">
-       <property name="text">
-        <string>LF Gain (dB)</string>
-       </property>
-      </widget>
-     </item>
-     <item row="10" column="1">
-      <widget class="QDoubleSpinBox" name="lfGain">
-       <property name="decimals">
-        <number>1</number>
-       </property>
-       <property name="minimum">
-        <double>-10.000000000000000</double>
-       </property>
-       <property name="maximum">
-        <double>10.000000000000000</double>
-       </property>
-       <property name="singleStep">
-        <double>0.100000000000000</double>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="0" colspan="3">
-      <widget class="QTreeView" name="measurementView"/>
-     </item>
-     <item row="7" column="0">
-      <widget class="QLabel" name="label_8">
-       <property name="text">
-        <string>f0</string>
-       </property>
-      </widget>
-     </item>
-     <item row="6" column="0">
-      <widget class="QLabel" name="label_7">
-       <property name="text">
-        <string>Modal Coefficients</string>
-       </property>
-      </widget>
-     </item>
-     <item row="6" column="1">
-      <widget class="QSpinBox" name="modalCoeffs">
-       <property name="minimum">
-        <number>5</number>
-       </property>
-       <property name="maximum">
-        <number>14</number>
-       </property>
-       <property name="value">
-        <number>14</number>
-       </property>
-      </widget>
-     </item>
-     <item row="7" column="1">
-      <widget class="QSpinBox" name="f0">
-       <property name="minimum">
-        <number>1</number>
-       </property>
-       <property name="maximum">
-        <number>200</number>
-       </property>
-       <property name="value">
-        <number>70</number>
-       </property>
-      </widget>
-     </item>
-     <item row="8" column="1">
-      <widget class="QDoubleSpinBox" name="q0">
-       <property name="decimals">
-        <number>3</number>
-       </property>
-       <property name="minimum">
-        <double>0.200000000000000</double>
-       </property>
-       <property name="maximum">
-        <double>1.500000000000000</double>
-       </property>
-       <property name="singleStep">
-        <double>0.001000000000000</double>
-       </property>
-       <property name="value">
-        <double>0.700000000000000</double>
-       </property>
-      </widget>
-     </item>
-     <item row="8" column="0">
-      <widget class="QLabel" name="label_9">
-       <property name="text">
-        <string>q0</string>
-       </property>
-      </widget>
-     </item>
-     <item row="15" column="0">
-      <layout class="QFormLayout" name="formLayout"/>
-     </item>
-     <item row="9" column="0">
-      <widget class="QLabel" name="label_10">
-       <property name="text">
-        <string>Transition Frequency (Hz)</string>
-       </property>
-      </widget>
-     </item>
-     <item row="12" column="0">
-      <widget class="QLabel" name="label_14">
-       <property name="text">
-        <string>Smoothing</string>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="1">
-      <widget class="QDoubleSpinBox" name="boxRadius">
-       <property name="minimum">
-        <double>0.010000000000000</double>
-       </property>
-       <property name="maximum">
-        <double>3.000000000000000</double>
-       </property>
-       <property name="singleStep">
-        <double>0.010000000000000</double>
-       </property>
-       <property name="value">
-        <double>0.250000000000000</double>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="0">
-      <widget class="QLabel" name="label_12">
-       <property name="text">
-        <string>Box Radius (m)</string>
-       </property>
-      </widget>
-     </item>
      <item row="0" column="0">
       <widget class="QPushButton" name="selectDirBtn">
        <property name="text">
@@ -235,98 +34,300 @@
        </property>
       </widget>
      </item>
-     <item row="0" column="1">
+     <item row="2" column="0" colspan="2">
+      <widget class="QTreeView" name="measurementView"/>
+     </item>
+     <item row="3" column="0" rowspan="2" colspan="2">
+      <layout class="QFormLayout" name="formLayout_4">
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_13">
+         <property name="text">
+          <string>Fs</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QSpinBox" name="fs">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="suffix">
+          <string> Hz</string>
+         </property>
+         <property name="minimum">
+          <number>44100</number>
+         </property>
+         <property name="maximum">
+          <number>384000</number>
+         </property>
+         <property name="singleStep">
+          <number>100</number>
+         </property>
+         <property name="value">
+          <number>48000</number>
+         </property>
+         <property name="displayIntegerBase">
+          <number>10</number>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_5">
+         <property name="text">
+          <string>Measurement Distance (m)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QDoubleSpinBox" name="measurementDistance">
+         <property name="minimum">
+          <double>0.100000000000000</double>
+         </property>
+         <property name="maximum">
+          <double>10.000000000000000</double>
+         </property>
+         <property name="singleStep">
+          <double>0.010000000000000</double>
+         </property>
+         <property name="value">
+          <double>1.000000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_12">
+         <property name="text">
+          <string>Box Radius (m)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QDoubleSpinBox" name="boxRadius">
+         <property name="minimum">
+          <double>0.010000000000000</double>
+         </property>
+         <property name="maximum">
+          <double>3.000000000000000</double>
+         </property>
+         <property name="singleStep">
+          <double>0.010000000000000</double>
+         </property>
+         <property name="value">
+          <double>0.250000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_6">
+         <property name="text">
+          <string>Driver Radius (cm)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QDoubleSpinBox" name="driverRadius">
+         <property name="decimals">
+          <number>1</number>
+         </property>
+         <property name="minimum">
+          <double>1.000000000000000</double>
+         </property>
+         <property name="maximum">
+          <double>40.000000000000000</double>
+         </property>
+         <property name="singleStep">
+          <double>0.100000000000000</double>
+         </property>
+         <property name="value">
+          <double>15.000000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="label_7">
+         <property name="text">
+          <string>Modal Coefficients</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="QSpinBox" name="modalCoeffs">
+         <property name="minimum">
+          <number>5</number>
+         </property>
+         <property name="maximum">
+          <number>14</number>
+         </property>
+         <property name="value">
+          <number>14</number>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="1">
+        <widget class="QSpinBox" name="f0">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>200</number>
+         </property>
+         <property name="value">
+          <number>70</number>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="1">
+        <widget class="QDoubleSpinBox" name="q0">
+         <property name="decimals">
+          <number>3</number>
+         </property>
+         <property name="minimum">
+          <double>0.200000000000000</double>
+         </property>
+         <property name="maximum">
+          <double>1.500000000000000</double>
+         </property>
+         <property name="singleStep">
+          <double>0.001000000000000</double>
+         </property>
+         <property name="value">
+          <double>0.700000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="1">
+        <widget class="QSpinBox" name="transFreq">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>1000</number>
+         </property>
+         <property name="value">
+          <number>200</number>
+         </property>
+        </widget>
+       </item>
+       <item row="8" column="1">
+        <widget class="QDoubleSpinBox" name="lfGain">
+         <property name="decimals">
+          <number>1</number>
+         </property>
+         <property name="minimum">
+          <double>-10.000000000000000</double>
+         </property>
+         <property name="maximum">
+          <double>10.000000000000000</double>
+         </property>
+         <property name="singleStep">
+          <double>0.100000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item row="9" column="1">
+        <widget class="QComboBox" name="smoothingType">
+         <item>
+          <property name="text">
+           <string>None</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>1/3 Octave</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>1/6 Octave</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>1/12 Octave</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>CB Zwicker</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>CB Moore</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Narrow</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="10" column="1">
+        <widget class="QComboBox" name="colourMapSelector"/>
+       </item>
+       <item row="11" column="1">
+        <widget class="QPushButton" name="refreshSpatialBtn">
+         <property name="text">
+          <string>Update</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="0">
+        <widget class="QLabel" name="label_8">
+         <property name="text">
+          <string>f0</string>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="0">
+        <widget class="QLabel" name="label_9">
+         <property name="text">
+          <string>q0</string>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="0">
+        <widget class="QLabel" name="label_10">
+         <property name="text">
+          <string>Transition Frequency (Hz)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="8" column="0">
+        <widget class="QLabel" name="label_11">
+         <property name="text">
+          <string>LF Gain (dB)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="9" column="0">
+        <widget class="QLabel" name="label_14">
+         <property name="text">
+          <string>Smoothing</string>
+         </property>
+        </widget>
+       </item>
+       <item row="10" column="0">
+        <widget class="QLabel" name="label_3">
+         <property name="text">
+          <string>Colour Map</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="1" column="0">
       <widget class="QLineEdit" name="dataPath"/>
-     </item>
-     <item row="14" column="0">
-      <widget class="QLabel" name="label_3">
-       <property name="text">
-        <string>Colour Map</string>
-       </property>
-      </widget>
-     </item>
-     <item row="15" column="1">
-      <widget class="QPushButton" name="refreshSpatialBtn">
-       <property name="text">
-        <string>Update</string>
-       </property>
-      </widget>
-     </item>
-     <item row="14" column="1">
-      <widget class="QComboBox" name="colourMapSelector"/>
-     </item>
-     <item row="12" column="1">
-      <widget class="QComboBox" name="smoothingType">
-       <item>
-        <property name="text">
-         <string>None</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>1/3 Octave</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>1/6 Octave</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>1/12 Octave</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>CB Zwicker</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>CB Moore</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Narrow</string>
-        </property>
-       </item>
-      </widget>
-     </item>
-     <item row="2" column="1">
-      <widget class="QSpinBox" name="fs">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="suffix">
-        <string> Hz</string>
-       </property>
-       <property name="minimum">
-        <number>44100</number>
-       </property>
-       <property name="maximum">
-        <number>384000</number>
-       </property>
-       <property name="singleStep">
-        <number>100</number>
-       </property>
-       <property name="value">
-        <number>48000</number>
-       </property>
-       <property name="displayIntegerBase">
-        <number>10</number>
-       </property>
-      </widget>
      </item>
     </layout>
    </widget>
    <widget class="QTabWidget" name="graphTabs">
     <property name="geometry">
      <rect>
-      <x>600</x>
+      <x>380</x>
       <y>10</y>
-      <width>1631</width>
+      <width>1831</width>
       <height>1101</height>
      </rect>
     </property>
@@ -342,182 +343,210 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>1621</width>
+        <width>1822</width>
         <height>1061</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="graphLayout">
-       <item row="3" column="2">
-        <widget class="QSpinBox" name="leftWindowSample"/>
-       </item>
-       <item row="2" column="0" colspan="3">
-        <widget class="QLabel" name="label">
-         <property name="text">
-          <string>Left Window</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="4">
-        <widget class="QSpinBox" name="rightWindowPercent">
-         <property name="suffix">
-          <string>%</string>
-         </property>
-         <property name="minimum">
-          <number>12</number>
-         </property>
-         <property name="maximum">
-          <number>75</number>
-         </property>
-         <property name="value">
-          <number>50</number>
+       <property name="sizeConstraint">
+        <enum>QLayout::SetDefaultConstraint</enum>
+       </property>
+       <item row="0" column="1" colspan="8">
+        <widget class="MplWidget" name="impulseGraph">
+         <property name="minimumSize">
+          <size>
+           <width>1600</width>
+           <height>0</height>
+          </size>
          </property>
         </widget>
        </item>
-       <item row="3" column="5">
-        <widget class="QSpinBox" name="rightWindowSample"/>
-       </item>
-       <item row="3" column="0">
-        <widget class="QComboBox" name="leftWindowType">
-         <item>
-          <property name="text">
-           <string>Rectangle</string>
-          </property>
+       <item row="0" column="0">
+        <layout class="QFormLayout" name="formLayout_3">
+         <property name="sizeConstraint">
+          <enum>QLayout::SetFixedSize</enum>
+         </property>
+         <item row="2" column="0">
+          <widget class="QLabel" name="label">
+           <property name="frameShape">
+            <enum>QFrame::NoFrame</enum>
+           </property>
+           <property name="text">
+            <string>Left</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+           </property>
+          </widget>
          </item>
-         <item>
-          <property name="text">
-           <string>Tukey</string>
-          </property>
+         <item row="2" column="1">
+          <widget class="QComboBox" name="leftWindowType">
+           <item>
+            <property name="text">
+             <string>Rectangle</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Tukey</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Hann</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Hamming</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Blackman-Harris</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Nuttall</string>
+            </property>
+           </item>
+          </widget>
          </item>
-         <item>
-          <property name="text">
-           <string>Hann</string>
-          </property>
+         <item row="3" column="1">
+          <widget class="QSpinBox" name="leftWindowPercent">
+           <property name="suffix">
+            <string>%</string>
+           </property>
+           <property name="minimum">
+            <number>12</number>
+           </property>
+           <property name="maximum">
+            <number>75</number>
+           </property>
+           <property name="value">
+            <number>50</number>
+           </property>
+          </widget>
          </item>
-         <item>
-          <property name="text">
-           <string>Hamming</string>
-          </property>
+         <item row="4" column="1">
+          <widget class="QSpinBox" name="leftWindowSample"/>
          </item>
-         <item>
-          <property name="text">
-           <string>Blackman-Harris</string>
-          </property>
+         <item row="5" column="1">
+          <widget class="QComboBox" name="rightWindowType">
+           <item>
+            <property name="text">
+             <string>Rectangle</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Tukey</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Hann</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Hamming</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Blackman-Harris</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Nuttall</string>
+            </property>
+           </item>
+          </widget>
          </item>
-         <item>
-          <property name="text">
-           <string>Nuttall</string>
-          </property>
+         <item row="5" column="0">
+          <widget class="QLabel" name="label_2">
+           <property name="text">
+            <string>Right</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
          </item>
-        </widget>
-       </item>
-       <item row="3" column="1">
-        <widget class="QSpinBox" name="leftWindowPercent">
-         <property name="suffix">
-          <string>%</string>
-         </property>
-         <property name="minimum">
-          <number>12</number>
-         </property>
-         <property name="maximum">
-          <number>75</number>
-         </property>
-         <property name="value">
-          <number>50</number>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="3" colspan="3">
-        <widget class="QLabel" name="label_2">
-         <property name="text">
-          <string>Right Window</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="3">
-        <widget class="QComboBox" name="rightWindowType">
-         <item>
-          <property name="text">
-           <string>Rectangle</string>
-          </property>
+         <item row="6" column="1">
+          <widget class="QSpinBox" name="rightWindowPercent">
+           <property name="suffix">
+            <string>%</string>
+           </property>
+           <property name="minimum">
+            <number>12</number>
+           </property>
+           <property name="maximum">
+            <number>75</number>
+           </property>
+           <property name="value">
+            <number>50</number>
+           </property>
+          </widget>
          </item>
-         <item>
-          <property name="text">
-           <string>Tukey</string>
-          </property>
+         <item row="7" column="1">
+          <widget class="QSpinBox" name="rightWindowSample"/>
          </item>
-         <item>
-          <property name="text">
-           <string>Hann</string>
-          </property>
+         <item row="1" column="0" colspan="2">
+          <widget class="QPushButton" name="applyWindowBtn">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="text">
+            <string>Apply Window</string>
+           </property>
+          </widget>
          </item>
-         <item>
-          <property name="text">
-           <string>Hamming</string>
-          </property>
+         <item row="8" column="0" colspan="2">
+          <widget class="QPushButton" name="toggleWindowedBtn">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="text">
+            <string>Show Windowed IR</string>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+           <property name="flat">
+            <bool>false</bool>
+           </property>
+          </widget>
          </item>
-         <item>
-          <property name="text">
-           <string>Blackman-Harris</string>
-          </property>
+         <item row="9" column="0" colspan="2">
+          <widget class="QPushButton" name="zoomInButton">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="text">
+            <string>Zoom In</string>
+           </property>
+          </widget>
          </item>
-         <item>
-          <property name="text">
-           <string>Nuttall</string>
-          </property>
+         <item row="10" column="0" colspan="2">
+          <widget class="QPushButton" name="zoomOutBtn">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="text">
+            <string>Zoom Out</string>
+           </property>
+          </widget>
          </item>
-        </widget>
-       </item>
-       <item row="0" column="0" colspan="6">
-        <widget class="MplWidget" name="impulseGraph"/>
-       </item>
-       <item row="1" column="0">
-        <widget class="QPushButton" name="toggleWindowedBtn">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="text">
-          <string>Show Windowed IR</string>
-         </property>
-         <property name="checkable">
-          <bool>true</bool>
-         </property>
-         <property name="flat">
-          <bool>false</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QPushButton" name="zoomButton">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="text">
-          <string>Zoom In</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="2">
-        <widget class="QPushButton" name="pushButton">
-         <property name="text">
-          <string>Zoom Out</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="3">
-        <widget class="QPushButton" name="pushButton_2">
-         <property name="text">
-          <string>Apply Window</string>
-         </property>
-        </widget>
+        </layout>
        </item>
       </layout>
      </widget>
+     <zorder>gridLayoutWidget_2</zorder>
+     <zorder>leftWindowType</zorder>
     </widget>
     <widget class="QWidget" name="magnitudeTab">
      <attribute name="title">
@@ -528,7 +557,7 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>1621</width>
+        <width>1821</width>
         <height>1061</height>
        </rect>
       </property>
@@ -543,7 +572,7 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>1621</width>
+        <width>1821</width>
         <height>1061</height>
        </rect>
       </property>
@@ -558,7 +587,7 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>1621</width>
+        <width>1821</width>
         <height>1061</height>
        </rect>
       </property>
@@ -573,7 +602,7 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>1621</width>
+        <width>1821</width>
         <height>1061</height>
        </rect>
       </property>
@@ -588,7 +617,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>2229</width>
+     <width>2234</width>
      <height>31</height>
     </rect>
    </property>
@@ -621,50 +650,18 @@
    </hints>
   </connection>
   <connection>
-   <sender>rightWindowSample</sender>
-   <signal>editingFinished()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>updateRightWindowPosition()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>2061</x>
-     <y>1128</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>1455</x>
-     <y>945</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>zoomButton</sender>
+   <sender>zoomInButton</sender>
    <signal>clicked()</signal>
    <receiver>MainWindow</receiver>
    <slot>zoomIn()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1015</x>
-     <y>1038</y>
+     <x>525</x>
+     <y>375</y>
     </hint>
     <hint type="destinationlabel">
      <x>736</x>
      <y>512</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>leftWindowSample</sender>
-   <signal>editingFinished()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>updateLeftWindowPosition()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>1296</x>
-     <y>1128</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>1000</x>
-     <y>954</y>
     </hint>
    </hints>
   </connection>
@@ -675,8 +672,8 @@
    <slot>toggleWindowed()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>746</x>
-     <y>1038</y>
+     <x>527</x>
+     <y>332</y>
     </hint>
     <hint type="destinationlabel">
      <x>715</x>
@@ -701,34 +698,18 @@
    </hints>
   </connection>
   <connection>
-   <sender>pushButton</sender>
+   <sender>zoomOutBtn</sender>
    <signal>clicked()</signal>
    <receiver>MainWindow</receiver>
    <slot>zoomOut()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1226</x>
-     <y>1047</y>
+     <x>464</x>
+     <y>427</y>
     </hint>
     <hint type="destinationlabel">
      <x>588</x>
      <y>47</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>pushButton_2</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>updateWindow()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>1597</x>
-     <y>1054</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>2237</x>
-     <y>1042</y>
     </hint>
    </hints>
   </connection>
@@ -739,8 +720,8 @@
    <slot>updateColourMap()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>388</x>
-     <y>1078</y>
+     <x>368</x>
+     <y>1068</y>
     </hint>
     <hint type="destinationlabel">
      <x>593</x>
@@ -755,8 +736,8 @@
    <slot>updateMeasurementDistance()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>496</x>
-     <y>769</y>
+     <x>368</x>
+     <y>759</y>
     </hint>
     <hint type="destinationlabel">
      <x>593</x>
@@ -771,8 +752,8 @@
    <slot>updateDriverRadius()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>541</x>
-     <y>836</y>
+     <x>368</x>
+     <y>826</y>
     </hint>
     <hint type="destinationlabel">
      <x>593</x>
@@ -787,8 +768,8 @@
    <slot>updateModalCoeffs()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>492</x>
-     <y>872</y>
+     <x>368</x>
+     <y>862</y>
     </hint>
     <hint type="destinationlabel">
      <x>593</x>
@@ -803,8 +784,8 @@
    <slot>updateF0()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>461</x>
-     <y>905</y>
+     <x>368</x>
+     <y>895</y>
     </hint>
     <hint type="destinationlabel">
      <x>590</x>
@@ -819,8 +800,8 @@
    <slot>updateQ0()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>542</x>
-     <y>931</y>
+     <x>368</x>
+     <y>921</y>
     </hint>
     <hint type="destinationlabel">
      <x>588</x>
@@ -835,8 +816,8 @@
    <slot>updateTransitionFrequency()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>527</x>
-     <y>976</y>
+     <x>368</x>
+     <y>966</y>
     </hint>
     <hint type="destinationlabel">
      <x>591</x>
@@ -851,8 +832,8 @@
    <slot>updateLFGain()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>480</x>
-     <y>1009</y>
+     <x>368</x>
+     <y>999</y>
     </hint>
     <hint type="destinationlabel">
      <x>589</x>
@@ -867,8 +848,8 @@
    <slot>updateBoxRadius()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>315</x>
-     <y>806</y>
+     <x>316</x>
+     <y>796</y>
     </hint>
     <hint type="destinationlabel">
      <x>203</x>
@@ -905,6 +886,38 @@
     <hint type="destinationlabel">
      <x>163</x>
      <y>1123</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>applyWindowBtn</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>updateWindow()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>415</x>
+     <y>94</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>301</x>
+     <y>32</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>zoomOutBtn</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>zoomOut()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>426</x>
+     <y>429</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>348</x>
+     <y>80</y>
     </hint>
    </hints>
   </connection>

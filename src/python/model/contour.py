@@ -58,15 +58,14 @@ class ContourModel:
             self._extents = [np.amin(self._data['x']), np.amax(self._data['x']),
                              np.amax(self._data['y']), np.amin(self._data['y'])]
             vmax = np.math.ceil(np.amax(self._data['z']))
-            vmin = max(vmax-60, np.math.floor(np.amin(self._data['z'])))
+            vmin = max(vmax - 60, np.math.floor(np.amin(self._data['z'])))
 
             if self._tcf:
                 self.clear()
-            colourSteps = np.flip(np.arange(vmax, vmin, -6), 0)
-            lineSteps = np.flip(np.concatenate(([vmax-2, vmax-4], np.arange(vmax-6, vmin, -6))), 0)
-            self._tc = self._axes.tricontour(self._data['x'], self._data['y'], self._data['z'], lineSteps, linewidths=0.5,
+            steps = np.sort(np.concatenate((np.arange(vmax - 2, vmax - 12, -2), np.arange(vmax - 18, vmin, -6))))
+            self._tc = self._axes.tricontour(self._data['x'], self._data['y'], self._data['z'], steps, linewidths=0.5,
                                              colors='k')
-            self._tcf = self._axes.tricontourf(self._data['x'], self._data['y'], self._data['z'], colourSteps,
+            self._tcf = self._axes.tricontourf(self._data['x'], self._data['y'], self._data['z'], steps,
                                                cmap=self._chart.getColourMap(self._selectedCmap))
             self._cb = self._chart.canvas.figure.colorbar(self._tcf)
             configureFreqAxisFormatting(self._axes)
@@ -95,4 +94,3 @@ class ContourModel:
             self._chart.canvas.draw()
             self._tc = None
             self._tcf = None
-

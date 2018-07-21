@@ -1,6 +1,6 @@
 import numpy as np
 
-from model.measurement import TOGGLE_MEASUREMENT, CLEAR_MEASUREMENTS, LOAD_MEASUREMENTS, ANALYSED
+from model.measurement import CLEAR_MEASUREMENTS, LOAD_MEASUREMENTS, ANALYSED
 
 
 class ImpulseModel:
@@ -61,8 +61,6 @@ class ImpulseModel:
             self._leftWindow['position'].setValue(self._measurementModel[0].startIndex())
             self._rightWindow['position'].setMaximum(self._maxSample)
             self._rightWindow['position'].setValue(self._measurementModel[0].firstReflectionIndex())
-        elif type == TOGGLE_MEASUREMENT:
-            updateChart = True
         elif type == CLEAR_MEASUREMENTS:
             self._setMaxSample(0)
             self._yRange = 1
@@ -78,7 +76,7 @@ class ImpulseModel:
             self._axes.set_ylim(bottom=-self._yRange, top=self._yRange)
             self.updateLeftWindowPosition()
             self.updateRightWindowPosition()
-            self._displayActiveData(updatedIdx=kwargs.get('idx', None))
+            self._displayData(updatedIdx=kwargs.get('idx', None))
 
     def _addPlotForMeasurement(self, idx, measurement, mCount):
         '''
@@ -178,7 +176,7 @@ class ImpulseModel:
             self._activeX = self._ungatedXValues
             self.updateLeftWindowPosition()
             self.updateRightWindowPosition()
-        self._displayActiveData()
+        self._displayData()
 
     def updateWindow(self):
         '''
@@ -189,26 +187,20 @@ class ImpulseModel:
             self._activeX = self._gatedXValues
             self._peakIndex = self._measurementModel[0].peakIndex()
             self._measurementModel.generateMagnitudeResponse(self._leftWindow, self._rightWindow, self._peakIndex)
-            self._displayActiveData()
+            self._displayData()
             self.zoomIn()
 
-    def _displayActiveData(self, updatedIdx=None):
+    def _displayData(self, updatedIdx=None):
         '''
-        Ensures the currently active data is visible on the chart.
-        :return:
+        Ensures the data is visible on the chart.
         '''
         for idx, m in enumerate(self._measurementModel):
             if updatedIdx is None or updatedIdx == idx:
                 curve = self._curves.get(m.getDisplayName())
-                if m._active:
-                    if curve:
-                        curve.set_data(self._activeX, self._getY(m))
-                    else:
-                        self._addPlotForMeasurement(idx, m, len(self._measurementModel))
+                if curve:
+                    curve.set_data(self._activeX, self._getY(m))
                 else:
-                    if curve:
-                        curve.remove()
-                        del self._curves[m.getDisplayName()]
+                    self._addPlotForMeasurement(idx, m, len(self._measurementModel))
         self._chart.canvas.draw()
 
     def clear(self):

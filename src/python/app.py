@@ -203,11 +203,15 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
             if len(self._measurementModel) > 0:
                 self.fs.setValue(self._measurementModel[0]._fs)
                 self._measurementTableModel.completeRendering(self.measurementView)
+                self.applyWindowBtn.setDisabled(False)
                 self.toggleWindowedBtn.setDisabled(False)
-                self.zoomButton.setDisabled(False)
+                self.zoomInButton.setDisabled(False)
+                self.zoomOutButton.setDisabled(False)
             else:
+                self.applyWindowBtn.setDisabled(True)
                 self.toggleWindowedBtn.setDisabled(True)
-                self.zoomButton.setDisabled(True)
+                self.zoomInButton.setDisabled(True)
+                self.zoomOutButton.setDisabled(True)
 
     def onGraphTabChange(self):
         idx = self.graphTabs.currentIndex()
