@@ -266,7 +266,7 @@
        <item row="10" column="1">
         <widget class="QComboBox" name="colourMapSelector"/>
        </item>
-       <item row="11" column="1">
+       <item row="12" column="1">
         <widget class="QPushButton" name="refreshSpatialBtn">
          <property name="text">
           <string>Update</string>
@@ -312,6 +312,29 @@
         <widget class="QLabel" name="label_3">
          <property name="text">
           <string>Colour Map</string>
+         </property>
+        </widget>
+       </item>
+       <item row="11" column="1">
+        <widget class="QSpinBox" name="yAxisRange">
+         <property name="suffix">
+          <string> dB</string>
+         </property>
+         <property name="minimum">
+          <number>10</number>
+         </property>
+         <property name="maximum">
+          <number>120</number>
+         </property>
+         <property name="value">
+          <number>60</number>
+         </property>
+        </widget>
+       </item>
+       <item row="11" column="0">
+        <widget class="QLabel" name="label_4">
+         <property name="text">
+          <string>Y Range</string>
          </property>
         </widget>
        </item>
@@ -548,7 +571,7 @@
      <zorder>gridLayoutWidget_2</zorder>
      <zorder>leftWindowType</zorder>
     </widget>
-    <widget class="QWidget" name="magnitudeTab">
+    <widget class="QWidget" name="measuredMagnitudeTab">
      <attribute name="title">
       <string>Measured - Magnitude</string>
      </attribute>
@@ -563,7 +586,7 @@
       </property>
      </widget>
     </widget>
-    <widget class="QWidget" name="polarTab">
+    <widget class="QWidget" name="measuredPolarTab">
      <attribute name="title">
       <string>Measured - Polar</string>
      </attribute>
@@ -578,7 +601,22 @@
       </property>
      </widget>
     </widget>
-    <widget class="QWidget" name="tab_2">
+    <widget class="QWidget" name="measuredMultiTab">
+     <attribute name="title">
+      <string>Measured - Multi</string>
+     </attribute>
+     <widget class="MplWidget" name="measuredMultiGraph">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>1821</width>
+        <height>1061</height>
+       </rect>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="modalMagnitudeTab">
      <attribute name="title">
       <string>Modal - Magnitude</string>
      </attribute>
@@ -593,11 +631,26 @@
       </property>
      </widget>
     </widget>
-    <widget class="QWidget" name="tab">
+    <widget class="QWidget" name="modalPolarTab">
      <attribute name="title">
       <string>Modal - Polar</string>
      </attribute>
      <widget class="MplWidget" name="modalPolarGraph">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>1821</width>
+        <height>1061</height>
+       </rect>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="modalMultiTab">
+     <attribute name="title">
+      <string>Modal - Multi</string>
+     </attribute>
+     <widget class="MplWidget" name="modalMultiGraph">
       <property name="geometry">
        <rect>
         <x>0</x>

@@ -101,8 +101,11 @@ class ModalPolarModel(ContourModel):
     Displays the modal model in contour format.
     '''
 
-    def __init__(self, chart, measurementModel, modalParameters):
-        super().__init__(chart, measurementModel, type=COMPUTED_MODAL_DATA)
+    def __init__(self, chart, measurementModel, modalParameters, subplotSpec=None):
+        if subplotSpec is not None:
+            super().__init__(chart, measurementModel, type=COMPUTED_MODAL_DATA, subplotSpec=subplotSpec)
+        else:
+            super().__init__(chart, measurementModel, type=COMPUTED_MODAL_DATA)
         self._modalParams = modalParameters
 
     def display(self):
@@ -122,8 +125,11 @@ class ModalMagnitudeModel(MagnitudeModel):
     Displays the modal model in line chart format.
     '''
 
-    def __init__(self, chart, measurementModel, modalParameters):
-        super().__init__(chart, measurementModel, type=COMPUTED_MODAL_DATA)
+    def __init__(self, chart, measurementModel, modalParameters, subplotSpec=None):
+        if subplotSpec is not None:
+            super().__init__(chart, measurementModel, type=COMPUTED_MODAL_DATA, subplotSpec=subplotSpec)
+        else:
+            super().__init__(chart, measurementModel, type=COMPUTED_MODAL_DATA)
         self._modalParams = modalParameters
 
     def display(self):

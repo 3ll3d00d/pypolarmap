@@ -4,7 +4,8 @@ import matplotlib
 from PyQt5.QtWidgets import QMainWindow, QApplication, QFileDialog, QDialog, QDialogButtonBox, QMessageBox
 
 from model.load import WavLoader, HolmLoader, TxtLoader, DblLoader, REWLoader, ARTALoader
-from model.measurement import REAL_WORLD_DATA
+from model.measurement import REAL_WORLD_DATA, COMPUTED_MODAL_DATA
+from model.multi import MultiChartModel
 from ui.loadMeasurements import Ui_loadMeasurementDialog
 from ui.pypolarmap import Ui_MainWindow
 
@@ -156,6 +157,8 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
                                                               self.transFreq.value(), self.lfGain.value(),
                                                               self.boxRadius.value())
         # modal graphs
+        # TODO link in the modalParams
+        self._modalMultiModel = MultiChartModel(self.modalMultiGraph, self._measurementModel, COMPUTED_MODAL_DATA)
         self._modalPolarModel = modal.ModalPolarModel(self.modalPolarGraph,
                                                       self._measurementModel,
                                                       self._modalParameterModel)
@@ -163,6 +166,7 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
                                                               self._measurementModel,
                                                               self._modalParameterModel)
         # measured graphs
+        self._measuredMultiModel = MultiChartModel(self.measuredMultiGraph, self._measurementModel, REAL_WORLD_DATA)
         self._measuredPolarModel = contour.ContourModel(self.measuredPolarGraph,
                                                         self._measurementModel,
                                                         type=REAL_WORLD_DATA)
@@ -206,12 +210,12 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
                 self.applyWindowBtn.setDisabled(False)
                 self.toggleWindowedBtn.setDisabled(False)
                 self.zoomInButton.setDisabled(False)
-                self.zoomOutButton.setDisabled(False)
+                self.zoomOutBtn.setDisabled(False)
             else:
                 self.applyWindowBtn.setDisabled(True)
                 self.toggleWindowedBtn.setDisabled(True)
                 self.zoomInButton.setDisabled(True)
-                self.zoomOutButton.setDisabled(True)
+                self.zoomOutBtn.setDisabled(True)
 
     def onGraphTabChange(self):
         idx = self.graphTabs.currentIndex()
@@ -223,8 +227,12 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
         elif idx == 2:
             self._measuredPolarModel.display()
         elif idx == 3:
-            self._modalMagnitudeModel.display()
+            self._measuredMultiModel.display()
         elif idx == 4:
+            self._modalMagnitudeModel.display()
+        elif idx == 5:
+            self._modalPolarModel.display()
+        elif idx == 5:
             self._modalPolarModel.display()
         else:
             # unknown

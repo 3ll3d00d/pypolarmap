@@ -1,4 +1,8 @@
-from model import configureFreqAxisFormatting
+import numpy as np
+from matplotlib import animation
+from matplotlib.gridspec import GridSpec
+
+from model import configureFreqAxisFormatting, formatAxes_dBFS_Hz
 from model.measurement import REAL_WORLD_DATA, ANALYSED, CLEAR_MEASUREMENTS, LOAD_MEASUREMENTS
 
 
@@ -7,19 +11,17 @@ class MagnitudeModel:
     Allows a set of measurements to be displayed on a chart as magnitude responses.
     '''
 
-    def __init__(self, chart, measurementModel, type=REAL_WORLD_DATA, modelListener=None):
+    def __init__(self, chart, measurementModel, type=REAL_WORLD_DATA, modelListener=None,
+                 subplotSpec=GridSpec(1, 1).new_subplotspec((0, 0), 1, 1), showLegend=True):
         self._chart = chart
-        self._axes = self._chart.canvas.figure.add_subplot(111)
-        self._axes.set_xlim(left=20, right=20000)
-        self._axes.grid(linestyle='-', which='major')
-        self._axes.grid(linestyle='--', which='minor')
-        self._axes.set_ylabel('dBFS')
-        self._axes.set_xlabel('Hz')
+        self._axes = self._chart.canvas.figure.add_subplot(subplotSpec)
+        formatAxes_dBFS_Hz(self._axes)
         self._curves = {}
         self._refreshData = False
         self._type = type
         self._measurementModel = measurementModel
         self._modelListener = modelListener
+        self._showLegend = showLegend
         self._measurementModel.registerListener(self)
 
     def shouldRefresh(self):
@@ -30,7 +32,8 @@ class MagnitudeModel:
         Updates the contents of the magnitude chart
         '''
         if self.shouldRefresh():
-            for idx, x in enumerate(self._measurementModel.getMagnitudeData(type=self._type, ref=1)):
+            data = self._measurementModel.getMagnitudeData(type=self._type, ref=1)
+            for idx, x in enumerate(data):
                 curve = self._curves.get(x.name)
                 if curve:
                     curve.set_data(x.x, x.y)
@@ -44,7 +47,7 @@ class MagnitudeModel:
                                                                                            len(self._measurementModel)),
                                                                label=x.name)[0]
             configureFreqAxisFormatting(self._axes)
-            if self._axes.get_legend() is None:
+            if self._axes.get_legend() is None and self._showLegend:
                 self.makeClickableLegend()
             self._chart.canvas.draw()
             self._refreshData = False
@@ -101,3 +104,102 @@ class MagnitudeModel:
         '''
         self._axes.clear()
         self._curves = {}
+
+
+class AnimatedSingleLineMagnitudeModel:
+    '''
+    Allows a single measurement from a selection of magnitude data to be displayed on a chart.
+    '''
+
+    def __init__(self, chart, measurementModel, type=REAL_WORLD_DATA,
+                 subplotSpec=GridSpec(1, 1).new_subplotspec((0, 0), 1, 1)):
+        self._chart = chart
+        self._measurementModel = measurementModel
+        self._measurementModel.registerListener(self)
+        self._axes = self._chart.canvas.figure.add_subplot(subplotSpec)
+        formatAxes_dBFS_Hz(self._axes)
+        self._type = type
+        self._refreshData = False
+        self._type = type
+        self.yPosition = None
+        self._curve = None
+        self._ani = None
+
+    def shouldRefresh(self):
+        return self._refreshData
+
+    def display(self):
+        '''
+        Gets fresh data and redraws
+        '''
+        if self.shouldRefresh():
+            if self._curve is None:
+                self._data = self._measurementModel.getMagnitudeData(type=self._type, ref=1)
+                self._curve = self._axes.semilogx(self._data[0].x,
+                                                  [np.nan] * len(self._data[0].x),
+                                                  linewidth=2,
+                                                  antialiased=True,
+                                                  linestyle='solid')[0]
+                yMin = min([np.min(x.y) for x in self._data])
+                yMax = max([np.max(x.y) for x in self._data])
+                self._axes.set_ylim(bottom=yMin, top=yMax, auto=False)
+                self._ani = animation.FuncAnimation(self._chart.canvas.figure, self.redraw, interval=50,
+                                                    init_func=self.initAnimation, blit=True, save_count=50)
+                configureFreqAxisFormatting(self._axes)
+                self._chart.canvas.draw()
+                self._refreshData = False
+
+    def initAnimation(self):
+        '''
+        Inits a blank screen.
+        :return: the curve artist.
+        '''
+        self._curve.set_ydata([np.nan] * len(self._data[0].x))
+        return self._curve,
+
+    def redraw(self, frame, *fargs):
+        '''
+        Redraws the graph based on the yPosition.
+        '''
+        curveData, curveIdx = self.findNearestXYData()
+        if curveIdx != -1:
+            self._curve.set_ydata(curveData.y)
+            self._curve.set_color(self._chart.getColour(curveIdx, len(self._measurementModel)))
+        return self._curve,
+
+    def findNearestXYData(self):
+        '''
+        Searches the available data to find the curve that is the closest hAngle to our current yPosition.
+        :return: (curveIdx, curveData) or (-1, None) if nothing is found.
+        '''
+        curveIdx = -1
+        curveData = None
+        delta = 100000000
+        if self.yPosition is not None:
+            for idx, x in enumerate(self._data):
+                newDelta = abs(self.yPosition - x.hAngle)
+                if newDelta < delta:
+                    delta = newDelta
+                    curveIdx = idx
+                    curveData = x
+        return curveData, curveIdx
+
+    def onUpdate(self, type, **kwargs):
+        '''
+        handles measurement model changes
+        If event type is activation toggle then changes the associated curve visibility.
+        If event type is analysis change then the model is marked for refresh.
+        :param idx: the measurement idx.
+        '''
+        if type == ANALYSED or type == LOAD_MEASUREMENTS:
+            self._refreshData = True
+        elif type == CLEAR_MEASUREMENTS:
+            self.clear()
+
+    def clear(self):
+        '''
+        clears the graph.
+        '''
+        self._axes.clear()
+        self._curve = None
+        self._ani = None

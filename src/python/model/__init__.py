@@ -29,3 +29,15 @@ def configureFreqAxisFormatting(axes):
     hzFormatter = EngFormatter(places=0)
     axes.get_xaxis().set_major_formatter(hzFormatter)
     axes.get_xaxis().set_minor_formatter(PrintFirstHalfFormatter(hzFormatter))
+
+
+def formatAxes_dBFS_Hz(axes):
+    '''
+    Applies formatting applicable to a dbFS vs Hz line chart.
+    :param axes: the axes to format.
+    '''
+    axes.set_xlim(left=20, right=20000)
+    axes.grid(linestyle='-', which='major')
+    axes.grid(linestyle='--', which='minor')
+    axes.set_ylabel('dBFS')
+    axes.set_xlabel('Hz')
