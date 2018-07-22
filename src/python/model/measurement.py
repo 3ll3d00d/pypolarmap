@@ -41,12 +41,12 @@ class MeasurementModel(Sequence):
     CalPolar needs a vector (a row) of the complex array Modal.model at the desired frequency Freq.log(Current Frequency) and the desired R.angle, Freq.log(Current Frequency) and FieldRadius (your farnum) as double real numbers. It also needs the assumed source.radius (your velnum) which is not the driver radius, but the radius of a sphere which is the same volume as the enclosure.
     '''
 
-    def __init__(self, m=None, listeners=None):
+    def __init__(self, modalParameters, m=None, listeners=None):
         self.__measurements = m if m is not None else []
         self.__listeners = listeners if listeners is not None else []
         self.__modalResponse = None
-        self.__polarModel = None
         self.__smoothingType = None
+        self.__modalParameters = modalParameters
         self.__complexData = {}
         super().__init__()
 
@@ -64,7 +64,7 @@ class MeasurementModel(Sequence):
         '''
         self.__listeners.append(listener)
 
-    def _propagateEvent(self, type, **kwargs):
+    def __propagateEvent(self, type, **kwargs):
         '''
         propagates the specified event to all listeners.
         :param type: the event type.
@@ -79,14 +79,14 @@ class MeasurementModel(Sequence):
         :param measurements: the measurements.
         '''
         self.__measurements = measurements
-        self._propagateEvent(LOAD_MEASUREMENTS)
+        self.__propagateEvent(LOAD_MEASUREMENTS)
 
     def clear(self):
         '''
         Clears the loaded measurements.
         '''
         self.__measurements = []
-        self._propagateEvent(CLEAR_MEASUREMENTS)
+        self.__propagateEvent(CLEAR_MEASUREMENTS)
 
     def getMaxSample(self):
         '''
@@ -100,7 +100,7 @@ class MeasurementModel(Sequence):
         '''
         return max([max(x.max(), abs(x.min())) for x in self.__measurements])
 
-    def generateMagnitudeResponse(self, left, right, peak):
+    def analyseMeasuredData(self, left, right, peak):
         '''
         creates a window based on the left and right parameters & applies it to all measurements.
         :param left: the left parameters.
@@ -113,7 +113,8 @@ class MeasurementModel(Sequence):
         for m in self.__measurements:
             m.analyse(left['position'].value(), right['position'].value(), win=completeWindow)
         self.__complexData[REAL_WORLD_DATA] = [self._createFRData(x) for x in self.__measurements]
-        self._propagateEvent(ANALYSED)
+        self.analyseModal()
+        self.__propagateEvent(ANALYSED)
 
     def _createFRData(self, measurement):
         logData, logFreqs = linToLog(measurement.fftData, measurement._fs / measurement.fftPoints)
@@ -145,37 +146,34 @@ class MeasurementModel(Sequence):
         else:
             return WINDOW_MAPPING['Tukey']
 
-    def generateModalResponse(self, modalParameters):
+    def analyseModal(self):
         '''
-        Calls calSpatial against this set of measurements and then calPolar to generate the computed polar model.
+        Analyses the real world data to create a new modal model.
         '''
         if REAL_WORLD_DATA in self.__complexData:
             self.__modalResponse = calSpatial([x.y for x in self.__complexData[REAL_WORLD_DATA]],
                                               self.__complexData[REAL_WORLD_DATA][0].x,
                                               np.radians([x._h for x in self.__measurements]),
-                                              modalParameters.measurementDistance,
-                                              modalParameters.driverRadius, modalParameters.modalCoeffs,
-                                              modalParameters.transFreq, modalParameters.lfGain,
-                                              modalParameters.boxRadius, modalParameters.f0, modalParameters.q0)
-            self.generatePolarModel(modalParameters)
-
-    def generatePolarModel(self, modalParameters):
-        '''
-        Generates the reconstructed polar model.
-        :param modalParameters: the modal parameters.
-        '''
-        modal = []
-        logFreqs = self.__complexData[REAL_WORLD_DATA][0].x
-        for angle in range(0, 182, 2):
-            name = 'modal ' + str(angle)
-            x = logFreqs
-            y = []
-            for idx, lf in enumerate(self.__complexData[REAL_WORLD_DATA][0].x):
-                modalData = self.__modalResponse[:, idx]
-                result = calPolar(modalData, angle, lf, modalParameters.boxRadius)
-                y.append(result)
-            modal.append(ComplexData(name=name, hAngle=angle, x=x, y=np.array(y)))
-        self.__complexData[COMPUTED_MODAL_DATA] = modal
+                                              self.__modalParameters.measurementDistance,
+                                              self.__modalParameters.driverRadius,
+                                              self.__modalParameters.modalCoeffs,
+                                              self.__modalParameters.transFreq,
+                                              self.__modalParameters.lfGain,
+                                              self.__modalParameters.boxRadius,
+                                              self.__modalParameters.f0,
+                                              self.__modalParameters.q0)
+            modal = []
+            logFreqs = self.__complexData[REAL_WORLD_DATA][0].x
+            for angle in range(0, 182, 2):
+                name = 'modal ' + str(angle)
+                x = logFreqs
+                y = []
+                for idx, lf in enumerate(self.__complexData[REAL_WORLD_DATA][0].x):
+                    modalData = self.__modalResponse[:, idx]
+                    result = calPolar(modalData, angle, lf, self.__modalParameters.boxRadius)
+                    y.append(result)
+                modal.append(ComplexData(name=name, hAngle=angle, x=x, y=np.array(y)))
+            self.__complexData[COMPUTED_MODAL_DATA] = modal
 
     def getMagnitudeData(self, type=REAL_WORLD_DATA, ref=1):
         '''
@@ -208,7 +206,7 @@ class MeasurementModel(Sequence):
         '''
         self.__smoothingType = smoothingType
         if REAL_WORLD_DATA in self.__complexData:
-            self._propagateEvent(ANALYSED)
+            self.__propagateEvent(ANALYSED)
         # TODO update data if we have it
 
 

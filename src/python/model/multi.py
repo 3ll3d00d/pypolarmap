@@ -9,7 +9,8 @@ from model.polar import PolarModel
 
 class MultiChartModel:
     '''
-    A combined sonargram, magnitude response, polar response chart.
+    A combined sonargram, magnitude response, polar response chart where the displayed magnitude and polar response
+    is driven by the position of the cursor over the sonagram.
     '''
 
     def __init__(self, chart, measurementModel, type):
@@ -22,20 +23,21 @@ class MultiChartModel:
                                                            subplotSpec=gs.new_subplotspec((0, 0), 1, 4))
         self._sonagram = ContourModel(self._chart, self._measurementModel, type,
                                       subplotSpec=gs.new_subplotspec((1, 0), 1, 2),
-                                      cbSubplotSpec=gs.new_subplotspec((1, 2), 1, 1))
-        self._polar = PolarModel(self._chart, self._measurementModel, subplotSpec=gs.new_subplotspec((1, 3), 1, 1))
-        # todo add polar chart
-        self._mouseReactor = MouseReactor(0.10, self.propagateY)
+                                      cbSubplotSpec=gs.new_subplotspec((1, 2), 1, 1),
+                                      redrawOnDisplay=False)
+        self._polar = PolarModel(self._chart, self._measurementModel, type=type,
+                                 subplotSpec=gs.new_subplotspec((1, 3), 1, 1))
+        self._mouseReactor = MouseReactor(0.10, self.propagateCoords)
 
     def display(self):
         self._magnitude.display()
         self._polar.display()
-        # display last as this one does the canvas draw
         self._sonagram.display()
+        self._chart.canvas.draw()
 
-    def propagateY(self):
+    def propagateCoords(self):
         '''
-        Propagates the mouse cursor position to the magnitude model.
+        Propagates the mouse cursor position to the magnitude & polar models.
         '''
         if self._sonagram.cursorX is not None and self._sonagram.cursorY is not None:
             if self._magnitude.yPosition != self._sonagram.cursorY:
@@ -44,6 +46,10 @@ class MultiChartModel:
 
 
 class MouseReactor(object):
+    '''
+    A timer which updates the mouse position on the downstream charts periodically.
+    '''
+
     def __init__(self, interval, function, *args, **kwargs):
         self._timer = None
         self.function = function

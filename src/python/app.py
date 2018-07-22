@@ -150,29 +150,21 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self.loadColourMaps()
         self.dataPath.setDisabled(True)
-        self._measurementModel = m.MeasurementModel()
         self._modalParameterModel = modal.ModalParameterModel(self.measurementDistance.value(),
                                                               self.driverRadius.value() / 100,
                                                               self.modalCoeffs.value(), self.f0.value(),
                                                               self.q0.value(),
                                                               self.transFreq.value(), self.lfGain.value(),
                                                               self.boxRadius.value())
+        self._measurementModel = m.MeasurementModel(self._modalParameterModel)
         # modal graphs
-        # TODO link in the modalParams
         self._modalMultiModel = MultiChartModel(self.modalMultiGraph, self._measurementModel, COMPUTED_MODAL_DATA)
-        self._modalPolarModel = modal.ModalPolarModel(self.modalPolarGraph,
-                                                      self._measurementModel,
-                                                      self._modalParameterModel)
-        self._modalMagnitudeModel = modal.ModalMagnitudeModel(self.modalMagnitudeGraph,
-                                                              self._measurementModel,
-                                                              self._modalParameterModel)
+        self._modalPolarModel = modal.ContourModel(self.modalPolarGraph, self._measurementModel, COMPUTED_MODAL_DATA)
         # measured graphs
         self._measuredMultiModel = MultiChartModel(self.measuredMultiGraph, self._measurementModel, REAL_WORLD_DATA)
-        self._measuredPolarModel = contour.ContourModel(self.measuredPolarGraph,
-                                                        self._measurementModel,
+        self._measuredPolarModel = contour.ContourModel(self.measuredPolarGraph, self._measurementModel,
                                                         type=REAL_WORLD_DATA)
-        self._measuredMagnitudeModel = mag.MagnitudeModel(self.measuredMagnitudeGraph,
-                                                          self._measurementModel,
+        self._measuredMagnitudeModel = mag.MagnitudeModel(self.measuredMagnitudeGraph, self._measurementModel,
                                                           type=REAL_WORLD_DATA)
         # impulse graph
         self._impulseModel = imp.ImpulseModel(self.impulseGraph,
@@ -185,6 +177,8 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
                                               self._measurementModel)
         self._measurementTableModel = m.MeasurementTableModel(self._measurementModel, parent=parent)
         self.measurementView.setModel(self._measurementTableModel)
+        # TODO replace the show windowed button with a slider like https://stackoverflow.com/a/51023362/123054
+
 
     def loadColourMaps(self):
         _translate = QtCore.QCoreApplication.translate
@@ -209,12 +203,12 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
                 self.fs.setValue(self._measurementModel[0]._fs)
                 self._measurementTableModel.completeRendering(self.measurementView)
                 self.applyWindowBtn.setDisabled(False)
-                self.toggleWindowedBtn.setDisabled(False)
+                self.removeWindowBtn.setDisabled(True)
                 self.zoomInButton.setDisabled(False)
                 self.zoomOutBtn.setDisabled(False)
             else:
                 self.applyWindowBtn.setDisabled(True)
-                self.toggleWindowedBtn.setDisabled(True)
+                self.removeWindowBtn.setDisabled(True)
                 self.zoomInButton.setDisabled(True)
                 self.zoomOutBtn.setDisabled(True)
 
@@ -230,14 +224,35 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
         elif idx == 3:
             self._measuredMultiModel.display()
         elif idx == 4:
-            self._modalMagnitudeModel.display()
-        elif idx == 5:
             self._modalPolarModel.display()
         elif idx == 5:
-            self._modalPolarModel.display()
+            self._modalMultiModel.display()
         else:
             # unknown
             pass
+
+    def updateLeftWindowPosition(self):
+        '''
+        propagates left window changes to the impulse model.
+        :return:
+        '''
+        self._impulseModel.updateLeftWindowPosition()
+
+    def updateLeftWindowType(self):
+        '''
+        propagates left window changes to the impulse model.
+        :return:
+        '''
+        # self._impulseModel.updateLeftWindowPosition()
+        pass
+
+    def updateLeftWindowPercentage(self):
+        '''
+        propagates left window changes to the impulse model.
+        :return:
+        '''
+        # self._impulseModel.updateLeftWindowPosition()
+        pass
 
     def updateLeftWindowPosition(self):
         '''
@@ -253,6 +268,22 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
         '''
         self._impulseModel.updateRightWindowPosition()
 
+    def updateRightWindowType(self):
+        '''
+        propagates right window changes to the impulse model.
+        :return:
+        '''
+        # self._impulseModel.updateRightWindowPosition()
+        pass
+
+    def updateRightWindowPercentage(self):
+        '''
+        propagates right window changes to the impulse model.
+        :return:
+        '''
+        # self._impulseModel.updateRightWindowPosition()
+        pass
+
     def zoomIn(self):
         '''
         propagates the zoom button click to the impulse model.
@@ -263,22 +294,21 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
     def zoomOut(self):
         self._impulseModel.zoomOut()
 
-    def toggleWindowed(self):
+    def removeWindow(self):
         '''
         propagates the window button click to the impulse model.
         :return:
         '''
-        if self.toggleWindowedBtn.isChecked():
-            self.toggleWindowedBtn.setText('Show Windowed IR')
-        else:
-            self.toggleWindowedBtn.setText('Show Raw IR')
-        self._impulseModel.toggleWindowed()
+        self.removeWindowBtn.setEnabled(False)
+        self._impulseModel.removeWindow()
+        self.zoomOut()
 
     def updateWindow(self):
         '''
         Propagates the button click to the model.
         '''
-        self._impulseModel.updateWindow()
+        self.removeWindowBtn.setEnabled(True)
+        self._impulseModel.applyWindow()
 
     def updateColourMap(self, cmap):
         '''
@@ -347,10 +377,9 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
 
     def refreshModal(self):
         '''
-        Tells the modal graph to refresh.
+        Tells the modal data to refresh.
         '''
-        self._modalPolarModel.display()
-        self._modalMagnitudeModel.display()
+        self._measurementModel.analyseModal()
 
     def updateSmoothing(self, smoothingType):
         '''
@@ -359,6 +388,7 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
         '''
         self._measurementModel.smooth(smoothingType)
         self.onGraphTabChange()
+
 
 def main():
     app = QApplication(sys.argv)

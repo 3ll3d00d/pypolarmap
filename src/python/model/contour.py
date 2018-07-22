@@ -11,7 +11,7 @@ class ContourModel:
     '''
 
     def __init__(self, chart, measurementModel, type, subplotSpec=GridSpec(1, 1).new_subplotspec((0, 0), 1, 1),
-                 cbSubplotSpec=None):
+                 cbSubplotSpec=None, redrawOnDisplay=True):
         '''
         Creates a new contour model.
         :param chart: the MplWidget that owns the canvas onto which the chart will be drawn.
@@ -38,6 +38,7 @@ class ContourModel:
         self._recordY = False
         self.cursorX = None
         self.cursorY = None
+        self._redrawOnDisplay = redrawOnDisplay
 
     def shouldRefresh(self):
         return self._refreshData
@@ -91,7 +92,8 @@ class ContourModel:
                 self._cb = self._chart.canvas.figure.colorbar(self._tcf)
             configureFreqAxisFormatting(self._axes)
             self._tcf.set_clim(vmin=vmin, vmax=vmax)
-            self._chart.canvas.draw()
+            if self._redrawOnDisplay:
+                self._chart.canvas.draw()
             self._refreshData = False
 
     def recordDataCoords(self, event):

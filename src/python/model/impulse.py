@@ -160,33 +160,27 @@ class ImpulseModel:
         self._axes.set_xlim(left=0, right=np.amax(self._activeX))
         self._chart.canvas.draw()
 
-    def toggleWindowed(self):
+    def removeWindow(self):
         '''
-        toggles which charts are displayed.
-        If we switch to windowed view then it creates a window based on the type
-        and position specified, removes existing plots, adds the window as a plot to the chart, applies that window to
-        the measurements and propagates the new windowed data to the magnitude model.
-        If we switch to unwindowed then it simply reinstates the raw data.
+        simply reinstates the raw data.
         :return: the windowed data.
         '''
-        self._showWindowed = not self._showWindowed
-        if self._showWindowed:
-            self.updateWindow()
-        else:
-            self._activeX = self._ungatedXValues
-            self.updateLeftWindowPosition()
-            self.updateRightWindowPosition()
+        self._showWindowed = False
+        self._activeX = self._ungatedXValues
+        self.updateLeftWindowPosition()
+        self.updateRightWindowPosition()
         self._displayData()
 
-    def updateWindow(self):
+    def applyWindow(self):
         '''
-        applies the window to the data.
+        applies the window to the data & makes this the viewable data.
         '''
+        self._showWindowed = True
         if len(self._measurementModel) > 0:
             self._cacheGatedXValues()
             self._activeX = self._gatedXValues
             self._peakIndex = self._measurementModel[0].peakIndex()
-            self._measurementModel.generateMagnitudeResponse(self._leftWindow, self._rightWindow, self._peakIndex)
+            self._measurementModel.analyseMeasuredData(self._leftWindow, self._rightWindow, self._peakIndex)
             self._displayData()
             self.zoomIn()
 
