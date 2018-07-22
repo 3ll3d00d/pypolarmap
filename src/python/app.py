@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QFileDialog, QDialog, QDi
 from model.load import WavLoader, HolmLoader, TxtLoader, DblLoader, REWLoader, ARTALoader
 from model.measurement import REAL_WORLD_DATA, COMPUTED_MODAL_DATA
 from model.multi import MultiChartModel
+from model.polar import PolarModel
 from ui.loadMeasurements import Ui_loadMeasurementDialog
 from ui.pypolarmap import Ui_MainWindow
 

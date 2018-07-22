@@ -1,7 +1,7 @@
 import numpy as np
 from matplotlib.gridspec import GridSpec
 
-from model import configureFreqAxisFormatting
+from model import configureFreqAxisFormatting, calculate_dBFS_Scales
 from model.measurement import CLEAR_MEASUREMENTS, ANALYSED
 
 
@@ -75,12 +75,9 @@ class ContourModel:
             self._data = self._measurementModel.getContourData(type=self._type)
             self._extents = [np.amin(self._data['x']), np.amax(self._data['x']),
                              np.amax(self._data['y']), np.amin(self._data['y'])]
-            vmax = np.math.ceil(np.amax(self._data['z']))
-            vmin = max(vmax - 60, np.math.floor(np.amin(self._data['z'])))
-
             if self._tcf:
                 self.clear()
-            steps = np.sort(np.concatenate((np.arange(vmax - 2, vmax - 12, -2), np.arange(vmax - 18, vmin, -6))))
+            vmax, vmin, steps = calculate_dBFS_Scales(self._data['z'])
             self._tc = self._axes.tricontour(self._data['x'], self._data['y'], self._data['z'], steps, linewidths=0.5,
                                              colors='k')
             self._tcf = self._axes.tricontourf(self._data['x'], self._data['y'], self._data['z'], steps,

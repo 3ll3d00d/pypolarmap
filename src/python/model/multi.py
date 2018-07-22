@@ -4,6 +4,7 @@ from matplotlib.gridspec import GridSpec
 
 from model.contour import ContourModel
 from model.magnitude import AnimatedSingleLineMagnitudeModel
+from model.polar import PolarModel
 
 
 class MultiChartModel:
@@ -15,19 +16,22 @@ class MultiChartModel:
         self._chart = chart
         self._measurementModel = measurementModel
         self._type = type
-        # 2 rows, 3 cols to make room for the colorbar
-        gs = GridSpec(2, 3, width_ratios=[1, 1, 0.05])
+        # 2 rows, 4 cols to make room for the colorbar
+        gs = GridSpec(2, 4, width_ratios=[1, 1, 0.05, 0.75])
         self._magnitude = AnimatedSingleLineMagnitudeModel(self._chart, self._measurementModel, type=type,
-                                                           subplotSpec=gs.new_subplotspec((0, 0), 1, 3))
+                                                           subplotSpec=gs.new_subplotspec((0, 0), 1, 4))
         self._sonagram = ContourModel(self._chart, self._measurementModel, type,
                                       subplotSpec=gs.new_subplotspec((1, 0), 1, 2),
                                       cbSubplotSpec=gs.new_subplotspec((1, 2), 1, 1))
+        self._polar = PolarModel(self._chart, self._measurementModel, subplotSpec=gs.new_subplotspec((1, 3), 1, 1))
         # todo add polar chart
         self._mouseReactor = MouseReactor(0.10, self.propagateY)
 
     def display(self):
-        self._sonagram.display()
         self._magnitude.display()
+        self._polar.display()
+        # display last as this one does the canvas draw
+        self._sonagram.display()
 
     def propagateY(self):
         '''
@@ -36,6 +40,7 @@ class MultiChartModel:
         if self._sonagram.cursorX is not None and self._sonagram.cursorY is not None:
             if self._magnitude.yPosition != self._sonagram.cursorY:
                 self._magnitude.yPosition = self._sonagram.cursorY
+                self._polar.xPosition = self._sonagram.cursorX
 
 
 class MouseReactor(object):

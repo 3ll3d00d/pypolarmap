@@ -241,7 +241,7 @@ def smooth(data, freqs, smoothingType):
     dataIn = np.require(np.copy(data), dtype=np.float64, requirements=WRITEABLE_ALIGNED_ARR)
     freqs = np.require(freqs, dtype=np.float64, requirements=ALIGNED_ARR)
     if smoothingType in SMOOTH_TYPES:
-        smooth_func(dataIn, freqs, ct.c_int32(freqs.size - 1), ct.c_int32(SMOOTH_TYPES[smoothingType]))
+        smooth_func(dataIn, freqs, ct.c_int32(freqs.size), ct.c_int32(SMOOTH_TYPES[smoothingType]))
         return dataIn.copy()
     else:
         raise ValueError('Unknown smoothing algorithm ' + str(smoothingType))

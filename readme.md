@@ -18,7 +18,7 @@ to compile a test dll
 32bit python is required, with conda this means:
 
     set CONDA_SUBDIR=win-32
-    conda create -n scanner32 numpy pyqtgraph
+    conda create -n scanner32 numpy matplotlib colorcet
     activate scanner32
     conda info
 

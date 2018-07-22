@@ -146,7 +146,6 @@ class AnimatedSingleLineMagnitudeModel:
                 self._ani = animation.FuncAnimation(self._chart.canvas.figure, self.redraw, interval=50,
                                                     init_func=self.initAnimation, blit=True, save_count=50)
                 configureFreqAxisFormatting(self._axes)
-                self._chart.canvas.draw()
                 self._refreshData = False
 
     def initAnimation(self):
@@ -182,6 +181,8 @@ class AnimatedSingleLineMagnitudeModel:
                     delta = newDelta
                     curveIdx = idx
                     curveData = x
+                elif newDelta > delta:
+                    break
         return curveData, curveIdx
 
     def onUpdate(self, type, **kwargs):
