@@ -1,7 +1,11 @@
 from math import log10
 
 import numpy as np
+from matplotlib.gridspec import GridSpec
 from matplotlib.ticker import Formatter, NullFormatter, EngFormatter
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+
+SINGLE_SUBPLOT_SPEC = GridSpec(1, 1).new_subplotspec((0, 0), 1, 1)
 
 
 class PrintFirstHalfFormatter(Formatter):
@@ -50,9 +54,35 @@ def calculate_dBFS_Scales(data, maxRange=60):
     the first 12 and then -6 thereafter.
     :param data: the data.
     :param maxRange: the max range.
-    :return: max, min, steps
+    :return: max, min, steps, fillSteps
     '''
     vmax = np.math.ceil(np.amax(data))
-    vmin = max(vmax - maxRange, np.math.floor(np.amin(data)))
-    steps = np.sort(np.concatenate((np.arange(vmax - 2, vmax - 12, -2), np.arange(vmax - 18, vmin, -6))))
-    return vmax, vmin, steps
+    vmin = vmax - maxRange
+    steps = np.sort(np.concatenate((np.arange(vmax, vmax - 14, -2), np.arange(vmax - 18, vmin - 6, -6))))
+    fillSteps = np.sort(np.arange(vmax, vmin, -0.05))
+    return vmax, vmin, steps, fillSteps
+
+
+def setYLimits(axes, dBRange):
+    '''
+    Updates the decibel range on the chart.
+    :param axes: the axes.
+    :param dBRange: the new range.
+    '''
+    if axes is not None:
+        ylim = axes.get_ylim()
+        axes.set_ylim(bottom=ylim[1] - dBRange, top=ylim[1])
+
+
+def colorbar(mappable, **kwargs):
+    '''
+    Creates a colour bar for a given plot that will exist at a specific position relative to the given chart.
+    :param mappable: the plot.
+    :param **kwargs: passed through to colorbar.
+    :return: the colorbar.
+    '''
+    ax = mappable.ax
+    fig = ax.figure
+    divider = make_axes_locatable(ax)
+    cax = divider.append_axes("right", size="5%", pad=0.05)
+    return fig.colorbar(mappable, cax=cax, **kwargs)

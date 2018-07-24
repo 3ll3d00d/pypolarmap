@@ -207,7 +207,6 @@ class MeasurementModel(Sequence):
         self.__smoothingType = smoothingType
         if REAL_WORLD_DATA in self.__complexData:
             self.__propagateEvent(ANALYSED)
-        # TODO update data if we have it
 
 
 class ComplexData:

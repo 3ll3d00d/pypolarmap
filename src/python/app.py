@@ -158,14 +158,16 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
                                                               self.boxRadius.value())
         self._measurementModel = m.MeasurementModel(self._modalParameterModel)
         # modal graphs
-        self._modalMultiModel = MultiChartModel(self.modalMultiGraph, self._measurementModel, COMPUTED_MODAL_DATA)
+        self._modalMultiModel = MultiChartModel(self.modalMultiGraph, self._measurementModel, COMPUTED_MODAL_DATA,
+                                                dBRange=self.yAxisRange.value())
         self._modalPolarModel = modal.ContourModel(self.modalPolarGraph, self._measurementModel, COMPUTED_MODAL_DATA)
         # measured graphs
-        self._measuredMultiModel = MultiChartModel(self.measuredMultiGraph, self._measurementModel, REAL_WORLD_DATA)
+        self._measuredMultiModel = MultiChartModel(self.measuredMultiGraph, self._measurementModel, REAL_WORLD_DATA,
+                                                   dBRange=self.yAxisRange.value())
         self._measuredPolarModel = contour.ContourModel(self.measuredPolarGraph, self._measurementModel,
                                                         type=REAL_WORLD_DATA)
         self._measuredMagnitudeModel = mag.MagnitudeModel(self.measuredMagnitudeGraph, self._measurementModel,
-                                                          type=REAL_WORLD_DATA)
+                                                          type=REAL_WORLD_DATA, dBRange=self.yAxisRange.value())
         # impulse graph
         self._impulseModel = imp.ImpulseModel(self.impulseGraph,
                                               {'position': self.leftWindowSample,
@@ -178,7 +180,6 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
         self._measurementTableModel = m.MeasurementTableModel(self._measurementModel, parent=parent)
         self.measurementView.setModel(self._measurementTableModel)
         # TODO replace the show windowed button with a slider like https://stackoverflow.com/a/51023362/123054
-
 
     def loadColourMaps(self):
         _translate = QtCore.QCoreApplication.translate
@@ -212,24 +213,29 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
                 self.zoomInButton.setDisabled(True)
                 self.zoomOutBtn.setDisabled(True)
 
-    def onGraphTabChange(self):
+    def getSelectedGraph(self):
         idx = self.graphTabs.currentIndex()
         if idx == 0:
-            # self._impulseModel.display()
-            pass
+            return self._impulseModel
         elif idx == 1:
-            self._measuredMagnitudeModel.display()
+            return self._measuredMagnitudeModel
         elif idx == 2:
-            self._measuredPolarModel.display()
+            return self._measuredPolarModel
         elif idx == 3:
-            self._measuredMultiModel.display()
+            return self._measuredMultiModel
         elif idx == 4:
-            self._modalPolarModel.display()
+            return self._modalPolarModel
         elif idx == 5:
-            self._modalMultiModel.display()
+            return self._modalMultiModel
         else:
-            # unknown
-            pass
+            return None
+
+    def onGraphTabChange(self):
+        graph = self.getSelectedGraph()
+        if graph is not None:
+            display = getattr(graph, 'display', None)
+            if display is not None and callable(display):
+                display()
 
     def updateLeftWindowPosition(self):
         '''
@@ -388,6 +394,36 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
         '''
         self._measurementModel.smooth(smoothingType)
         self.onGraphTabChange()
+
+    def setYRange(self, yRange):
+        '''
+        Updates the y range for the displayed graphs.
+        :param yRange:
+        :return:
+        '''
+        selected = self.getSelectedGraph()
+        self._update_db_range(self._modalMultiModel, selected, yRange)
+        self._update_db_range(self._modalPolarModel, selected, yRange)
+        self._update_db_range(self._measuredMagnitudeModel, selected, yRange)
+        self._update_db_range(self._measuredMultiModel, selected, yRange)
+        self._update_db_range(self._measuredPolarModel, selected, yRange)
+
+    def _update_db_range(self, graph, selected, yRange):
+        graph.updateDecibelRange(yRange, draw=graph is selected)
+
+    def toggleNormalised(self, state):
+        '''
+        toggles whether to normalise the displayed data or not.
+        :param state: normalisation selection.
+        '''
+        pass
+
+    def setNormalisationAngle(self, angle):
+        '''
+        controls what the currently selected normalisation angle is.
+        :param angle: the selected angle.
+        '''
+        pass
 
 
 def main():

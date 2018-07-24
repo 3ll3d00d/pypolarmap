@@ -13,27 +13,40 @@ class MultiChartModel:
     is driven by the position of the cursor over the sonagram.
     '''
 
-    def __init__(self, chart, measurementModel, type):
+    def __init__(self, chart, measurementModel, type, dBRange=60):
         self._chart = chart
         self._measurementModel = measurementModel
         self._type = type
-        # 2 rows, 4 cols to make room for the colorbar
-        gs = GridSpec(2, 4, width_ratios=[1, 1, 0.05, 0.75])
+        gs = GridSpec(2, 3, width_ratios=[1, 1, 0.75])
         self._magnitude = AnimatedSingleLineMagnitudeModel(self._chart, self._measurementModel, type=type,
-                                                           subplotSpec=gs.new_subplotspec((0, 0), 1, 4))
+                                                           subplotSpec=gs.new_subplotspec((0, 0), 1, 3),
+                                                           dBRange=dBRange)
         self._sonagram = ContourModel(self._chart, self._measurementModel, type,
                                       subplotSpec=gs.new_subplotspec((1, 0), 1, 2),
-                                      cbSubplotSpec=gs.new_subplotspec((1, 2), 1, 1),
                                       redrawOnDisplay=False)
         self._polar = PolarModel(self._chart, self._measurementModel, type=type,
-                                 subplotSpec=gs.new_subplotspec((1, 3), 1, 1))
+                                 subplotSpec=gs.new_subplotspec((1, 2), 1, 1), dBRange=dBRange)
         self._mouseReactor = MouseReactor(0.10, self.propagateCoords)
 
     def display(self):
+        '''
+        Displays all the charts and then draws the canvas.
+        '''
         self._magnitude.display()
         self._polar.display()
         self._sonagram.display()
         self._chart.canvas.draw()
+
+    def updateDecibelRange(self, dBRange, draw=True):
+        '''
+        Updates the decibel range on the charts.
+        :param dBRange: the new range.
+        '''
+        self._magnitude.updateDecibelRange(dBRange, draw=False)
+        self._polar.updateDecibelRange(dBRange, draw=False)
+        self._sonagram.updateDecibelRange(dBRange, draw=False)
+        if draw:
+            self._chart.canvas.draw()
 
     def propagateCoords(self):
         '''

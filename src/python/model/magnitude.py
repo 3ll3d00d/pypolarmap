@@ -1,8 +1,8 @@
 import numpy as np
 from matplotlib import animation
-from matplotlib.gridspec import GridSpec
 
-from model import configureFreqAxisFormatting, formatAxes_dBFS_Hz
+from model import configureFreqAxisFormatting, formatAxes_dBFS_Hz, setYLimits, SINGLE_SUBPLOT_SPEC, \
+    calculate_dBFS_Scales
 from model.measurement import REAL_WORLD_DATA, ANALYSED, CLEAR_MEASUREMENTS, LOAD_MEASUREMENTS
 
 
@@ -12,7 +12,7 @@ class MagnitudeModel:
     '''
 
     def __init__(self, chart, measurementModel, type=REAL_WORLD_DATA, modelListener=None,
-                 subplotSpec=GridSpec(1, 1).new_subplotspec((0, 0), 1, 1), showLegend=True):
+                 subplotSpec=SINGLE_SUBPLOT_SPEC, showLegend=True, dBRange=60):
         self._chart = chart
         self._axes = self._chart.canvas.figure.add_subplot(subplotSpec)
         formatAxes_dBFS_Hz(self._axes)
@@ -23,14 +23,27 @@ class MagnitudeModel:
         self._modelListener = modelListener
         self._showLegend = showLegend
         self._measurementModel.registerListener(self)
+        self._dBRange = dBRange
+        self.updateDecibelRange(self._dBRange, draw=False)
 
     def shouldRefresh(self):
         return self._refreshData
+
+    def updateDecibelRange(self, dBRange, draw=True):
+        '''
+        Updates the decibel range on the chart.
+        :param dBRange: the new range.
+        '''
+        self._dBRange = dBRange
+        if draw:
+            setYLimits(self._axes, dBRange)
+            self._chart.canvas.draw()
 
     def display(self):
         '''
         Updates the contents of the magnitude chart
         '''
+        # TODO might need to update the ylim even if we haven't refreshed
         if self.shouldRefresh():
             data = self._measurementModel.getMagnitudeData(type=self._type, ref=1)
             for idx, x in enumerate(data):
@@ -47,10 +60,16 @@ class MagnitudeModel:
                                                                                            len(self._measurementModel)),
                                                                label=x.name)[0]
             configureFreqAxisFormatting(self._axes)
+            ymax, ymin, _, _ = calculate_dBFS_Scales(np.concatenate([x.y for x in data]), maxRange=self._dBRange)
+            self._axes.set_ylim(bottom=ymin, top=ymax)
             if self._axes.get_legend() is None and self._showLegend:
                 self.makeClickableLegend()
             self._chart.canvas.draw()
             self._refreshData = False
+        else:
+            ylim = self._axes.get_ylim()
+            if ylim[1] - ylim[0] != self._dBRange:
+                self.updateDecibelRange(self._dBRange)
 
     def makeClickableLegend(self):
         '''
@@ -74,14 +93,12 @@ class MagnitudeModel:
             origline = lined[legline]
             vis = not origline.get_visible()
             origline.set_visible(vis)
-            # Change the alpha on the line in the legend so we can see what lines
-            # have been toggled
+            # Change the alpha on the line in the legend so we can see what lines have been toggled
             if vis:
                 legline.set_alpha(1.0)
             else:
                 legline.set_alpha(0.2)
             self._chart.canvas.draw()
-
         self._chart.canvas.mpl_connect('pick_event', onpick)
 
     def onUpdate(self, type, **kwargs):
@@ -111,8 +128,7 @@ class AnimatedSingleLineMagnitudeModel:
     Allows a single measurement from a selection of magnitude data to be displayed on a chart.
     '''
 
-    def __init__(self, chart, measurementModel, type=REAL_WORLD_DATA,
-                 subplotSpec=GridSpec(1, 1).new_subplotspec((0, 0), 1, 1)):
+    def __init__(self, chart, measurementModel, type=REAL_WORLD_DATA, subplotSpec=SINGLE_SUBPLOT_SPEC, dBRange=60):
         self._chart = chart
         self._measurementModel = measurementModel
         self._measurementModel.registerListener(self)
@@ -124,9 +140,20 @@ class AnimatedSingleLineMagnitudeModel:
         self.yPosition = None
         self._curve = None
         self._ani = None
+        self._dBRange = dBRange
 
     def shouldRefresh(self):
         return self._refreshData
+
+    def updateDecibelRange(self, dBRange, draw=True):
+        '''
+        Updates the decibel range on the chart.
+        :param dBRange: the new range.
+        '''
+        self._dBRange = dBRange
+        if draw:
+            setYLimits(self._axes, dBRange)
+            self._chart.canvas.draw()
 
     def display(self):
         '''
@@ -140,8 +167,8 @@ class AnimatedSingleLineMagnitudeModel:
                                                   linewidth=2,
                                                   antialiased=True,
                                                   linestyle='solid')[0]
-                yMin = min([np.min(x.y) for x in self._data])
                 yMax = max([np.max(x.y) for x in self._data])
+                yMin = yMax - self._dBRange
                 self._axes.set_ylim(bottom=yMin, top=yMax, auto=False)
                 self._ani = animation.FuncAnimation(self._chart.canvas.figure, self.redraw, interval=50,
                                                     init_func=self.initAnimation, blit=True, save_count=50)

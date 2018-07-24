@@ -2,10 +2,9 @@ import math
 
 import numpy as np
 from matplotlib import animation
-from matplotlib.gridspec import GridSpec
 from matplotlib.ticker import MultipleLocator, FuncFormatter
 
-from model import calculate_dBFS_Scales
+from model import calculate_dBFS_Scales, SINGLE_SUBPLOT_SPEC, setYLimits
 from model.measurement import REAL_WORLD_DATA, ANALYSED, LOAD_MEASUREMENTS, CLEAR_MEASUREMENTS
 
 
@@ -14,8 +13,7 @@ class PolarModel:
     Allows a set of measurements to be displayed on a polar chart with the displayed curve interactively changing.
     '''
 
-    def __init__(self, chart, measurementModel, type=REAL_WORLD_DATA,
-                 subplotSpec=GridSpec(1, 1).new_subplotspec((0, 0), 1, 1)):
+    def __init__(self, chart, measurementModel, type=REAL_WORLD_DATA, subplotSpec=SINGLE_SUBPLOT_SPEC, dBRange=60):
         self._chart = chart
         self._axes = self._chart.canvas.figure.add_subplot(subplotSpec, projection='polar')
         self._axes.grid(linestyle='--', axis='y', alpha=0.7)
@@ -27,9 +25,21 @@ class PolarModel:
         self._measurementModel.registerListener(self)
         self.xPosition = 1000
         self._ani = None
+        self._dBRange = dBRange
+        self.updateDecibelRange(self._dBRange, draw=False)
 
     def shouldRefresh(self):
         return self._refreshData
+
+    def updateDecibelRange(self, dBRange, draw=True):
+        '''
+        Updates the decibel range on the chart.
+        :param dBRange: the new range.
+        '''
+        self._dBRange = dBRange
+        if draw:
+            setYLimits(self._axes, dBRange)
+            self._chart.canvas.draw()
 
     def display(self):
         '''
@@ -43,11 +53,11 @@ class PolarModel:
                 theta, r = zip(*[(math.radians(x.hAngle), x.y[idx]) for x in xydata])
                 self._data[freq] = (theta, r)
             self._axes.set_thetagrids(np.arange(0, 360, 15))
-            rmax, rmin, rsteps = calculate_dBFS_Scales(np.concatenate([x[1] for x in self._data.values()]))
+            rmax, rmin, rsteps, _ = calculate_dBFS_Scales(np.concatenate([x[1] for x in self._data.values()]),
+                                                          maxRange=self._dBRange)
             self._axes.set_rgrids(rsteps)
             # show degrees as +/- 180
             self._axes.xaxis.set_major_formatter(FuncFormatter(self.formatAngle))
-            # self._axes.set_xticklabels(np.concatenate((np.arange(0, 195, 15), np.arange(-165, 0, 15))))
             # show label every 12dB
             self._axes.yaxis.set_major_locator(MultipleLocator(12))
             # plot some invisible data to initialise

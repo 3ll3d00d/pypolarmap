@@ -22,9 +22,9 @@ to compile a test dll
     activate scanner32
     conda info
 
-### natgrid
+## TODO 
 
-https://download.lfd.uci.edu/pythonlibs/l8ulg3xw/natgrid-0.2.1-cp36-cp36m-win32.whl
-
-    pip install <file>
-    
+* smoothing sends the modal screen crazy
+* graph limits aren't updating properly in the multi chart
+* reloading data causes the impulse chart to blow up    
+* contour chart is not updating if  we  updated the chart y range while offscreen
