@@ -1,5 +1,4 @@
 import numpy as np
-from matplotlib.gridspec import GridSpec
 
 from model import configureFreqAxisFormatting, calculate_dBFS_Scales, colorbar, SINGLE_SUBPLOT_SPEC
 from model.measurement import CLEAR_MEASUREMENTS, ANALYSED
@@ -86,8 +85,8 @@ class ContourModel:
         if len(self._measurementModel) > 0:
             if self._refreshData:
                 self._data = self._measurementModel.getContourData(type=self._type)
-                self._extents = [np.amin(self._data['x']), np.amax(self._data['x']),
-                                 np.amax(self._data['y']), np.amin(self._data['y'])]
+                self._extents = [np.nanmin(self._data['x']), np.nanmax(self._data['x']),
+                                 np.nanmax(self._data['y']), np.nanmin(self._data['y'])]
                 if self._tcf:
                     self.clear(disconnect=False)
                 self._redraw()
@@ -179,4 +178,3 @@ class ContourModel:
             self._tcf = None
             self._initChart(self._subplotSpec)
             self._chart.canvas.draw()
-h

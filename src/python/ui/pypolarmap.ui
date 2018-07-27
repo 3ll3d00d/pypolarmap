@@ -412,7 +412,7 @@
         </widget>
        </item>
        <item row="16" column="1">
-        <widget class="QCheckBox" name="checkBox">
+        <widget class="QCheckBox" name="normaliseCheckBox">
          <property name="text">
           <string>Normalise?</string>
          </property>
@@ -426,7 +426,7 @@
         </widget>
        </item>
        <item row="17" column="1">
-        <widget class="QComboBox" name="comboBox">
+        <widget class="QComboBox" name="normalisationAngle">
          <item>
           <property name="text">
            <string>0</string>
@@ -1166,8 +1166,8 @@
    </hints>
   </connection>
   <connection>
-   <sender>checkBox</sender>
-   <signal>stateChanged(int)</signal>
+   <sender>normaliseCheckBox</sender>
+   <signal>clicked()</signal>
    <receiver>MainWindow</receiver>
    <slot>toggleNormalised()</slot>
    <hints>
@@ -1182,7 +1182,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>comboBox</sender>
+   <sender>normalisationAngle</sender>
    <signal>currentIndexChanged(QString)</signal>
    <receiver>MainWindow</receiver>
    <slot>setNormalisationAngle()</slot>

@@ -1,3 +1,4 @@
+import math
 import typing
 from collections.abc import Sequence
 
@@ -41,12 +42,14 @@ class MeasurementModel(Sequence):
     CalPolar needs a vector (a row) of the complex array Modal.model at the desired frequency Freq.log(Current Frequency) and the desired R.angle, Freq.log(Current Frequency) and FieldRadius (your farnum) as double real numbers. It also needs the assumed source.radius (your velnum) which is not the driver radius, but the radius of a sphere which is the same volume as the enclosure.
     '''
 
-    def __init__(self, modalParameters, m=None, listeners=None):
+    def __init__(self, modalParameters, displayModel, m=None, listeners=None):
         self.__measurements = m if m is not None else []
         self.__listeners = listeners if listeners is not None else []
         self.__modalResponse = None
         self.__smoothingType = None
         self.__modalParameters = modalParameters
+        self.__displayModel = displayModel
+        self.__displayModel.measurementModel = self
         self.__complexData = {}
         super().__init__()
 
@@ -99,6 +102,14 @@ class MeasurementModel(Sequence):
         :return: the largest sample value in the measurement set.
         '''
         return max([max(x.max(), abs(x.min())) for x in self.__measurements])
+
+    def normalisationChanged(self):
+        '''
+        flags that the normalisation selection has changed.
+        :param normalised: true if normalised.
+        :param angle: the angle to normalise to.
+        '''
+        self.__propagateEvent(ANALYSED)
 
     def analyseMeasuredData(self, left, right, peak):
         '''
@@ -182,8 +193,16 @@ class MeasurementModel(Sequence):
         :param ref: the reference against which to scale the result in dB.
         :return: the data (if any)
         '''
-        return [x.getMagnitude(ref, self.__smoothingType) for x in
+        data = [x.getMagnitude(ref, self.__smoothingType) for x in
                 self.__complexData[type]] if type in self.__complexData else []
+        if self.__displayModel.normalised:
+            target = next(
+                (x for x in data if math.isclose(float(x.hAngle), float(self.__displayModel.normalisationAngle))), None)
+            if target:
+                data = [x.normalise(target) for x in data]
+            else:
+                print(f"Unable to normalise {self.__displayModel.normalisationAngle}")
+        return data
 
     def getContourData(self, type=REAL_WORLD_DATA):
         '''
@@ -242,6 +261,14 @@ class XYData:
         self.x = x
         self.y = y
 
+    def normalise(self, target):
+        '''
+        Normalises the y value against the target y.
+        :param target: the target.
+        :return: a normalised XYData.
+        '''
+        return XYData(self.name, self.hAngle, self.x, self.y - target.y)
+
 
 class Measurement:
     '''
@@ -270,19 +297,19 @@ class Measurement:
         '''
         :return: the min value in the samples.
         '''
-        return np.amin(self.samples)
+        return np.nanmin(self.samples)
 
     def max(self):
         '''
         :return: the max value in the samples.
         '''
-        return np.amax(self.samples)
+        return np.nanmax(self.samples)
 
     def peakIndex(self):
         '''
         :return: the index of the peak value in the samples.
         '''
-        return np.argmax(self.samples)
+        return np.nanargmax(self.samples)
 
     def firstReflectionIndex(self):
         '''

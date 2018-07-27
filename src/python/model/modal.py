@@ -1,8 +1,3 @@
-from model.contour import ContourModel
-from model.magnitude import MagnitudeModel
-from model.measurement import COMPUTED_MODAL_DATA
-
-
 class ModalParameterModel:
     '''
     Parameters to feed into the modal analyser.

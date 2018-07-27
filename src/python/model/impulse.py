@@ -157,7 +157,7 @@ class ImpulseModel:
         sets the x axis range to the x range
         :return:
         '''
-        self._axes.set_xlim(left=0, right=np.amax(self._activeX))
+        self._axes.set_xlim(left=0, right=np.nanmax(self._activeX))
         self._chart.canvas.draw()
 
     def removeWindow(self):

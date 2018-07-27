@@ -3,16 +3,17 @@ import sys
 import matplotlib
 from PyQt5.QtWidgets import QMainWindow, QApplication, QFileDialog, QDialog, QDialogButtonBox, QMessageBox
 
+from model.contour import ContourModel
+from model.display import DisplayModel
 from model.load import WavLoader, HolmLoader, TxtLoader, DblLoader, REWLoader, ARTALoader
 from model.measurement import REAL_WORLD_DATA, COMPUTED_MODAL_DATA
 from model.multi import MultiChartModel
-from model.polar import PolarModel
 from ui.loadMeasurements import Ui_loadMeasurementDialog
 from ui.pypolarmap import Ui_MainWindow
 
 matplotlib.use("Qt5Agg")
 
-from model import impulse as imp, magnitude as mag, contour, measurement as m, modal
+from model import impulse as imp, magnitude as mag, measurement as m, modal
 from PyQt5 import QtCore, QtWidgets
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as Canvas
@@ -156,18 +157,22 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
                                                               self.q0.value(),
                                                               self.transFreq.value(), self.lfGain.value(),
                                                               self.boxRadius.value())
-        self._measurementModel = m.MeasurementModel(self._modalParameterModel)
+        self._displayModel = DisplayModel(self.yAxisRange.value(), self.normaliseCheckBox.isChecked(),
+                                          self.normalisationAngle.itemData(self.normalisationAngle.currentIndex()))
+        self._measurementModel = m.MeasurementModel(self._modalParameterModel, self._displayModel)
         # modal graphs
         self._modalMultiModel = MultiChartModel(self.modalMultiGraph, self._measurementModel, COMPUTED_MODAL_DATA,
                                                 dBRange=self.yAxisRange.value())
-        self._modalPolarModel = modal.ContourModel(self.modalPolarGraph, self._measurementModel, COMPUTED_MODAL_DATA)
+        self._modalPolarModel = ContourModel(self.modalPolarGraph, self._measurementModel, COMPUTED_MODAL_DATA)
         # measured graphs
         self._measuredMultiModel = MultiChartModel(self.measuredMultiGraph, self._measurementModel, REAL_WORLD_DATA,
                                                    dBRange=self.yAxisRange.value())
-        self._measuredPolarModel = contour.ContourModel(self.measuredPolarGraph, self._measurementModel,
-                                                        type=REAL_WORLD_DATA)
+        self._measuredPolarModel = ContourModel(self.measuredPolarGraph, self._measurementModel,
+                                                type=REAL_WORLD_DATA)
         self._measuredMagnitudeModel = mag.MagnitudeModel(self.measuredMagnitudeGraph, self._measurementModel,
                                                           type=REAL_WORLD_DATA, dBRange=self.yAxisRange.value())
+        self._displayModel.resultCharts = [self._modalMultiModel, self._modalPolarModel, self._measuredMultiModel,
+                                           self._measuredPolarModel, self._measuredMagnitudeModel]
         # impulse graph
         self._impulseModel = imp.ImpulseModel(self.impulseGraph,
                                               {'position': self.leftWindowSample,
@@ -212,6 +217,25 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
                 self.removeWindowBtn.setDisabled(True)
                 self.zoomInButton.setDisabled(True)
                 self.zoomOutBtn.setDisabled(True)
+            self.refreshNormalisationAngles()
+
+    def refreshNormalisationAngles(self):
+        # TODO allow V angles to be displayed
+        angles = sorted(set([x._h for x in self._measurementModel]))
+        for idx in range(0, max(len(angles), self.normalisationAngle.count())):
+            if idx < len(angles):
+                if idx < self.normalisationAngle.count():
+                    self.normalisationAngle.setItemData(idx, str(angles[idx]))
+                else:
+                    self.normalisationAngle.addItem(str(angles[idx]))
+            else:
+                if idx < self.normalisationAngle.count():
+                    self.normalisationAngle.removeItem(idx)
+        if len(angles) > 0:
+            self.normalisationAngle.setCurrentIndex(0)
+            self._displayModel.normalisationAngle = angles[0]
+        else:
+            self._displayModel.normalisationAngle = None
 
     def getSelectedGraph(self):
         idx = self.graphTabs.currentIndex()
@@ -231,11 +255,10 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
             return None
 
     def onGraphTabChange(self):
-        graph = self.getSelectedGraph()
-        if graph is not None:
-            display = getattr(graph, 'display', None)
-            if display is not None and callable(display):
-                display()
+        '''
+        Updates the visible chart.
+        '''
+        self._displayModel.visibleChart = self.getSelectedGraph()
 
     def updateLeftWindowPosition(self):
         '''
@@ -401,29 +424,21 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
         :param yRange:
         :return:
         '''
-        selected = self.getSelectedGraph()
-        self._update_db_range(self._modalMultiModel, selected, yRange)
-        self._update_db_range(self._modalPolarModel, selected, yRange)
-        self._update_db_range(self._measuredMagnitudeModel, selected, yRange)
-        self._update_db_range(self._measuredMultiModel, selected, yRange)
-        self._update_db_range(self._measuredPolarModel, selected, yRange)
+        self._displayModel.dBRange = yRange
 
-    def _update_db_range(self, graph, selected, yRange):
-        graph.updateDecibelRange(yRange, draw=graph is selected)
-
-    def toggleNormalised(self, state):
+    def toggleNormalised(self):
         '''
         toggles whether to normalise the displayed data or not.
         :param state: normalisation selection.
         '''
-        pass
+        self._displayModel.normalised = self.normaliseCheckBox.isChecked()
 
     def setNormalisationAngle(self, angle):
         '''
         controls what the currently selected normalisation angle is.
         :param angle: the selected angle.
         '''
-        pass
+        self._displayModel.normalisationAngle = angle
 
 
 def main():
