@@ -9,747 +9,771 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>2234</width>
-    <height>1162</height>
+    <width>1419</width>
+    <height>1105</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>pypolarmap</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QWidget" name="gridLayoutWidget">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>10</y>
-      <width>361</width>
-      <height>1091</height>
-     </rect>
-    </property>
-    <layout class="QGridLayout" name="measurementSelectLayout">
-     <item row="0" column="0">
-      <widget class="QPushButton" name="selectDirBtn">
-       <property name="text">
-        <string>Load Measurements</string>
-       </property>
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <layout class="QGridLayout" name="gridLayout" columnstretch="0,0">
+    <item row="0" column="1">
+     <widget class="QTabWidget" name="graphTabs">
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="currentIndex">
+       <number>0</number>
+      </property>
+      <widget class="QWidget" name="impulseTab">
+       <attribute name="title">
+        <string>Impulse</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_2">
+        <item row="0" column="0">
+         <layout class="QGridLayout" name="graphLayout">
+          <property name="sizeConstraint">
+           <enum>QLayout::SetDefaultConstraint</enum>
+          </property>
+          <item row="0" column="1" colspan="8">
+           <widget class="MplWidget" name="impulseGraph">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>9</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>600</width>
+              <height>840</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <layout class="QFormLayout" name="formLayout_3">
+            <property name="sizeConstraint">
+             <enum>QLayout::SetMinimumSize</enum>
+            </property>
+            <item row="0" column="0" colspan="2">
+             <widget class="QPushButton" name="applyWindowBtn">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>Apply Window</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0" colspan="2">
+             <widget class="QPushButton" name="removeWindowBtn">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>Remove Window</string>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+              <property name="flat">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0">
+             <widget class="QLabel" name="label">
+              <property name="frameShape">
+               <enum>QFrame::NoFrame</enum>
+              </property>
+              <property name="text">
+               <string>Left</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QComboBox" name="leftWindowType">
+              <item>
+               <property name="text">
+                <string>Rectangle</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Tukey</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Hann</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Hamming</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Blackman-Harris</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Nuttall</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+            <item row="3" column="1">
+             <widget class="QSpinBox" name="leftWindowPercent">
+              <property name="suffix">
+               <string>%</string>
+              </property>
+              <property name="minimum">
+               <number>12</number>
+              </property>
+              <property name="maximum">
+               <number>75</number>
+              </property>
+              <property name="value">
+               <number>50</number>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="1">
+             <widget class="QSpinBox" name="leftWindowSample"/>
+            </item>
+            <item row="5" column="0">
+             <widget class="QLabel" name="label_2">
+              <property name="text">
+               <string>Right</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="1">
+             <widget class="QComboBox" name="rightWindowType">
+              <item>
+               <property name="text">
+                <string>Rectangle</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Tukey</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Hann</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Hamming</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Blackman-Harris</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Nuttall</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+            <item row="6" column="1">
+             <widget class="QSpinBox" name="rightWindowPercent">
+              <property name="suffix">
+               <string>%</string>
+              </property>
+              <property name="minimum">
+               <number>12</number>
+              </property>
+              <property name="maximum">
+               <number>75</number>
+              </property>
+              <property name="value">
+               <number>50</number>
+              </property>
+             </widget>
+            </item>
+            <item row="7" column="1">
+             <widget class="QSpinBox" name="rightWindowSample"/>
+            </item>
+            <item row="8" column="0" colspan="2">
+             <widget class="QPushButton" name="zoomInButton">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>Zoom To Gate</string>
+              </property>
+             </widget>
+            </item>
+            <item row="9" column="0" colspan="2">
+             <widget class="QPushButton" name="zoomOutBtn">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>Zoom Out</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </item>
+       </layout>
       </widget>
-     </item>
-     <item row="2" column="0" colspan="2">
-      <widget class="QTreeView" name="measurementView"/>
-     </item>
-     <item row="3" column="0" rowspan="2" colspan="2">
-      <layout class="QFormLayout" name="formLayout_4">
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_13">
-         <property name="text">
-          <string>Fs</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QSpinBox" name="fs">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="suffix">
-          <string> Hz</string>
-         </property>
-         <property name="minimum">
-          <number>44100</number>
-         </property>
-         <property name="maximum">
-          <number>384000</number>
-         </property>
-         <property name="singleStep">
-          <number>100</number>
-         </property>
-         <property name="value">
-          <number>48000</number>
-         </property>
-         <property name="displayIntegerBase">
-          <number>10</number>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_16">
-         <property name="text">
-          <string>Axis?</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QComboBox" name="comboBox_2">
-         <item>
-          <property name="text">
-           <string>Horizontal</string>
+      <widget class="QWidget" name="measuredMagnitudeTab">
+       <attribute name="title">
+        <string>Measured - Magnitude</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_3">
+        <item row="0" column="0">
+         <widget class="MplWidget" name="measuredMagnitudeGraph">
+          <property name="minimumSize">
+           <size>
+            <width>847</width>
+            <height>840</height>
+           </size>
           </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Vertical</string>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="measuredPolarTab">
+       <attribute name="title">
+        <string>Measured - Polar</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_4">
+        <item row="0" column="0">
+         <widget class="MplWidget" name="measuredPolarGraph">
+          <property name="minimumSize">
+           <size>
+            <width>847</width>
+            <height>840</height>
+           </size>
           </property>
-         </item>
-        </widget>
-       </item>
-       <item row="2" column="0" colspan="2">
-        <widget class="QLabel" name="label_17">
-         <property name="font">
-          <font>
-           <pointsize>8</pointsize>
-           <weight>75</weight>
-           <bold>true</bold>
-           <underline>false</underline>
-          </font>
-         </property>
-         <property name="frameShape">
-          <enum>QFrame::Box</enum>
-         </property>
-         <property name="frameShadow">
-          <enum>QFrame::Sunken</enum>
-         </property>
-         <property name="lineWidth">
-          <number>1</number>
-         </property>
-         <property name="text">
-          <string>Modal Parameters</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="0">
-        <widget class="QLabel" name="label_5">
-         <property name="text">
-          <string>Measurement Distance (m)</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="1">
-        <widget class="QDoubleSpinBox" name="measurementDistance">
-         <property name="minimum">
-          <double>0.100000000000000</double>
-         </property>
-         <property name="maximum">
-          <double>10.000000000000000</double>
-         </property>
-         <property name="singleStep">
-          <double>0.010000000000000</double>
-         </property>
-         <property name="value">
-          <double>1.000000000000000</double>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="0">
-        <widget class="QLabel" name="label_12">
-         <property name="text">
-          <string>Box Radius (m)</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="1">
-        <widget class="QDoubleSpinBox" name="boxRadius">
-         <property name="minimum">
-          <double>0.010000000000000</double>
-         </property>
-         <property name="maximum">
-          <double>3.000000000000000</double>
-         </property>
-         <property name="singleStep">
-          <double>0.010000000000000</double>
-         </property>
-         <property name="value">
-          <double>0.250000000000000</double>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="0">
-        <widget class="QLabel" name="label_6">
-         <property name="text">
-          <string>Driver Radius (cm)</string>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="1">
-        <widget class="QDoubleSpinBox" name="driverRadius">
-         <property name="decimals">
-          <number>1</number>
-         </property>
-         <property name="minimum">
-          <double>1.000000000000000</double>
-         </property>
-         <property name="maximum">
-          <double>40.000000000000000</double>
-         </property>
-         <property name="singleStep">
-          <double>0.100000000000000</double>
-         </property>
-         <property name="value">
-          <double>15.000000000000000</double>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="0">
-        <widget class="QLabel" name="label_7">
-         <property name="text">
-          <string>Modal Coefficients</string>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="1">
-        <widget class="QSpinBox" name="modalCoeffs">
-         <property name="minimum">
-          <number>5</number>
-         </property>
-         <property name="maximum">
-          <number>14</number>
-         </property>
-         <property name="value">
-          <number>14</number>
-         </property>
-        </widget>
-       </item>
-       <item row="7" column="0">
-        <widget class="QLabel" name="label_8">
-         <property name="text">
-          <string>f0</string>
-         </property>
-        </widget>
-       </item>
-       <item row="7" column="1">
-        <widget class="QSpinBox" name="f0">
-         <property name="minimum">
-          <number>1</number>
-         </property>
-         <property name="maximum">
-          <number>200</number>
-         </property>
-         <property name="value">
-          <number>70</number>
-         </property>
-        </widget>
-       </item>
-       <item row="8" column="0">
-        <widget class="QLabel" name="label_9">
-         <property name="text">
-          <string>q0</string>
-         </property>
-        </widget>
-       </item>
-       <item row="8" column="1">
-        <widget class="QDoubleSpinBox" name="q0">
-         <property name="decimals">
-          <number>3</number>
-         </property>
-         <property name="minimum">
-          <double>0.200000000000000</double>
-         </property>
-         <property name="maximum">
-          <double>1.500000000000000</double>
-         </property>
-         <property name="singleStep">
-          <double>0.001000000000000</double>
-         </property>
-         <property name="value">
-          <double>0.700000000000000</double>
-         </property>
-        </widget>
-       </item>
-       <item row="9" column="0">
-        <widget class="QLabel" name="label_10">
-         <property name="text">
-          <string>Transition Frequency (Hz)</string>
-         </property>
-        </widget>
-       </item>
-       <item row="9" column="1">
-        <widget class="QSpinBox" name="transFreq">
-         <property name="minimum">
-          <number>1</number>
-         </property>
-         <property name="maximum">
-          <number>1000</number>
-         </property>
-         <property name="value">
-          <number>200</number>
-         </property>
-        </widget>
-       </item>
-       <item row="10" column="0">
-        <widget class="QLabel" name="label_11">
-         <property name="text">
-          <string>LF Gain (dB)</string>
-         </property>
-        </widget>
-       </item>
-       <item row="10" column="1">
-        <widget class="QDoubleSpinBox" name="lfGain">
-         <property name="decimals">
-          <number>1</number>
-         </property>
-         <property name="minimum">
-          <double>-10.000000000000000</double>
-         </property>
-         <property name="maximum">
-          <double>10.000000000000000</double>
-         </property>
-         <property name="singleStep">
-          <double>0.100000000000000</double>
-         </property>
-        </widget>
-       </item>
-       <item row="11" column="1">
-        <widget class="QPushButton" name="refreshSpatialBtn">
-         <property name="text">
-          <string>Update</string>
-         </property>
-        </widget>
-       </item>
-       <item row="12" column="0" colspan="2">
-        <widget class="QLabel" name="label_18">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="frameShape">
-          <enum>QFrame::Box</enum>
-         </property>
-         <property name="frameShadow">
-          <enum>QFrame::Sunken</enum>
-         </property>
-         <property name="text">
-          <string>Display Controls</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="13" column="0">
-        <widget class="QLabel" name="label_14">
-         <property name="text">
-          <string>Smoothing</string>
-         </property>
-        </widget>
-       </item>
-       <item row="13" column="1">
-        <widget class="QComboBox" name="smoothingType">
-         <item>
-          <property name="text">
-           <string>None</string>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="measuredMultiTab">
+       <attribute name="title">
+        <string>Measured - Multi</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_5">
+        <item row="0" column="0">
+         <widget class="MplWidget" name="measuredMultiGraph">
+          <property name="minimumSize">
+           <size>
+            <width>847</width>
+            <height>840</height>
+           </size>
           </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>1/3 Octave</string>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="modalPolarTab">
+       <attribute name="title">
+        <string>Modal - Polar</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_6">
+        <item row="0" column="0">
+         <widget class="MplWidget" name="modalPolarGraph">
+          <property name="minimumSize">
+           <size>
+            <width>847</width>
+            <height>840</height>
+           </size>
           </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>1/6 Octave</string>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="modalMultiTab">
+       <attribute name="title">
+        <string>Modal - Multi</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_7">
+        <item row="0" column="0">
+         <widget class="MplWidget" name="modalMultiGraph">
+          <property name="minimumSize">
+           <size>
+            <width>847</width>
+            <height>840</height>
+           </size>
           </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>1/12 Octave</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>CB Zwicker</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>CB Moore</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Narrow</string>
-          </property>
-         </item>
-        </widget>
-       </item>
-       <item row="14" column="0">
-        <widget class="QLabel" name="label_3">
-         <property name="text">
-          <string>Colour Scheme</string>
-         </property>
-        </widget>
-       </item>
-       <item row="14" column="1">
-        <widget class="QComboBox" name="colourMapSelector"/>
-       </item>
-       <item row="15" column="0">
-        <widget class="QLabel" name="label_4">
-         <property name="text">
-          <string>Y Range</string>
-         </property>
-        </widget>
-       </item>
-       <item row="15" column="1">
-        <widget class="QSpinBox" name="yAxisRange">
-         <property name="suffix">
-          <string> dB</string>
-         </property>
-         <property name="minimum">
-          <number>10</number>
-         </property>
-         <property name="maximum">
-          <number>120</number>
-         </property>
-         <property name="singleStep">
-          <number>5</number>
-         </property>
-         <property name="value">
-          <number>60</number>
-         </property>
-        </widget>
-       </item>
-       <item row="16" column="1">
-        <widget class="QCheckBox" name="normaliseCheckBox">
-         <property name="text">
-          <string>Normalise?</string>
-         </property>
-        </widget>
-       </item>
-       <item row="17" column="0">
-        <widget class="QLabel" name="label_15">
-         <property name="text">
-          <string>Normalisation Angle</string>
-         </property>
-        </widget>
-       </item>
-       <item row="17" column="1">
-        <widget class="QComboBox" name="normalisationAngle">
-         <item>
-          <property name="text">
-           <string>0</string>
-          </property>
-         </item>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item row="1" column="0">
-      <widget class="QLineEdit" name="dataPath"/>
-     </item>
-    </layout>
-   </widget>
-   <widget class="QTabWidget" name="graphTabs">
-    <property name="geometry">
-     <rect>
-      <x>380</x>
-      <y>10</y>
-      <width>1831</width>
-      <height>1101</height>
-     </rect>
-    </property>
-    <property name="currentIndex">
-     <number>0</number>
-    </property>
-    <widget class="QWidget" name="impulseTab">
-     <attribute name="title">
-      <string>Impulse</string>
-     </attribute>
-     <widget class="QWidget" name="gridLayoutWidget_2">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>0</y>
-        <width>1902</width>
-        <height>1061</height>
-       </rect>
-      </property>
-      <layout class="QGridLayout" name="graphLayout">
-       <property name="sizeConstraint">
-        <enum>QLayout::SetDefaultConstraint</enum>
-       </property>
-       <item row="0" column="1" colspan="8">
-        <widget class="MplWidget" name="impulseGraph">
-         <property name="minimumSize">
-          <size>
-           <width>1600</width>
-           <height>0</height>
-          </size>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0">
-        <layout class="QFormLayout" name="formLayout_3">
-         <property name="sizeConstraint">
-          <enum>QLayout::SetFixedSize</enum>
-         </property>
-         <item row="1" column="0" colspan="2">
-          <widget class="QPushButton" name="applyWindowBtn">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-           <property name="text">
-            <string>Apply Window</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="0">
-          <widget class="QLabel" name="label">
-           <property name="frameShape">
-            <enum>QFrame::NoFrame</enum>
-           </property>
-           <property name="text">
-            <string>Left</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="1">
-          <widget class="QComboBox" name="leftWindowType">
-           <item>
-            <property name="text">
-             <string>Rectangle</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Tukey</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Hann</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Hamming</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Blackman-Harris</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Nuttall</string>
-            </property>
-           </item>
-          </widget>
-         </item>
-         <item row="4" column="1">
-          <widget class="QSpinBox" name="leftWindowPercent">
-           <property name="suffix">
-            <string>%</string>
-           </property>
-           <property name="minimum">
-            <number>12</number>
-           </property>
-           <property name="maximum">
-            <number>75</number>
-           </property>
-           <property name="value">
-            <number>50</number>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="1">
-          <widget class="QSpinBox" name="leftWindowSample"/>
-         </item>
-         <item row="6" column="0">
-          <widget class="QLabel" name="label_2">
-           <property name="text">
-            <string>Right</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item row="6" column="1">
-          <widget class="QComboBox" name="rightWindowType">
-           <item>
-            <property name="text">
-             <string>Rectangle</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Tukey</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Hann</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Hamming</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Blackman-Harris</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Nuttall</string>
-            </property>
-           </item>
-          </widget>
-         </item>
-         <item row="7" column="1">
-          <widget class="QSpinBox" name="rightWindowPercent">
-           <property name="suffix">
-            <string>%</string>
-           </property>
-           <property name="minimum">
-            <number>12</number>
-           </property>
-           <property name="maximum">
-            <number>75</number>
-           </property>
-           <property name="value">
-            <number>50</number>
-           </property>
-          </widget>
-         </item>
-         <item row="8" column="1">
-          <widget class="QSpinBox" name="rightWindowSample"/>
-         </item>
-         <item row="10" column="0" colspan="2">
-          <widget class="QPushButton" name="zoomInButton">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-           <property name="text">
-            <string>Zoom To Gate</string>
-           </property>
-          </widget>
-         </item>
-         <item row="11" column="0" colspan="2">
-          <widget class="QPushButton" name="zoomOutBtn">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-           <property name="text">
-            <string>Zoom Out</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0" colspan="2">
-          <widget class="QPushButton" name="removeWindowBtn">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-           <property name="text">
-            <string>Remove Window</string>
-           </property>
-           <property name="checkable">
-            <bool>true</bool>
-           </property>
-           <property name="flat">
-            <bool>false</bool>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-      </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
      </widget>
-    </widget>
-    <widget class="QWidget" name="measuredMagnitudeTab">
-     <attribute name="title">
-      <string>Measured - Magnitude</string>
-     </attribute>
-     <widget class="MplWidget" name="measuredMagnitudeGraph">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>0</y>
-        <width>1821</width>
-        <height>1061</height>
-       </rect>
+    </item>
+    <item row="0" column="0">
+     <layout class="QGridLayout" name="menuGridLayout">
+      <property name="sizeConstraint">
+       <enum>QLayout::SetMaximumSize</enum>
       </property>
-     </widget>
-    </widget>
-    <widget class="QWidget" name="measuredPolarTab">
-     <attribute name="title">
-      <string>Measured - Polar</string>
-     </attribute>
-     <widget class="MplWidget" name="measuredPolarGraph">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>0</y>
-        <width>1821</width>
-        <height>1061</height>
-       </rect>
-      </property>
-     </widget>
-    </widget>
-    <widget class="QWidget" name="measuredMultiTab">
-     <attribute name="title">
-      <string>Measured - Multi</string>
-     </attribute>
-     <widget class="MplWidget" name="measuredMultiGraph">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>0</y>
-        <width>1821</width>
-        <height>1061</height>
-       </rect>
-      </property>
-     </widget>
-    </widget>
-    <widget class="QWidget" name="modalPolarTab">
-     <attribute name="title">
-      <string>Modal - Polar</string>
-     </attribute>
-     <widget class="MplWidget" name="modalPolarGraph">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>0</y>
-        <width>1821</width>
-        <height>1061</height>
-       </rect>
-      </property>
-     </widget>
-    </widget>
-    <widget class="QWidget" name="modalMultiTab">
-     <attribute name="title">
-      <string>Modal - Multi</string>
-     </attribute>
-     <widget class="MplWidget" name="modalMultiGraph">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>0</y>
-        <width>1821</width>
-        <height>1061</height>
-       </rect>
-      </property>
-     </widget>
-    </widget>
-   </widget>
-   <zorder>graphTabs</zorder>
-   <zorder>gridLayoutWidget</zorder>
+      <item row="2" column="0" colspan="2">
+       <widget class="QTreeView" name="measurementView"/>
+      </item>
+      <item row="3" column="0" rowspan="2" colspan="2">
+       <layout class="QFormLayout" name="optionsFormLayout">
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_13">
+          <property name="text">
+           <string>Fs</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QSpinBox" name="fs">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="suffix">
+           <string> Hz</string>
+          </property>
+          <property name="minimum">
+           <number>44100</number>
+          </property>
+          <property name="maximum">
+           <number>384000</number>
+          </property>
+          <property name="singleStep">
+           <number>100</number>
+          </property>
+          <property name="value">
+           <number>48000</number>
+          </property>
+          <property name="displayIntegerBase">
+           <number>10</number>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="label_16">
+          <property name="text">
+           <string>Axis?</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QComboBox" name="comboBox_2">
+          <item>
+           <property name="text">
+            <string>Horizontal</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Vertical</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item row="2" column="0" colspan="2">
+         <widget class="QLabel" name="label_17">
+          <property name="font">
+           <font>
+            <pointsize>8</pointsize>
+            <weight>75</weight>
+            <bold>true</bold>
+            <underline>false</underline>
+           </font>
+          </property>
+          <property name="frameShape">
+           <enum>QFrame::Box</enum>
+          </property>
+          <property name="frameShadow">
+           <enum>QFrame::Sunken</enum>
+          </property>
+          <property name="lineWidth">
+           <number>1</number>
+          </property>
+          <property name="text">
+           <string>Modal Parameters</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="label_5">
+          <property name="text">
+           <string>Measurement Distance (m)</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QDoubleSpinBox" name="measurementDistance">
+          <property name="minimum">
+           <double>0.100000000000000</double>
+          </property>
+          <property name="maximum">
+           <double>10.000000000000000</double>
+          </property>
+          <property name="singleStep">
+           <double>0.010000000000000</double>
+          </property>
+          <property name="value">
+           <double>1.000000000000000</double>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="0">
+         <widget class="QLabel" name="label_12">
+          <property name="text">
+           <string>Box Radius (m)</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="1">
+         <widget class="QDoubleSpinBox" name="boxRadius">
+          <property name="minimum">
+           <double>0.010000000000000</double>
+          </property>
+          <property name="maximum">
+           <double>3.000000000000000</double>
+          </property>
+          <property name="singleStep">
+           <double>0.010000000000000</double>
+          </property>
+          <property name="value">
+           <double>0.250000000000000</double>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="0">
+         <widget class="QLabel" name="label_6">
+          <property name="text">
+           <string>Driver Radius (cm)</string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="1">
+         <widget class="QDoubleSpinBox" name="driverRadius">
+          <property name="decimals">
+           <number>1</number>
+          </property>
+          <property name="minimum">
+           <double>1.000000000000000</double>
+          </property>
+          <property name="maximum">
+           <double>40.000000000000000</double>
+          </property>
+          <property name="singleStep">
+           <double>0.100000000000000</double>
+          </property>
+          <property name="value">
+           <double>15.000000000000000</double>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="0">
+         <widget class="QLabel" name="label_7">
+          <property name="text">
+           <string>Modal Coefficients</string>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="1">
+         <widget class="QSpinBox" name="modalCoeffs">
+          <property name="minimum">
+           <number>5</number>
+          </property>
+          <property name="maximum">
+           <number>14</number>
+          </property>
+          <property name="value">
+           <number>14</number>
+          </property>
+         </widget>
+        </item>
+        <item row="7" column="0">
+         <widget class="QLabel" name="label_8">
+          <property name="text">
+           <string>f0</string>
+          </property>
+         </widget>
+        </item>
+        <item row="7" column="1">
+         <widget class="QSpinBox" name="f0">
+          <property name="minimum">
+           <number>1</number>
+          </property>
+          <property name="maximum">
+           <number>200</number>
+          </property>
+          <property name="value">
+           <number>70</number>
+          </property>
+         </widget>
+        </item>
+        <item row="8" column="0">
+         <widget class="QLabel" name="label_9">
+          <property name="text">
+           <string>q0</string>
+          </property>
+         </widget>
+        </item>
+        <item row="8" column="1">
+         <widget class="QDoubleSpinBox" name="q0">
+          <property name="decimals">
+           <number>3</number>
+          </property>
+          <property name="minimum">
+           <double>0.200000000000000</double>
+          </property>
+          <property name="maximum">
+           <double>1.500000000000000</double>
+          </property>
+          <property name="singleStep">
+           <double>0.001000000000000</double>
+          </property>
+          <property name="value">
+           <double>0.700000000000000</double>
+          </property>
+         </widget>
+        </item>
+        <item row="9" column="0">
+         <widget class="QLabel" name="label_10">
+          <property name="text">
+           <string>Transition Frequency (Hz)</string>
+          </property>
+         </widget>
+        </item>
+        <item row="9" column="1">
+         <widget class="QSpinBox" name="transFreq">
+          <property name="minimum">
+           <number>1</number>
+          </property>
+          <property name="maximum">
+           <number>1000</number>
+          </property>
+          <property name="value">
+           <number>200</number>
+          </property>
+         </widget>
+        </item>
+        <item row="10" column="0">
+         <widget class="QLabel" name="label_11">
+          <property name="text">
+           <string>LF Gain (dB)</string>
+          </property>
+         </widget>
+        </item>
+        <item row="10" column="1">
+         <widget class="QDoubleSpinBox" name="lfGain">
+          <property name="decimals">
+           <number>1</number>
+          </property>
+          <property name="minimum">
+           <double>-10.000000000000000</double>
+          </property>
+          <property name="maximum">
+           <double>10.000000000000000</double>
+          </property>
+          <property name="singleStep">
+           <double>0.100000000000000</double>
+          </property>
+         </widget>
+        </item>
+        <item row="11" column="1">
+         <widget class="QPushButton" name="refreshSpatialBtn">
+          <property name="text">
+           <string>Update</string>
+          </property>
+         </widget>
+        </item>
+        <item row="12" column="0" colspan="2">
+         <widget class="QLabel" name="label_18">
+          <property name="font">
+           <font>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="frameShape">
+           <enum>QFrame::Box</enum>
+          </property>
+          <property name="frameShadow">
+           <enum>QFrame::Sunken</enum>
+          </property>
+          <property name="text">
+           <string>Display Controls</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item row="13" column="0">
+         <widget class="QLabel" name="label_14">
+          <property name="text">
+           <string>Smoothing</string>
+          </property>
+         </widget>
+        </item>
+        <item row="13" column="1">
+         <widget class="QComboBox" name="smoothingType">
+          <item>
+           <property name="text">
+            <string>None</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>1/3 Octave</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>1/6 Octave</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>1/12 Octave</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>CB Zwicker</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>CB Moore</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Narrow</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item row="14" column="0">
+         <widget class="QLabel" name="label_3">
+          <property name="text">
+           <string>Colour Scheme</string>
+          </property>
+         </widget>
+        </item>
+        <item row="14" column="1">
+         <widget class="QComboBox" name="colourMapSelector"/>
+        </item>
+        <item row="15" column="0">
+         <widget class="QLabel" name="label_4">
+          <property name="text">
+           <string>Y Range</string>
+          </property>
+         </widget>
+        </item>
+        <item row="15" column="1">
+         <widget class="QSpinBox" name="yAxisRange">
+          <property name="suffix">
+           <string> dB</string>
+          </property>
+          <property name="minimum">
+           <number>10</number>
+          </property>
+          <property name="maximum">
+           <number>120</number>
+          </property>
+          <property name="singleStep">
+           <number>5</number>
+          </property>
+          <property name="value">
+           <number>60</number>
+          </property>
+         </widget>
+        </item>
+        <item row="16" column="1">
+         <widget class="QCheckBox" name="normaliseCheckBox">
+          <property name="text">
+           <string>Normalise?</string>
+          </property>
+         </widget>
+        </item>
+        <item row="17" column="0">
+         <widget class="QLabel" name="label_15">
+          <property name="text">
+           <string>Normalisation Angle</string>
+          </property>
+         </widget>
+        </item>
+        <item row="17" column="1">
+         <widget class="QComboBox" name="normalisationAngle">
+          <item>
+           <property name="text">
+            <string>0</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="1" column="0" colspan="2">
+       <widget class="QLineEdit" name="dataPath">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>320</width>
+          <height>16777215</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0" colspan="2">
+       <widget class="QPushButton" name="selectDirBtn">
+        <property name="text">
+         <string>Load Measurements</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+   </layout>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>2234</width>
+     <width>1419</width>
      <height>31</height>
     </rect>
    </property>
