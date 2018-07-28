@@ -26,6 +26,7 @@ class ContourModel:
         self._measurementModel = measurementModel
         self._selectedCmap = 'bgyw'
         self._type = type
+        self.name = f"contour_{self._type}"
         self._data = None
         self._tc = None
         self._tcf = None

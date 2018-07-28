@@ -10,6 +10,7 @@ class ImpulseModel:
 
     def __init__(self, chart, left, right, measurementModel):
         self._chart = chart
+        self.name = 'impulse'
         self._axes = self._chart.canvas.figure.add_subplot(111)
         self._initChart()
         self._curves = {}

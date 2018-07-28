@@ -32,7 +32,7 @@ setup(
     install_requires=['numpy>=1.14.3',
                       'matplotlib>=2.2.2',
                       'scipy>=1.1.0',
-                      'pyqt>=5.9.2'],
+                      'pyqt>=5.9.2', 'qtpy'],
     options={
         "py2exe": {
             "includes": includes,

@@ -3,7 +3,7 @@ import typing
 from collections.abc import Sequence
 
 import numpy as np
-from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant
+from qtpy.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant
 from scipy import signal
 
 from meascalcs import fft, linToLog, calSpatial, calPolar, smooth

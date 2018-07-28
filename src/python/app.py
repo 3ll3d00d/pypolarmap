@@ -1,7 +1,7 @@
 import sys
 
 import matplotlib
-from PyQt5.QtWidgets import QMainWindow, QApplication, QFileDialog, QDialog, QDialogButtonBox, QMessageBox
+from qtpy.QtWidgets import QMainWindow, QApplication, QFileDialog, QDialog, QDialogButtonBox, QMessageBox
 
 from model.contour import ContourModel
 from model.display import DisplayModel
@@ -14,7 +14,7 @@ from ui.pypolarmap import Ui_MainWindow
 matplotlib.use("Qt5Agg")
 
 from model import impulse as imp, magnitude as mag, measurement as m, modal
-from PyQt5 import QtCore, QtWidgets
+from qtpy import QtCore, QtWidgets
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as Canvas
 import colorcet as cc
@@ -149,6 +149,8 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
         super(PyPolarmap, self).__init__(parent)
         self.setupUi(self)
+        self.actionLoad.triggered.connect(self.selectDirectory)
+        self.actionSave_Current_Image.triggered.connect(self.saveCurrentChart)
         self.loadColourMaps()
         self.dataPath.setDisabled(True)
         self._modalParameterModel = modal.ModalParameterModel(self.measurementDistance.value(),
@@ -218,6 +220,21 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
                 self.zoomInButton.setDisabled(True)
                 self.zoomOutBtn.setDisabled(True)
             self.refreshNormalisationAngles()
+
+    def saveCurrentChart(self):
+        '''
+        Saves the currently selected chart to a file.
+        '''
+        selectedGraph = self.getSelectedGraph()
+        formats = "Portable Network Graphic (*.png)"
+        fileName = QFileDialog.getSaveFileName(self, 'Export Chart', f"{selectedGraph.name}.png", formats)
+        if fileName:
+            outputFile = str(fileName[0]).strip()
+            if len(outputFile) == 0:
+                return
+            else:
+                selectedGraph._chart.canvas.figure.savefig(outputFile, format='png')
+                self.statusbar.showMessage(f"Saved {selectedGraph.name} to {outputFile}", 5000)
 
     def refreshNormalisationAngles(self):
         # TODO allow V angles to be displayed

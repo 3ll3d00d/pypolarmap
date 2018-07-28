@@ -19,6 +19,7 @@ class MagnitudeModel:
         self._curves = {}
         self._refreshData = False
         self._type = type
+        self.name = f"magnitude_{self._type}"
         self._measurementModel = measurementModel
         self._modelListener = modelListener
         self._showLegend = showLegend

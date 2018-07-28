@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1419</width>
-    <height>1105</height>
+    <width>1638</width>
+    <height>1158</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -773,12 +773,36 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1419</width>
+     <width>1638</width>
      <height>31</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionLoad"/>
+    <addaction name="actionSave_Current_Image"/>
+   </widget>
+   <addaction name="menuFile"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionLoad">
+   <property name="text">
+    <string>Load</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="actionSave_Current_Image">
+   <property name="text">
+    <string>Save Chart</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -828,8 +852,8 @@
    <slot>removeWindow()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>527</x>
-     <y>128</y>
+     <x>557</x>
+     <y>163</y>
     </hint>
     <hint type="destinationlabel">
      <x>715</x>
@@ -876,8 +900,8 @@
    <slot>updateColourMap()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>368</x>
-     <y>1017</y>
+     <x>333</x>
+     <y>1012</y>
     </hint>
     <hint type="destinationlabel">
      <x>593</x>
@@ -892,8 +916,8 @@
    <slot>updateMeasurementDistance()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>368</x>
-     <y>636</y>
+     <x>333</x>
+     <y>631</y>
     </hint>
     <hint type="destinationlabel">
      <x>593</x>
@@ -908,8 +932,8 @@
    <slot>updateDriverRadius()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>368</x>
-     <y>704</y>
+     <x>333</x>
+     <y>699</y>
     </hint>
     <hint type="destinationlabel">
      <x>593</x>
@@ -924,8 +948,8 @@
    <slot>updateModalCoeffs()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>368</x>
-     <y>738</y>
+     <x>333</x>
+     <y>733</y>
     </hint>
     <hint type="destinationlabel">
      <x>593</x>
@@ -940,8 +964,8 @@
    <slot>updateF0()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>368</x>
-     <y>772</y>
+     <x>333</x>
+     <y>767</y>
     </hint>
     <hint type="destinationlabel">
      <x>590</x>
@@ -956,8 +980,8 @@
    <slot>updateQ0()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>368</x>
-     <y>806</y>
+     <x>333</x>
+     <y>801</y>
     </hint>
     <hint type="destinationlabel">
      <x>588</x>
@@ -972,8 +996,8 @@
    <slot>updateTransitionFrequency()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>368</x>
-     <y>840</y>
+     <x>333</x>
+     <y>835</y>
     </hint>
     <hint type="destinationlabel">
      <x>591</x>
@@ -988,8 +1012,8 @@
    <slot>updateLFGain()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>368</x>
-     <y>874</y>
+     <x>333</x>
+     <y>869</y>
     </hint>
     <hint type="destinationlabel">
      <x>589</x>
@@ -1004,8 +1028,8 @@
    <slot>updateBoxRadius()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>368</x>
-     <y>670</y>
+     <x>333</x>
+     <y>665</y>
     </hint>
     <hint type="destinationlabel">
      <x>203</x>
@@ -1020,8 +1044,8 @@
    <slot>refreshModal()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>368</x>
-     <y>917</y>
+     <x>333</x>
+     <y>912</y>
     </hint>
     <hint type="destinationlabel">
      <x>589</x>
@@ -1036,8 +1060,8 @@
    <slot>updateSmoothing()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>368</x>
-     <y>983</y>
+     <x>333</x>
+     <y>978</y>
     </hint>
     <hint type="destinationlabel">
      <x>163</x>
@@ -1084,8 +1108,8 @@
    <slot>updateRightWindowPosition()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>599</x>
-     <y>353</y>
+     <x>557</x>
+     <y>367</y>
     </hint>
     <hint type="destinationlabel">
      <x>373</x>
@@ -1100,8 +1124,8 @@
    <slot>updateLeftWindowPosition()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>635</x>
-     <y>244</y>
+     <x>557</x>
+     <y>265</y>
     </hint>
     <hint type="destinationlabel">
      <x>373</x>
@@ -1116,8 +1140,8 @@
    <slot>updateLeftWindowPercentage()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>619</x>
-     <y>210</y>
+     <x>557</x>
+     <y>231</y>
     </hint>
     <hint type="destinationlabel">
      <x>14</x>
@@ -1132,8 +1156,8 @@
    <slot>updateLeftWindowType()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>558</x>
-     <y>174</y>
+     <x>557</x>
+     <y>197</y>
     </hint>
     <hint type="destinationlabel">
      <x>8</x>
@@ -1148,8 +1172,8 @@
    <slot>updateRightWindowType()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>562</x>
-     <y>286</y>
+     <x>557</x>
+     <y>299</y>
     </hint>
     <hint type="destinationlabel">
      <x>374</x>

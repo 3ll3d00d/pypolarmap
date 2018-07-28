@@ -17,6 +17,7 @@ class MultiChartModel:
         self._chart = chart
         self._measurementModel = measurementModel
         self._type = type
+        self.name = f"multi_{self._type}"
         gs = GridSpec(2, 3, width_ratios=[1, 1, 0.75])
         self._magnitude = AnimatedSingleLineMagnitudeModel(self._chart, self._measurementModel, type=type,
                                                            subplotSpec=gs.new_subplotspec((0, 0), 1, 3),
