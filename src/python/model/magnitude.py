@@ -100,6 +100,7 @@ class MagnitudeModel:
             else:
                 legline.set_alpha(0.2)
             self._chart.canvas.draw()
+
         self._chart.canvas.mpl_connect('pick_event', onpick)
 
     def onUpdate(self, type, **kwargs):
@@ -129,7 +130,8 @@ class AnimatedSingleLineMagnitudeModel:
     Allows a single measurement from a selection of magnitude data to be displayed on a chart.
     '''
 
-    def __init__(self, chart, measurementModel, type=REAL_WORLD_DATA, subplotSpec=SINGLE_SUBPLOT_SPEC, dBRange=60):
+    def __init__(self, chart, measurementModel, type=REAL_WORLD_DATA, subplotSpec=SINGLE_SUBPLOT_SPEC,
+                 redrawOnDisplay=True, dBRange=60):
         self._chart = chart
         self._measurementModel = measurementModel
         self._measurementModel.registerListener(self)
@@ -141,6 +143,8 @@ class AnimatedSingleLineMagnitudeModel:
         self.yPosition = None
         self._curve = None
         self._ani = None
+        self._y_range_update_required = False
+        self._redrawOnDisplay = redrawOnDisplay
         self._dBRange = dBRange
 
     def shouldRefresh(self):
@@ -152,9 +156,15 @@ class AnimatedSingleLineMagnitudeModel:
         :param dBRange: the new range.
         '''
         self._dBRange = dBRange
+        self._y_range_update_required = True
+        setYLimits(self._axes, dBRange)
+        if self._ani:
+            # have to clear the blit cache to get the r grid to redraw as per
+            # https://stackoverflow.com/questions/25021311/matplotlib-animation-updating-radial-view-limit-for-polar-plot
+            self._ani._blit_cache.clear()
         if draw:
-            setYLimits(self._axes, dBRange)
             self._chart.canvas.draw()
+            self._y_range_update_required = False
 
     def display(self):
         '''
@@ -175,8 +185,12 @@ class AnimatedSingleLineMagnitudeModel:
                 self._ani = animation.FuncAnimation(self._chart.canvas.figure, self.redraw, interval=50,
                                                     init_func=self.initAnimation, blit=True, save_count=50)
                 configureFreqAxisFormatting(self._axes)
+                self._y_range_update_required = False
                 self._refreshData = False
                 return True
+        else:
+            if self._curve is not None and self._y_range_update_required:
+                self.updateDecibelRange(self._dBRange, self._redrawOnDisplay)
         return False
 
     def initAnimation(self):

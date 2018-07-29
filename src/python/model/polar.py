@@ -13,7 +13,8 @@ class PolarModel:
     Allows a set of measurements to be displayed on a polar chart with the displayed curve interactively changing.
     '''
 
-    def __init__(self, chart, measurementModel, type=REAL_WORLD_DATA, subplotSpec=SINGLE_SUBPLOT_SPEC, dBRange=60):
+    def __init__(self, chart, measurementModel, type=REAL_WORLD_DATA, subplotSpec=SINGLE_SUBPLOT_SPEC,
+                 redrawOnDisplay=True, dBRange=60):
         self._chart = chart
         self._axes = self._chart.canvas.figure.add_subplot(subplotSpec, projection='polar')
         self._axes.grid(linestyle='--', axis='y', alpha=0.7)
@@ -25,7 +26,9 @@ class PolarModel:
         self._measurementModel.registerListener(self)
         self.xPosition = 1000
         self._ani = None
+        self._redrawOnDisplay = redrawOnDisplay
         self._dBRange = dBRange
+        self._y_range_update_required = False
         self.updateDecibelRange(self._dBRange, draw=False)
 
     def shouldRefresh(self):
@@ -37,9 +40,15 @@ class PolarModel:
         :param dBRange: the new range.
         '''
         self._dBRange = dBRange
+        self._y_range_update_required = True
+        setYLimits(self._axes, dBRange)
+        if self._ani:
+            # have to clear the blit cache to get the r grid to redraw as per
+            # https://stackoverflow.com/questions/25021311/matplotlib-animation-updating-radial-view-limit-for-polar-plot
+            self._ani._blit_cache.clear()
         if draw:
-            setYLimits(self._axes, dBRange)
             self._chart.canvas.draw()
+            self._y_range_update_required = False
 
     def display(self):
         '''
@@ -67,8 +76,12 @@ class PolarModel:
             self._axes.set_ylim(bottom=rmin, top=rmax)
             self._ani = animation.FuncAnimation(self._chart.canvas.figure, self.redraw, interval=50,
                                                 init_func=self.initAnimation, blit=True, save_count=50)
+            self._y_range_update_required = False
             self._refreshData = False
             return True
+        else:
+            if self._axes is not None and self._y_range_update_required:
+                self.updateDecibelRange(self._dBRange, self._redrawOnDisplay)
         return False
 
     def formatAngle(self, x, pos=None):

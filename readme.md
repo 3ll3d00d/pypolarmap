@@ -24,4 +24,4 @@ to compile a test dll
 
 ## TODO 
 
-* multi chart sets draw=False in updateDecibelRange but this means the limits are not changed at all (need to store the limits separately in the charts rather than relying on get_lim) 
+* multi chart still not redrawing properly as the dB range changes

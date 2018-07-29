@@ -38,6 +38,7 @@ class ContourModel:
         self.cursorY = None
         self._redrawOnDisplay = redrawOnDisplay
         self._dBRange = dBRange
+        self._required_clim = None
 
     def shouldRefresh(self):
         return self._refreshData
@@ -62,9 +63,13 @@ class ContourModel:
         :param dBRange: the new range.
         '''
         self._dBRange = dBRange
-        if draw and self._tcf is not None:
+        # record the target clim in case we don't want to draw right now
+        if self._tcf is not None:
             _, cmax = self._tcf.get_clim()
-            self._tcf.set_clim(vmin=cmax - self._dBRange, vmax=cmax)
+            self._required_clim = (cmax - self._dBRange, cmax)
+            self._tcf.set_clim(vmin=self._required_clim[0], vmax=self._required_clim[1])
+        if draw:
+            self._required_clim = None
             self._chart.canvas.draw()
 
     def onUpdate(self, type, **kwargs):
@@ -81,7 +86,8 @@ class ContourModel:
 
     def display(self):
         '''
-        Updates the contents of the chart.
+        Updates the contents of the chart. This occurs if we need to recalculate the plot data (i.e. if the underlying
+        data has changed) or if we are redisplaying this chart and the y range has changed since it was last visible.
         :return: true if it redrew.
         '''
         if len(self._measurementModel) > 0:
@@ -98,11 +104,11 @@ class ContourModel:
                 self._refreshData = False
                 return True
             else:
-                # TODO why do we do this?
-                if self._tcf is not None:
-                    vmin, vmax = self._tcf.get_clim()
-                    if (vmax - vmin) != self._dBRange:
-                        self.updateDecibelRange(self._dBRange, draw=self._redrawOnDisplay)
+                # this is called when the owning tab is selected so we need to update the clim if the y range
+                # was changed while this chart was off screen
+                if self._tcf is not None and self._required_clim is not None:
+                    self.updateDecibelRange(self._dBRange, draw=self._redrawOnDisplay)
+                    return self._redrawOnDisplay
         return False
 
     def _redraw(self):
