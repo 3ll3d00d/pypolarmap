@@ -32,11 +32,14 @@ class MultiChartModel:
     def display(self):
         '''
         Displays all the charts and then draws the canvas.
+        :return: always true as the multi chart always redraws (otherwise you end up with lots of glitches like old
+        charts being seen behind a new chart)
         '''
         self._magnitude.display()
         self._polar.display()
         self._sonagram.display()
         self._chart.canvas.draw()
+        return True
 
     def updateDecibelRange(self, dBRange, draw=True):
         '''

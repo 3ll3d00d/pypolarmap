@@ -22,8 +22,7 @@ class ImpulseModel:
         self._showWindowed = False
         self._activeX = None
         self._setMaxSample(0)
-        self._leftLine = None
-        self._rightLine = None
+        self._windowLine = None
 
     def _initChart(self):
         self._axes.spines['bottom'].set_position('center')
@@ -63,8 +62,8 @@ class ImpulseModel:
             self._rightWindow['position'].setValue(self._measurementModel[0].firstReflectionIndex())
             self.zoomOut()
             self._axes.set_ylim(bottom=-self._yRange, top=self._yRange)
-            self.updateLeftWindowPosition()
-            self.updateRightWindowPosition()
+            self.updateLeftWindow()
+            self.updateRightWindow()
             self._displayData(updatedIdx=kwargs.get('idx', None))
         elif type == CLEAR_MEASUREMENTS:
             self._setMaxSample(0)
@@ -75,8 +74,7 @@ class ImpulseModel:
             self._rightWindow['position'].setValue(1)
             self._showWindowed = False
             self._activeX = None
-            self._leftLine = None
-            self._rightLine = None
+            self._windowLine = None
             self.clear()
         elif type == ANALYSED:
             pass
@@ -100,51 +98,38 @@ class ImpulseModel:
         '''
         return measurement.gatedSamples if self._showWindowed else measurement.samples
 
-    def updateLeftWindowPosition(self):
+    def updateLeftWindow(self):
         '''
         pushes the left window spinner value to the line position, creating the line if necessary
-        :return:
         '''
         value = self._leftWindow['position'].value()
-        if self._leftLine:
-            self._leftLine.set_xdata([value, value])
-        else:
-            self._leftLine = self._axes.axvline(x=value, linestyle='--')
         if value > self._rightWindow['position'].value():
             self._rightWindow['position'].setValue(value + 1)
-            self.updateRightWindowPosition()
-        self._chart.canvas.draw()
+        self._redrawWindow()
 
-    def _propagateLeftWindow(self):
-        '''
-        pushes the left line position to the left window spinner
-        :return:
-        '''
-        self._leftWindow['position'].setValue(round(self._leftLine.value()))
-        self.updateLeftWindowPosition()
-
-    def updateRightWindowPosition(self):
+    def updateRightWindow(self):
         '''
         pushes the right window spinner value to the line position, creating the line if necessary
-        :return:
         '''
         value = self._rightWindow['position'].value()
-        if self._rightLine:
-            self._rightLine.set_xdata([value, value])
-        else:
-            self._rightLine = self._axes.axvline(x=value, linestyle='--')
         if value <= self._leftWindow['position'].value():
             self._leftWindow['position'].setValue(value - 1)
-            self.updateLeftWindowPosition()
-        self._chart.canvas.draw()
+        self._redrawWindow()
 
-    def _propagateRightWindow(self):
+    def _redrawWindow(self, draw=True):
         '''
-        pushes the right line position to the right window spinner
-        :return:
+        Draws the actual window on the screen.
         '''
-        self._rightWindow['position'].setValue(round(self._rightLine.value()))
-        self.updateRightWindowPosition()
+        window = self._measurementModel.createWindow(self._leftWindow, self._rightWindow)
+        if not self._showWindowed:
+            window = np.concatenate((np.zeros(self._leftWindow['position'].value()), window,
+                                     np.zeros(len(self._activeX) - self._rightWindow['position'].value())))
+        if self._windowLine:
+            self._windowLine.set_data(self._activeX, window)
+        else:
+            self._windowLine = self._axes.plot(self._activeX, window, 'b--')[0]
+        if draw:
+            self._chart.canvas.draw()
 
     def zoomIn(self):
         '''
@@ -171,8 +156,7 @@ class ImpulseModel:
         '''
         self._showWindowed = False
         self._activeX = self._ungatedXValues
-        self.updateLeftWindowPosition()
-        self.updateRightWindowPosition()
+        self._redrawWindow(draw=False)
         self._displayData()
 
     def applyWindow(self):
@@ -183,8 +167,7 @@ class ImpulseModel:
         if len(self._measurementModel) > 0:
             self._cacheGatedXValues()
             self._activeX = self._gatedXValues
-            self._peakIndex = self._measurementModel[0].peakIndex()
-            self._measurementModel.analyseMeasuredData(self._leftWindow, self._rightWindow, self._peakIndex)
+            self._measurementModel.analyseMeasuredData(self._leftWindow, self._rightWindow)
             self._displayData()
             self.zoomIn()
 

@@ -24,6 +24,7 @@ to compile a test dll
 
 ## TODO 
 
-* smoothing sends the modal screen crazy
+* multi chart doesn't always redraw properly
 * graph limits aren't updating properly in the multi chart
-* reloading data causes the impulse chart to blow up    
+* polar chart ylim is not correct
+* draw the actual window shape not a line

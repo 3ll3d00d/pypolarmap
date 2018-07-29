@@ -311,58 +311,17 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
         '''
         self._displayModel.visibleChart = self.getSelectedGraph()
 
-    def updateLeftWindowPosition(self):
+    def updateLeftWindow(self):
         '''
         propagates left window changes to the impulse model.
-        :return:
         '''
-        self._impulseModel.updateLeftWindowPosition()
+        self._impulseModel.updateLeftWindow()
 
-    def updateLeftWindowType(self):
-        '''
-        propagates left window changes to the impulse model.
-        :return:
-        '''
-        # self._impulseModel.updateLeftWindowPosition()
-        pass
-
-    def updateLeftWindowPercentage(self):
-        '''
-        propagates left window changes to the impulse model.
-        :return:
-        '''
-        # self._impulseModel.updateLeftWindowPosition()
-        pass
-
-    def updateLeftWindowPosition(self):
-        '''
-        propagates left window changes to the impulse model.
-        :return:
-        '''
-        self._impulseModel.updateLeftWindowPosition()
-
-    def updateRightWindowPosition(self):
+    def updateRightWindow(self):
         '''
         propagates right window changes to the impulse model.
-        :return:
         '''
-        self._impulseModel.updateRightWindowPosition()
-
-    def updateRightWindowType(self):
-        '''
-        propagates right window changes to the impulse model.
-        :return:
-        '''
-        # self._impulseModel.updateRightWindowPosition()
-        pass
-
-    def updateRightWindowPercentage(self):
-        '''
-        propagates right window changes to the impulse model.
-        :return:
-        '''
-        # self._impulseModel.updateRightWindowPosition()
-        pass
+        self._impulseModel.updateRightWindow()
 
     def zoomIn(self):
         '''

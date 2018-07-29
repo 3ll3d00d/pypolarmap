@@ -158,7 +158,8 @@ class AnimatedSingleLineMagnitudeModel:
 
     def display(self):
         '''
-        Gets fresh data and redraws
+        Gets fresh data and redraws.
+        :return: true if it redrew.
         '''
         if self.shouldRefresh():
             if self._curve is None:
@@ -175,6 +176,8 @@ class AnimatedSingleLineMagnitudeModel:
                                                     init_func=self.initAnimation, blit=True, save_count=50)
                 configureFreqAxisFormatting(self._axes)
                 self._refreshData = False
+                return True
+        return False
 
     def initAnimation(self):
         '''

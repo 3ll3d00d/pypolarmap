@@ -43,7 +43,8 @@ class PolarModel:
 
     def display(self):
         '''
-        Updates the contents of the magnitude chart
+        Updates the contents of the polar chart.
+        :return: true if it redrew.
         '''
         if self.shouldRefresh():
             # convert x-y by theta data to theta-r by freq
@@ -67,6 +68,8 @@ class PolarModel:
             self._ani = animation.FuncAnimation(self._chart.canvas.figure, self.redraw, interval=50,
                                                 init_func=self.initAnimation, blit=True, save_count=50)
             self._refreshData = False
+            return True
+        return False
 
     def formatAngle(self, x, pos=None):
         format_str = "{value:0.{digits:d}f}\N{DEGREE SIGN}"

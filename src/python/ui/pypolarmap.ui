@@ -1112,7 +1112,7 @@
    <sender>rightWindowSample</sender>
    <signal>editingFinished()</signal>
    <receiver>MainWindow</receiver>
-   <slot>updateRightWindowPosition()</slot>
+   <slot>updateRightWindow()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>557</x>
@@ -1128,7 +1128,7 @@
    <sender>leftWindowSample</sender>
    <signal>editingFinished()</signal>
    <receiver>MainWindow</receiver>
-   <slot>updateLeftWindowPosition()</slot>
+   <slot>updateLeftWindow()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>557</x>
@@ -1142,9 +1142,9 @@
   </connection>
   <connection>
    <sender>leftWindowPercent</sender>
-   <signal>editingFinished()</signal>
+   <signal>valueChanged(int)</signal>
    <receiver>MainWindow</receiver>
-   <slot>updateLeftWindowPercentage()</slot>
+   <slot>updateLeftWindow()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>557</x>
@@ -1160,7 +1160,7 @@
    <sender>leftWindowType</sender>
    <signal>currentTextChanged(QString)</signal>
    <receiver>MainWindow</receiver>
-   <slot>updateLeftWindowType()</slot>
+   <slot>updateLeftWindow()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>557</x>
@@ -1176,7 +1176,7 @@
    <sender>rightWindowType</sender>
    <signal>currentTextChanged(QString)</signal>
    <receiver>MainWindow</receiver>
-   <slot>updateRightWindowType()</slot>
+   <slot>updateRightWindow()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>557</x>
@@ -1190,9 +1190,9 @@
   </connection>
   <connection>
    <sender>rightWindowPercent</sender>
-   <signal>editingFinished()</signal>
+   <signal>valueChanged(int)</signal>
    <receiver>MainWindow</receiver>
-   <slot>updateRightWindowPercentage()</slot>
+   <slot>updateRightWindow()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>501</x>
@@ -1272,14 +1272,10 @@
  <slots>
   <slot>selectDirectory()</slot>
   <slot>manageLoadButtonState(QString)</slot>
-  <slot>updateLeftWindowPosition()</slot>
-  <slot>updateLeftWindowType()</slot>
-  <slot>updateRightWindowType()</slot>
-  <slot>updateRightWindowPosition()</slot>
   <slot>zoomIn()</slot>
   <slot>removeWindow()</slot>
-  <slot>updateLeftWindowPercentage()</slot>
-  <slot>updateRightWindowPercentage()</slot>
+  <slot>updateLeftWindow()</slot>
+  <slot>updateRightWindow()</slot>
   <slot>showMagnitude()</slot>
   <slot>onGraphTabChange()</slot>
   <slot>zoomOut()</slot>

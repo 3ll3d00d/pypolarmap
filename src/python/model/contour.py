@@ -82,6 +82,7 @@ class ContourModel:
     def display(self):
         '''
         Updates the contents of the chart.
+        :return: true if it redrew.
         '''
         if len(self._measurementModel) > 0:
             if self._refreshData:
@@ -95,11 +96,14 @@ class ContourModel:
                 if self._redrawOnDisplay:
                     self._chart.canvas.draw()
                 self._refreshData = False
+                return True
             else:
+                # TODO why do we do this?
                 if self._tcf is not None:
                     vmin, vmax = self._tcf.get_clim()
                     if (vmax - vmin) != self._dBRange:
                         self.updateDecibelRange(self._dBRange, draw=self._redrawOnDisplay)
+        return False
 
     def _redraw(self):
         '''

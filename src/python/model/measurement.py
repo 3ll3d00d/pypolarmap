@@ -113,16 +113,14 @@ class MeasurementModel(Sequence):
         '''
         self.__propagateEvent(ANALYSED)
 
-    def analyseMeasuredData(self, left, right, peak):
+    def analyseMeasuredData(self, left, right):
         '''
-        creates a window based on the left and right parameters & applies it to all measurements.
+        creates a window based on the left and right parameters & applies it to all measurements (which propagates the
+        ANALYSED event).
         :param left: the left parameters.
         :param right: the right parameters.
-        :return:
         '''
-        leftWin = self._createWindow0(left, peak, 0)
-        rightWin = self._createWindow0(right, peak, 1)
-        completeWindow = np.concatenate((leftWin[1], leftWin[0], rightWin[0], rightWin[1]))
+        completeWindow = self.createWindow(left, right)
         for m in self.__measurements:
             m.analyse(left['position'].value(), right['position'].value(), win=completeWindow)
         self.__complexData[REAL_WORLD_DATA] = [self._createFRData(x) for x in self.__measurements]
@@ -137,7 +135,22 @@ class MeasurementModel(Sequence):
                            y=logData,
                            scaleFactor=2 / measurement.fftPoints)
 
-    def _createWindow0(self, params, peakIdx, side):
+    def createWindow(self, left, right):
+        '''
+        Creates a window which is made up of two sections, one which contains just ones and the other which is the left
+        or right side of a particular window. The size of each section is drive by the percent selector (so 25% means
+        75% ones and 25% actual window).
+        :param left: the left params (as delivered via ui widgets)
+        :param right: the right params
+        :return: an ndarray describing the window.
+        '''
+        peak = self[0].peakIndex()
+        leftWin = self._createHalfWindow(left, peak, 0)
+        rightWin = self._createHalfWindow(right, peak, 1)
+        completeWindow = np.concatenate((leftWin[1], leftWin[0], rightWin[0], rightWin[1]))
+        return completeWindow
+
+    def _createHalfWindow(self, params, peakIdx, side):
         '''
         Creates a window which is made up of two sections, one which contains just ones and the other which is the left
         or right side of a particular window. The size of each section is drive by the percent selector (so 25% means
