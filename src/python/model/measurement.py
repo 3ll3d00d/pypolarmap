@@ -81,6 +81,8 @@ class MeasurementModel(Sequence):
         Loads measurements.
         :param measurements: the measurements.
         '''
+        if len(self.__measurements) > 0:
+            self.clear()
         self.__measurements = measurements
         self.__propagateEvent(LOAD_MEASUREMENTS)
 

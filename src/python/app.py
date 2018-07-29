@@ -1,3 +1,4 @@
+import math
 import sys
 
 import matplotlib
@@ -10,6 +11,7 @@ from model.measurement import REAL_WORLD_DATA, COMPUTED_MODAL_DATA
 from model.multi import MultiChartModel
 from ui.loadMeasurements import Ui_loadMeasurementDialog
 from ui.pypolarmap import Ui_MainWindow
+from ui.savechart import Ui_saveChartDialog
 
 matplotlib.use("Qt5Agg")
 
@@ -57,6 +59,45 @@ class MplWidget(QtWidgets.QWidget):
         :return: the colour at that index.
         '''
         return self._cmap(idx / count)
+
+
+class SaveChartDialog(QDialog, Ui_saveChartDialog):
+    '''
+    Save Chart dialog
+    '''
+
+    def __init__(self, parent, selectedGraph, statusbar):
+        super(SaveChartDialog, self).__init__(parent)
+        self.setupUi(self)
+        self.chart = selectedGraph
+        fig = self.chart._chart.canvas.figure
+        self.__dpi = fig.dpi
+        self.__x, self.__y = fig.get_size_inches() * fig.dpi
+        self.__aspectRatio = self.__x / self.__y
+        self.widthPixels.setValue(self.__x)
+        self.heightPixels.setValue(self.__y)
+        self.statusbar = statusbar
+        self.__dialog = QFileDialog(parent=self)
+
+    def accept(self):
+        formats = "Portable Network Graphic (*.png)"
+        fileName = self.__dialog.getSaveFileName(self, 'Export Chart', f"{self.chart.name}.png", formats)
+        if fileName:
+            outputFile = str(fileName[0]).strip()
+            if len(outputFile) == 0:
+                return
+            else:
+                scaleFactor = self.widthPixels.value() / self.__x
+                self.chart._chart.canvas.figure.savefig(outputFile, format='png', dpi=self.__dpi * scaleFactor)
+                self.statusbar.showMessage(f"Saved {self.chart.name} to {outputFile}", 5000)
+        QDialog.accept(self)
+
+    def updateHeight(self, newWidth):
+        '''
+        Updates the height as the width changes according to the aspect ratio.
+        :param newWidth: the new width.
+        '''
+        self.heightPixels.setValue(int(math.floor(newWidth / self.__aspectRatio)))
 
 
 class LoadMeasurementsDialog(QDialog, Ui_loadMeasurementDialog):
@@ -226,15 +267,8 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
         Saves the currently selected chart to a file.
         '''
         selectedGraph = self.getSelectedGraph()
-        formats = "Portable Network Graphic (*.png)"
-        fileName = QFileDialog.getSaveFileName(self, 'Export Chart', f"{selectedGraph.name}.png", formats)
-        if fileName:
-            outputFile = str(fileName[0]).strip()
-            if len(outputFile) == 0:
-                return
-            else:
-                selectedGraph._chart.canvas.figure.savefig(outputFile, format='png')
-                self.statusbar.showMessage(f"Saved {selectedGraph.name} to {outputFile}", 5000)
+        dialog = SaveChartDialog(self, selectedGraph, self.statusbar)
+        dialog.exec()
 
     def refreshNormalisationAngles(self):
         # TODO allow V angles to be displayed

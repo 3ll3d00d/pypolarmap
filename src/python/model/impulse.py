@@ -54,7 +54,6 @@ class ImpulseModel:
         :param idx: the index of the toggled measurement.
         :return:
         '''
-        updateChart = True
         if type == LOAD_MEASUREMENTS:
             self._setMaxSample(self._measurementModel.getMaxSample())
             self._yRange = self._measurementModel.getMaxSampleValue()
@@ -62,6 +61,11 @@ class ImpulseModel:
             self._leftWindow['position'].setValue(self._measurementModel[0].startIndex())
             self._rightWindow['position'].setMaximum(self._maxSample)
             self._rightWindow['position'].setValue(self._measurementModel[0].firstReflectionIndex())
+            self.zoomOut()
+            self._axes.set_ylim(bottom=-self._yRange, top=self._yRange)
+            self.updateLeftWindowPosition()
+            self.updateRightWindowPosition()
+            self._displayData(updatedIdx=kwargs.get('idx', None))
         elif type == CLEAR_MEASUREMENTS:
             self._setMaxSample(0)
             self._yRange = 1
@@ -69,15 +73,13 @@ class ImpulseModel:
             self._leftWindow['position'].setValue(0)
             self._rightWindow['position'].setMaximum(1)
             self._rightWindow['position'].setValue(1)
+            self._showWindowed = False
+            self._activeX = None
+            self._leftLine = None
+            self._rightLine = None
             self.clear()
         elif type == ANALYSED:
-            updateChart = False
-        if updateChart:
-            self.zoomOut()
-            self._axes.set_ylim(bottom=-self._yRange, top=self._yRange)
-            self.updateLeftWindowPosition()
-            self.updateRightWindowPosition()
-            self._displayData(updatedIdx=kwargs.get('idx', None))
+            pass
 
     def _addPlotForMeasurement(self, idx, measurement, mCount):
         '''
@@ -158,8 +160,9 @@ class ImpulseModel:
         sets the x axis range to the x range
         :return:
         '''
-        self._axes.set_xlim(left=0, right=np.nanmax(self._activeX))
-        self._chart.canvas.draw()
+        if self._activeX is not None:
+            self._axes.set_xlim(left=0, right=np.nanmax(self._activeX))
+            self._chart.canvas.draw()
 
     def removeWindow(self):
         '''

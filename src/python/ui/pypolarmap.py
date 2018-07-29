@@ -340,7 +340,10 @@ class Ui_MainWindow(object):
         self.menuGridLayout.addWidget(self.dataPath, 1, 0, 1, 2)
         self.selectDirBtn = QtWidgets.QPushButton(self.centralwidget)
         self.selectDirBtn.setObjectName("selectDirBtn")
-        self.menuGridLayout.addWidget(self.selectDirBtn, 0, 0, 1, 2)
+        self.menuGridLayout.addWidget(self.selectDirBtn, 0, 0, 1, 1)
+        self.saveImageBtn = QtWidgets.QPushButton(self.centralwidget)
+        self.saveImageBtn.setObjectName("saveImageBtn")
+        self.menuGridLayout.addWidget(self.saveImageBtn, 0, 1, 1, 1)
         self.gridLayout.addLayout(self.menuGridLayout, 0, 0, 1, 1)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
@@ -389,6 +392,7 @@ class Ui_MainWindow(object):
         self.yAxisRange.valueChanged['int'].connect(MainWindow.setYRange)
         self.normaliseCheckBox.clicked.connect(MainWindow.toggleNormalised)
         self.normalisationAngle.currentIndexChanged['QString'].connect(MainWindow.setNormalisationAngle)
+        self.saveImageBtn.clicked.connect(MainWindow.saveCurrentChart)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -451,8 +455,11 @@ class Ui_MainWindow(object):
         self.label_15.setText(_translate("MainWindow", "Normalisation Angle"))
         self.normalisationAngle.setItemText(0, _translate("MainWindow", "0"))
         self.selectDirBtn.setText(_translate("MainWindow", "Load Measurements"))
+        self.saveImageBtn.setText(_translate("MainWindow", "Save Image"))
         self.menuFile.setTitle(_translate("MainWindow", "File"))
         self.actionLoad.setText(_translate("MainWindow", "Load"))
+        self.actionLoad.setShortcut(_translate("MainWindow", "Ctrl+O"))
         self.actionSave_Current_Image.setText(_translate("MainWindow", "Save Chart"))
+        self.actionSave_Current_Image.setShortcut(_translate("MainWindow", "Ctrl+S"))
 
 from app import MplWidget

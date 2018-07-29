@@ -27,4 +27,3 @@ to compile a test dll
 * smoothing sends the modal screen crazy
 * graph limits aren't updating properly in the multi chart
 * reloading data causes the impulse chart to blow up    
-* contour chart is not updating if  we  updated the chart y range while offscreen

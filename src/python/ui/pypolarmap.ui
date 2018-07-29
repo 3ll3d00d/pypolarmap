@@ -757,10 +757,17 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="0" colspan="2">
+      <item row="0" column="0">
        <widget class="QPushButton" name="selectDirBtn">
         <property name="text">
          <string>Load Measurements</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QPushButton" name="saveImageBtn">
+        <property name="text">
+         <string>Save Image</string>
         </property>
        </widget>
       </item>
@@ -1245,6 +1252,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>saveImageBtn</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>saveCurrentChart()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>227</x>
+     <y>50</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>458</x>
+     <y>36</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>selectDirectory()</slot>
@@ -1276,5 +1299,6 @@
   <slot>setYRange()</slot>
   <slot>toggleNormalised()</slot>
   <slot>setNormalisationAngle()</slot>
+  <slot>saveCurrentChart()</slot>
  </slots>
 </ui>
