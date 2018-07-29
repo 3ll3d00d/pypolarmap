@@ -14,7 +14,6 @@ class ImpulseModel:
         self._axes = self._chart.canvas.figure.add_subplot(111)
         self._initChart()
         self._curves = {}
-        self._yRange = 1
         self._leftWindow = left
         self._rightWindow = right
         self._measurementModel = measurementModel
@@ -29,23 +28,12 @@ class ImpulseModel:
         self._axes.spines['right'].set_color('none')
         self._axes.spines['top'].set_color('none')
         self._axes.xaxis.set_ticks_position('bottom')
+        self._axes.set_ylim(bottom=-100, top=100)
         self._axes.grid()
 
     def _setMaxSample(self, maxSample):
         self._maxSample = maxSample
-        self._cacheUngatedXValues()
-        self._activeX = self._ungatedXValues
-
-    def _cacheUngatedXValues(self):
-        self._ungatedXValues = np.arange(self._maxSample)
-
-    def _cacheGatedXValues(self):
-        '''
-        Caches x values for the gated data which ranges from the left to the right window gate positions.
-        :return:
-        '''
-        self._gatedXValues = np.arange(start=self._leftWindow['position'].value(),
-                                       stop=self._rightWindow['position'].value())
+        self._activeX = np.arange(self._maxSample)
 
     def onUpdate(self, type, **kwargs):
         '''
@@ -55,19 +43,16 @@ class ImpulseModel:
         '''
         if type == LOAD_MEASUREMENTS:
             self._setMaxSample(self._measurementModel.getMaxSample())
-            self._yRange = self._measurementModel.getMaxSampleValue()
             self._leftWindow['position'].setMaximum(self._maxSample - 1)
             self._leftWindow['position'].setValue(self._measurementModel[0].startIndex())
             self._rightWindow['position'].setMaximum(self._maxSample)
             self._rightWindow['position'].setValue(self._measurementModel[0].firstReflectionIndex())
             self.zoomOut()
-            self._axes.set_ylim(bottom=-self._yRange, top=self._yRange)
             self.updateLeftWindow()
             self.updateRightWindow()
             self._displayData(updatedIdx=kwargs.get('idx', None))
         elif type == CLEAR_MEASUREMENTS:
             self._setMaxSample(0)
-            self._yRange = 1
             self._leftWindow['position'].setMaximum(0)
             self._leftWindow['position'].setValue(0)
             self._rightWindow['position'].setMaximum(1)
@@ -86,17 +71,18 @@ class ImpulseModel:
         :param measurement: the measurement itself.
         :return:
         '''
-        self._curves[measurement.getDisplayName()] = self._axes.plot(self._activeX, self._getY(measurement),
+        ref = self._measurementModel.getMaxSampleValue()
+        self._curves[measurement.getDisplayName()] = self._axes.plot(self._activeX, self._getY(measurement, ref),
                                                                      linewidth=2, antialiased=True, linestyle='solid',
                                                                      color=self._chart.getColour(idx, mCount))[0]
 
-    def _getY(self, measurement):
+    def _getY(self, m, ref):
         '''
         gets the y values for this measurement, uses the gated samples if _showWindowed else the raw samples.
-        :param measurement: the measurement.
-        :return: the y values.
+        :param m: the measurement.
+        :return: the y values (as a percentage of the max value)
         '''
-        return measurement.gatedSamples if self._showWindowed else measurement.samples
+        return (self._zeroPadGated(m.gatedSamples) if self._showWindowed else m.samples) / ref * 100
 
     def updateLeftWindow(self):
         '''
@@ -120,10 +106,7 @@ class ImpulseModel:
         '''
         Draws the actual window on the screen.
         '''
-        window = self._measurementModel.createWindow(self._leftWindow, self._rightWindow)
-        if not self._showWindowed:
-            window = np.concatenate((np.zeros(self._leftWindow['position'].value()), window,
-                                     np.zeros(len(self._activeX) - self._rightWindow['position'].value())))
+        window = self._zeroPadGated(self._measurementModel.createWindow(self._leftWindow, self._rightWindow)) * 100
         if self._windowLine:
             self._windowLine.set_data(self._activeX, window)
         else:
@@ -131,13 +114,25 @@ class ImpulseModel:
         if draw:
             self._chart.canvas.draw()
 
+    def _zeroPadGated(self, data):
+        '''
+        Zero pads the data using the left and right window as the marker points for padding if the data is gated.
+        :param data: the data.
+        :return: the zero padded data.
+        '''
+        if len(data) < self._maxSample:
+            return np.concatenate((np.zeros(self._leftWindow['position'].value()), data,
+                                   np.zeros(len(self._activeX) - self._rightWindow['position'].value())))
+        else:
+            return data
+
     def zoomIn(self):
         '''
         sets the x axis range to the positions of the left and right windows.
         :return:
         '''
-        self._axes.set_xlim(left=self._leftWindow['position'].value() - 1,
-                            right=self._rightWindow['position'].value() + 1)
+        self._axes.set_xlim(left=max(0, self._leftWindow['position'].value() - 10),
+                            right=min(self._rightWindow['position'].value() + 10, self._maxSample))
         self._chart.canvas.draw()
 
     def zoomOut(self):
@@ -155,7 +150,6 @@ class ImpulseModel:
         :return: the windowed data.
         '''
         self._showWindowed = False
-        self._activeX = self._ungatedXValues
         self._redrawWindow(draw=False)
         self._displayData()
 
@@ -165,8 +159,7 @@ class ImpulseModel:
         '''
         self._showWindowed = True
         if len(self._measurementModel) > 0:
-            self._cacheGatedXValues()
-            self._activeX = self._gatedXValues
+            self._redrawWindow(draw=False)
             self._measurementModel.analyseMeasuredData(self._leftWindow, self._rightWindow)
             self._displayData()
             self.zoomIn()
@@ -175,11 +168,12 @@ class ImpulseModel:
         '''
         Ensures the data is visible on the chart.
         '''
+        ref = self._measurementModel.getMaxSampleValue()
         for idx, m in enumerate(self._measurementModel):
             if updatedIdx is None or updatedIdx == idx:
                 curve = self._curves.get(m.getDisplayName())
                 if curve:
-                    curve.set_data(self._activeX, self._getY(m))
+                    curve.set_data(self._activeX, self._getY(m, ref))
                 else:
                     self._addPlotForMeasurement(idx, m, len(self._measurementModel))
         self._chart.canvas.draw()

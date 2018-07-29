@@ -24,7 +24,4 @@ to compile a test dll
 
 ## TODO 
 
-* multi chart doesn't always redraw properly
-* graph limits aren't updating properly in the multi chart
-* polar chart ylim is not correct
-* draw the actual window shape not a line
+* multi chart sets draw=False in updateDecibelRange but this means the limits are not changed at all (need to store the limits separately in the charts rather than relying on get_lim) 

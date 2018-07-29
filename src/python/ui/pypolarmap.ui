@@ -379,7 +379,7 @@
         <item row="1" column="0">
          <widget class="QLabel" name="label_16">
           <property name="text">
-           <string>Axis?</string>
+           <string>Active Axis</string>
           </property>
          </widget>
         </item>
