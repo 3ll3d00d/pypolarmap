@@ -18,7 +18,6 @@ if getattr(sys, 'frozen', False):
     dllPath = sys._MEIPASS
 else:
     dllPath = os.path.abspath(os.path.join(os.path.dirname('__file__'), '../resources'))
-print(f"Loading from {dllPath}")
 lib = np.ctypeslib.load_library('MeasCalcs', dllPath)
 
 # FFT setup

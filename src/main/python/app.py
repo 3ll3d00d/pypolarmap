@@ -1,7 +1,9 @@
 import math
+import os
 import sys
 
 import matplotlib
+from qtpy.QtGui import QIcon
 from qtpy.QtWidgets import QMainWindow, QFileDialog, QDialog, QDialogButtonBox, QMessageBox, QApplication
 
 from model.contour import ContourModel
@@ -453,6 +455,12 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
 
 def main():
     app = QApplication(sys.argv)
+    if getattr(sys, 'frozen', False):
+        iconPath = os.path.join(sys._MEIPASS, 'Icon.ico')
+    else:
+        iconPath = os.path.abspath(os.path.join(os.path.dirname('__file__'), '../icons/Icon.ico'))
+    if os.path.exists(iconPath):
+        app.setWindowIcon(QIcon(iconPath))
     form = PyPolarmap()
     form.show()
     try:

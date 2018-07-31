@@ -32,3 +32,26 @@ Note
 ## TODO 
 
 * multi chart still not redrawing properly as the dB range changes
+
+# Freeze
+
+to create an exe
+
+    pyinstaller --clean --log-level=WARN -F for_exe.spec
+    
+produces 
+
+    dist/pypolarmap.exe
+    
+to create an installer
+
+    pyinstaller --clean --log-level=WARN -D for_nsis.spec
+
+produces 
+
+    dist/pypolarmap/*    
+    
+to create an installer
+
+    makensis src\main\nsis\Installer.nsi
+    
