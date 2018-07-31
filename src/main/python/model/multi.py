@@ -46,7 +46,12 @@ class MultiChartModel:
         Updates the decibel range on the charts.
         :param dBRange: the new range.
         '''
+        # we have to redraw otherwise the grid & labels don't update properly because of blitting
+        self._magnitude.clear()
         self._magnitude.updateDecibelRange(dBRange, draw=False)
+        self._magnitude._refreshData = True
+        self._magnitude.display()
+
         self._polar.updateDecibelRange(dBRange, draw=False)
         self._sonagram.updateDecibelRange(dBRange, draw=False)
         if draw:

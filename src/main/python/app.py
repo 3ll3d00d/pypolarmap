@@ -2,7 +2,7 @@ import math
 import sys
 
 import matplotlib
-from qtpy.QtWidgets import QMainWindow, QApplication, QFileDialog, QDialog, QDialogButtonBox, QMessageBox
+from qtpy.QtWidgets import QMainWindow, QFileDialog, QDialog, QDialogButtonBox, QMessageBox, QApplication
 
 from model.contour import ContourModel
 from model.display import DisplayModel

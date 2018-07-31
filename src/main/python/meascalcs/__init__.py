@@ -1,4 +1,6 @@
 import math
+import os
+import sys
 
 __all__ = ['fft', 'linToLog', 'calSpatial', 'calPolar']
 
@@ -12,11 +14,12 @@ ALIGNED = 'F_CONTIGUOUS,ALIGNED,OWNDATA'
 ALIGNED_ARR = ALIGNED.split(',')
 
 # Load the DLL (from a specific location)
-# TODO load this properly
-# os.environ['PATH'] = 'C:\\Users\\mattk\\github\\pypolarmap\\dlls\\gl;' + os.environ['PATH']
-# _path = os.path.abspath(os.path.join(os.path.dirname('__file__'), '../../dlls/gl'))
-# lib = np.ctypeslib.load_library('MeasCalcs', _path)
-lib = np.ctypeslib.load_library('MeasCalcs', 'C:\\Users\\mattk\\github\\pypolarmap\\dlls\\gl')
+if getattr(sys, 'frozen', False):
+    dllPath = sys._MEIPASS
+else:
+    dllPath = os.path.abspath(os.path.join(os.path.dirname('__file__'), '../resources'))
+print(f"Loading from {dllPath}")
+lib = np.ctypeslib.load_library('MeasCalcs', dllPath)
 
 # FFT setup
 fft_func = getattr(lib, 'FFT')

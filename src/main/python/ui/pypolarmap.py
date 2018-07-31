@@ -8,6 +8,7 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
+
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -56,7 +57,7 @@ class Ui_MainWindow(object):
         self.formLayout_3.setWidget(1, QtWidgets.QFormLayout.SpanningRole, self.removeWindowBtn)
         self.label = QtWidgets.QLabel(self.impulseTab)
         self.label.setFrameShape(QtWidgets.QFrame.NoFrame)
-        self.label.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
+        self.label.setAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         self.label.setObjectName("label")
         self.formLayout_3.setWidget(2, QtWidgets.QFormLayout.LabelRole, self.label)
         self.leftWindowType = QtWidgets.QComboBox(self.impulseTab)
@@ -419,9 +420,12 @@ class Ui_MainWindow(object):
         self.zoomInButton.setText(_translate("MainWindow", "Zoom To Gate"))
         self.zoomOutBtn.setText(_translate("MainWindow", "Zoom Out"))
         self.graphTabs.setTabText(self.graphTabs.indexOf(self.impulseTab), _translate("MainWindow", "Impulse"))
-        self.graphTabs.setTabText(self.graphTabs.indexOf(self.measuredMagnitudeTab), _translate("MainWindow", "Measured - Magnitude"))
-        self.graphTabs.setTabText(self.graphTabs.indexOf(self.measuredPolarTab), _translate("MainWindow", "Measured - Polar"))
-        self.graphTabs.setTabText(self.graphTabs.indexOf(self.measuredMultiTab), _translate("MainWindow", "Measured - Multi"))
+        self.graphTabs.setTabText(self.graphTabs.indexOf(self.measuredMagnitudeTab),
+                                  _translate("MainWindow", "Measured - Magnitude"))
+        self.graphTabs.setTabText(self.graphTabs.indexOf(self.measuredPolarTab),
+                                  _translate("MainWindow", "Measured - Polar"))
+        self.graphTabs.setTabText(self.graphTabs.indexOf(self.measuredMultiTab),
+                                  _translate("MainWindow", "Measured - Multi"))
         self.graphTabs.setTabText(self.graphTabs.indexOf(self.modalPolarTab), _translate("MainWindow", "Modal - Polar"))
         self.graphTabs.setTabText(self.graphTabs.indexOf(self.modalMultiTab), _translate("MainWindow", "Modal - Multi"))
         self.label_13.setText(_translate("MainWindow", "Fs"))
@@ -461,5 +465,6 @@ class Ui_MainWindow(object):
         self.actionLoad.setShortcut(_translate("MainWindow", "Ctrl+O"))
         self.actionSave_Current_Image.setText(_translate("MainWindow", "Save Chart"))
         self.actionSave_Current_Image.setShortcut(_translate("MainWindow", "Ctrl+S"))
+
 
 from app import MplWidget
