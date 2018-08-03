@@ -55,18 +55,27 @@ class FileLoader(RawDataLoader):
     A loader that loads files from a single directory where each file conains nothing but raw data.
     '''
 
-    def __init__(self, dir, ext):
+    def __init__(self, listener, dir, ext):
         self.dir = dir
         self.ext = ext
+        self.listener = listener
 
     def load(self):
         '''
         :return: the loaded measurements (if any), default implementation loads each measurement from a separate file.
         '''
-        return sorted([x for x in
-                       [self.asMeasurement(fileName) for
-                        fileName in os.listdir(self.dir) if fileName.endswith('.' + self.ext)] if x is not None],
-                      key=lambda m: (m._h, m._v))
+        results = []
+        for fileName in os.listdir(self.dir):
+            if fileName.endswith('.' + self.ext):
+                m = self.asMeasurement(fileName)
+                if m is None:
+                    self.listener(fileName, False)
+                else:
+                    self.listener(fileName, True)
+                    results.append(m)
+            else:
+                self.listener(fileName, False)
+        return sorted(results, key=lambda m: (m._h, m._v))
 
     def asMeasurement(self, fileName, **kwargs):
         measurement = super().asMeasurement(fileName)
@@ -82,8 +91,8 @@ class FileLoader(RawDataLoader):
 
 
 class ConstantFsLoader(FileLoader):
-    def __init__(self, dir, fs, ext):
-        super().__init__(dir, ext)
+    def __init__(self, listener, dir, fs, ext):
+        super().__init__(listener, dir, ext)
         self.__fs = fs
 
     def loadFsAndSamples(self, fileName):
@@ -99,8 +108,8 @@ class TxtLoader(ConstantFsLoader):
     handles a text file
     '''
 
-    def __init__(self, dir, fs):
-        super().__init__(dir, fs, 'txt')
+    def __init__(self, listener, dir, fs):
+        super().__init__(listener, dir, fs, 'txt')
 
     def loadSamples(self, fileName):
         return np.genfromtxt(os.path.join(self.dir, fileName), delimiter="\n")
@@ -111,8 +120,8 @@ class DblLoader(ConstantFsLoader):
     handles a binary file full of doubles
     '''
 
-    def __init__(self, dir, fs):
-        super().__init__(dir, fs, 'dbl')
+    def __init__(self, listener, dir, fs):
+        super().__init__(listener, dir, fs, 'dbl')
 
     def loadSamples(self, fileName):
         return np.fromfile(os.path.join(self.dir, fileName), dtype=np.float64)
@@ -123,8 +132,8 @@ class WavLoader(FileLoader):
     A loader that loads wav files from a single directory.
     '''
 
-    def __init__(self, dir):
-        super().__init__(dir, 'wav')
+    def __init__(self, listener, dir):
+        super().__init__(listener, dir, 'wav')
 
     def loadFsAndSamples(self, fileName):
         '''
@@ -152,8 +161,9 @@ class HolmLoader(RawDataLoader):
     which means the measurement names are embedded in parentheses in the last header row.
     '''
 
-    def __init__(self, file):
+    def __init__(self, listener, file):
         self.__file = file
+        self.__listener = listener
 
     def load(self):
         '''
@@ -169,6 +179,7 @@ class HolmLoader(RawDataLoader):
                         try:
                             fs = int(line.strip('\n')[14:])
                         except Exception as e:
+                            self.__listener(self.__file, False)
                             raise ValueError(self.__file + ' has comments but no Samplerate') from e
                     elif line.startswith('## sample;'):
                         vals = line.strip('\n')[10:].split(';')
@@ -179,8 +190,10 @@ class HolmLoader(RawDataLoader):
                     break
         if fs and names:
             data = np.loadtxt(self.__file, delimiter=';', unpack=True)
+            self.__listener(self.__file, True)
             return [self.asMeasurement(name, fs=fs, samples=data[idx + 1]) for idx, name in enumerate(names)]
         else:
+            self.__listener(self.__file, False)
             raise ValueError(self.__file + ' is not a HolmImpulse export file, no Samplerate found')
 
     def asMeasurement(self, fileName, **kwargs):
@@ -196,8 +209,8 @@ class REWLoader(FileLoader):
     A loader that loads impulses exported by REW in txt format.
     '''
 
-    def __init__(self, dir):
-        super().__init__(dir, 'txt')
+    def __init__(self, listener, dir):
+        super().__init__(listener, dir, 'txt')
 
     def loadFsAndSamples(self, fileName):
         '''
@@ -224,8 +237,8 @@ class REWLoader(FileLoader):
 
 
 class ARTALoader(FileLoader):
-    def __init__(self, dir):
-        super().__init__(dir, 'pir')
+    def __init__(self, listener, dir):
+        super().__init__(listener, dir, 'pir')
 
     def loadFsAndSamples(self, fileName):
         '''

@@ -47,9 +47,8 @@ class MagnitudeModel:
         # TODO might need to update the ylim even if we haven't refreshed
         if self.shouldRefresh():
             data = self._measurementModel.getMagnitudeData(type=self._type, ref=1)
-            power = self._measurementModel.getPowerResponse(type=self._type, ref=1)
-            for idx, x in enumerate(data+[power]):
-                curve = self._curves.get(x.name)
+            for idx, x in enumerate(data):
+                curve = self._curves.get(x.name, None)
                 if curve:
                     curve.set_data(x.x, x.y)
                 else:

@@ -1,3 +1,4 @@
+import logging
 import math
 import os
 import sys
@@ -5,11 +6,12 @@ import sys
 import matplotlib
 from qtpy.QtCore import QSettings
 from qtpy.QtGui import QIcon
-from qtpy.QtWidgets import QMainWindow, QFileDialog, QDialog, QDialogButtonBox, QMessageBox, QApplication
+from qtpy.QtWidgets import QMainWindow, QFileDialog, QDialog, QDialogButtonBox, QMessageBox, QApplication, QErrorMessage
 
 from model.contour import ContourModel
 from model.display import DisplayModel
 from model.load import WavLoader, HolmLoader, TxtLoader, DblLoader, REWLoader, ARTALoader
+from model.log import RollingLogger
 from model.measurement import REAL_WORLD_DATA, COMPUTED_MODAL_DATA
 from model.multi import MultiChartModel
 from ui.loadMeasurements import Ui_loadMeasurementDialog
@@ -111,16 +113,20 @@ class LoadMeasurementsDialog(QDialog, Ui_loadMeasurementDialog):
     def __init__(self, parent=None):
         super(LoadMeasurementsDialog, self).__init__(parent)
         self.setupUi(self)
-        self.buttonBox.button(QDialogButtonBox.Ok).setText("Load")
+        self.buttonBox.button(QDialogButtonBox.Open).setText("Select File(s)")
         _translate = QtCore.QCoreApplication.translate
         self.fs.setCurrentText(_translate("loadMeasurementDialog", "48000"))
         self.__dialog = QFileDialog(parent=self)
+        self.__errors = 0
 
     def accept(self):
         '''
         Shows the file select dialog based on the chosen options.
         :return:
         '''
+        self.__errors = 0
+        self.loadedFiles.clear()
+        self.ignoredFiles.clear()
         loadType = self.fileType.currentText()
         fileMode = None
         option = QFileDialog.ShowDirsOnly
@@ -142,7 +148,6 @@ class LoadMeasurementsDialog(QDialog, Ui_loadMeasurementDialog):
             self.__dialog.setOption(option)
             self.__dialog.setWindowTitle("Load Measurements")
             self.__dialog.exec()
-        QDialog.accept(self)
 
     def load(self, measurementModel, dataPathField):
         '''
@@ -156,20 +161,29 @@ class LoadMeasurementsDialog(QDialog, Ui_loadMeasurementDialog):
         if len(selected) > 0:
             dataPathField.setText(selected[0])
             if loadType == 'txt':
-                measurementModel.load(TxtLoader(selected[0], int(self.fs.currentText())).load())
+                measurementModel.load(TxtLoader(self.onFile, selected[0], int(self.fs.currentText())).load())
             elif loadType == 'dbl':
-                measurementModel.load(DblLoader(selected[0], int(self.fs.currentText())).load())
+                measurementModel.load(DblLoader(self.onFile, selected[0], int(self.fs.currentText())).load())
             elif loadType == 'wav':
-                measurementModel.load(WavLoader(selected[0]).load())
+                measurementModel.load(WavLoader(self.onFile, selected[0]).load())
             elif loadType == 'HolmImpulse':
-                measurementModel.load(HolmLoader(selected[0]).load())
+                measurementModel.load(HolmLoader(self.onFile, selected[0]).load())
             elif loadType == 'REW':
-                measurementModel.load(REWLoader(selected[0]).load())
+                measurementModel.load(REWLoader(self.onFile, selected[0]).load())
             elif loadType == 'ARTA':
-                measurementModel.load(ARTALoader(selected[0]).load())
+                measurementModel.load(ARTALoader(self.onFile, selected[0]).load())
         else:
             measurementModel.clear()
             dataPathField.setText('')
+        if self.__errors == 0:
+            QDialog.accept(self)
+
+    def onFile(self, filename, loaded):
+        if loaded is True:
+            self.loadedFiles.appendPlainText(filename)
+        else:
+            self.ignoredFiles.appendPlainText(filename)
+            self.__errors += 1
 
     def fileTypeChanged(self, text):
         '''
@@ -192,11 +206,14 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
 
     def __init__(self, desktop, parent=None):
         super(PyPolarmap, self).__init__(parent)
+        self.logger = logging.getLogger('pypolarmap')
         self.desktop = desktop
         self.settings = QSettings("3ll3d00d", "pypolarmap")
         self.setupUi(self)
+        self.logViewer = RollingLogger(parent=self)
         self.actionLoad.triggered.connect(self.selectDirectory)
         self.actionSave_Current_Image.triggered.connect(self.saveCurrentChart)
+        self.actionShow_Logs.triggered.connect(self.logViewer.show_logs)
         self.loadColourMaps()
         self.dataPath.setDisabled(True)
         self._modalParameterModel = modal.ModalParameterModel(self.measurementDistance.value(),
@@ -274,21 +291,28 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
         :return:
         '''
         dialog = LoadMeasurementsDialog(self)
-        if dialog.exec():
-            dialog.load(self._measurementModel, self.dataPath)
-            if len(self._measurementModel) > 0:
-                self.fs.setValue(self._measurementModel[0]._fs)
-                self._measurementTableModel.completeRendering(self.measurementView)
-                self.applyWindowBtn.setDisabled(False)
-                self.removeWindowBtn.setDisabled(True)
-                self.zoomInButton.setDisabled(False)
-                self.zoomOutBtn.setDisabled(False)
+        # this is a bit weird but it saves moving all of these references to assorted gui objects into the dialog
+        # it is required because we want the dialog to stay open if there are errors
+        wrapper = self
+
+        def _trigger_load():
+            dialog.load(wrapper._measurementModel, wrapper.dataPath)
+            if len(wrapper._measurementModel) > 0:
+                wrapper.fs.setValue(wrapper._measurementModel[0]._fs)
+                wrapper._measurementTableModel.completeRendering(wrapper.measurementView)
+                wrapper.applyWindowBtn.setDisabled(False)
+                wrapper.removeWindowBtn.setDisabled(True)
+                wrapper.zoomInButton.setDisabled(False)
+                wrapper.zoomOutBtn.setDisabled(False)
             else:
-                self.applyWindowBtn.setDisabled(True)
-                self.removeWindowBtn.setDisabled(True)
-                self.zoomInButton.setDisabled(True)
-                self.zoomOutBtn.setDisabled(True)
-            self.refreshNormalisationAngles()
+                wrapper.applyWindowBtn.setDisabled(True)
+                wrapper.removeWindowBtn.setDisabled(True)
+                wrapper.zoomInButton.setDisabled(True)
+                wrapper.zoomOutBtn.setDisabled(True)
+            wrapper.refreshNormalisationAngles()
+
+        dialog.buttonBox.accepted.connect(_trigger_load)
+        result = dialog.exec()
 
     def saveCurrentChart(self):
         '''
@@ -479,6 +503,9 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
         self._displayModel.normalisationAngle = angle
 
 
+e_dialog = None
+
+
 def main():
     app = QApplication(sys.argv)
     if getattr(sys, 'frozen', False):
@@ -488,23 +515,27 @@ def main():
     if os.path.exists(iconPath):
         app.setWindowIcon(QIcon(iconPath))
     form = PyPolarmap(app.desktop())
+    # setup the error handler
+    global e_dialog
+    e_dialog = QErrorMessage(form)
+    e_dialog.setWindowModality(QtCore.Qt.WindowModal)
     form.show()
-    try:
-        app.exec_()
-    except:
-        print("Error")
+    app.exec_()
 
 
-# add exception hook so we can find out why PyQt blows up
+# display exceptions in a QErrorMessage so the user knows what just happened
 sys._excepthook = sys.excepthook
 
 
-def dump_exception_to_log(exctype, value, traceback):
-    # Print the error and traceback
-    print(exctype, value, traceback)
-    # Call the normal Exception hook after
-    sys.excepthook(exctype, value, traceback)
-    sys.exit(1)
+def dump_exception_to_log(exctype, value, tb):
+    import traceback
+    if e_dialog is not None:
+        formatted = traceback.format_exception(etype=exctype, value=value, tb=tb)
+        msg = '<br>'.join(formatted)
+        e_dialog.setWindowTitle('Unexpected Error')
+        e_dialog.showMessage(msg)
+    else:
+        print(exctype, value, tb)
 
 
 sys.excepthook = dump_exception_to_log

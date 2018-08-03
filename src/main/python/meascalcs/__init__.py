@@ -18,7 +18,10 @@ if getattr(sys, 'frozen', False):
     dllPath = sys._MEIPASS
 else:
     dllPath = os.path.abspath(os.path.join(os.path.dirname('__file__'), '../resources'))
-lib = np.ctypeslib.load_library('MeasCalcs', dllPath)
+if os.path.exists(os.path.join(dllPath, 'MeasCalcs.dll')):
+    lib = np.ctypeslib.load_library('MeasCalcs', dllPath)
+else:
+    raise ValueError('oi vey')
 
 # FFT setup
 fft_func = getattr(lib, 'FFT')
@@ -203,8 +206,8 @@ def calPolar(modalData, angle, freq, boxRadius):
     :param modalData: a vector of modal parameters at the specified frequency.
     :param angle: the angle we want to calculate the pressure response at.
     :param freq: the frequency we want to calculate the pressure response at.
-    :param boxRadius: the radius of enclosure.
-    :return:
+    :param boxRadius: the radius of a sphere with the same valume as the enclosure.
+    :return: the polar response.
     '''
     arg1 = np.require(modalData, dtype=np.complex128, requirements=ALIGNED_ARR)
     result = calpolar_func(arg1, modalData.size, math.radians(angle), freq, 0.10, boxRadius)
@@ -247,3 +250,55 @@ def smooth(data, freqs, smoothingType):
         return dataIn.copy()
     else:
         raise ValueError('Unknown smoothing algorithm ' + str(smoothingType))
+
+
+# CalPower
+calpower_func = getattr(lib, 'CalPower')
+calpower_func.restype = ct.c_double
+calpower_func.argtypes = [
+    # ByRef DataIn As Complex
+    np.ctypeslib.ndpointer(dtype=np.complex128, ndim=1, flags=ALIGNED),
+    # ByVal NumCoef As Integer
+    ct.c_int32,
+    # ByVal freq As Double
+    ct.c_double,
+    # ByVal farnum As Double
+    ct.c_double
+]
+
+
+def calPower(modalData, freq, boxRadius):
+    '''
+    Calculates the directivity index at the given frequency for the modal data.
+    :param modalData: the data.
+    :param freq: the freq at which we want to calculate the DI.
+    :param boxRadius: the radius of a sphere with the same valume as the enclosure.
+    :return: the DI.
+    '''
+    arg1 = np.require(modalData, dtype=np.complex128, requirements=ALIGNED_ARR)
+    result = calpower_func(arg1, modalData.size, freq, boxRadius)
+    return result
+
+# CalVelocity
+# Declare Function CalVelocity Lib "MeasCalcs.dll" (ByRef DataIn As Complex, _
+#                                                       ByVal NumCoef As Integer, _
+#                                                       ByVal angl As Double, _
+#                                                       ByVal freq As Double, _
+#                                                       ByVal MeasRad As Double) As Complex
+#
+#
+# Complex(8) function CalVelocity( DataIn, NumCoefs, Theta, Freq, MeasRadius)
+#
+# IMPLICIT NONE
+# ! Specify that CalVelocity is exported to a DLL
+# !DEC$ ATTRIBUTES DLLEXPORT :: CalVelocity
+# !DEC$ ATTRIBUTES REFERENCE :: DataIn
+# !DEC$ ATTRIBUTES Value :: NumCoefs
+# !DEC$ ATTRIBUTES Value :: Theta
+# !DEC$ ATTRIBUTES Value :: freq
+# !DEC$ ATTRIBUTES Value :: MeasRadius
+#
+# integer, intent(in):: NumCoefs
+#
+# complex(8), intent(in):: DataIn(0:NumCoefs-1)
+# real(8), intent(in) :: Theta,freq, MeasRadius

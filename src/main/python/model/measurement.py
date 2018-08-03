@@ -84,7 +84,10 @@ class MeasurementModel(Sequence):
         if len(self.__measurements) > 0:
             self.clear()
         self.__measurements = measurements
-        self.__propagateEvent(LOAD_MEASUREMENTS)
+        if len(self.__measurements) > 0:
+            self.__propagateEvent(LOAD_MEASUREMENTS)
+        else:
+            self.__propagateEvent(CLEAR_MEASUREMENTS)
 
     def clear(self):
         '''
@@ -177,6 +180,7 @@ class MeasurementModel(Sequence):
         Analyses the real world data to create a new modal model.
         '''
         if REAL_WORLD_DATA in self.__complexData:
+            # compute the modal parameters
             self.__modalResponse = calSpatial([x.y for x in self.__complexData[REAL_WORLD_DATA]],
                                               self.__complexData[REAL_WORLD_DATA][0].x,
                                               np.radians([x._h for x in self.__measurements]),
@@ -188,6 +192,7 @@ class MeasurementModel(Sequence):
                                               self.__modalParameters.boxRadius,
                                               self.__modalParameters.f0,
                                               self.__modalParameters.q0)
+            # compute the polar response using the modal parameters
             modal = []
             logFreqs = self.__complexData[REAL_WORLD_DATA][0].x
             for angle in range(0, 182, 2):
