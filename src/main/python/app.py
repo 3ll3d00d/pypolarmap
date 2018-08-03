@@ -3,6 +3,7 @@ import os
 import sys
 
 import matplotlib
+from qtpy.QtCore import QSettings
 from qtpy.QtGui import QIcon
 from qtpy.QtWidgets import QMainWindow, QFileDialog, QDialog, QDialogButtonBox, QMessageBox, QApplication
 
@@ -189,8 +190,10 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
     The main UI.
     '''
 
-    def __init__(self, parent=None):
+    def __init__(self, desktop, parent=None):
         super(PyPolarmap, self).__init__(parent)
+        self.desktop = desktop
+        self.settings = QSettings("3ll3d00d", "pypolarmap")
         self.setupUi(self)
         self.actionLoad.triggered.connect(self.selectDirectory)
         self.actionSave_Current_Image.triggered.connect(self.saveCurrentChart)
@@ -230,6 +233,29 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
         self._measurementTableModel = m.MeasurementTableModel(self._measurementModel, parent=parent)
         self.measurementView.setModel(self._measurementTableModel)
         # TODO replace the show windowed button with a slider like https://stackoverflow.com/a/51023362/123054
+
+    def setupUi(self, mainWindow):
+        super().setupUi(self)
+        geometry = self.settings.value("geometry")
+        if not geometry == None:
+            self.restoreGeometry(geometry)
+        else:
+            screenGeometry = self.desktop.availableGeometry()
+            if screenGeometry.height() < 800:
+                self.showMaximized()
+        windowState = self.settings.value("windowState")
+        if not windowState == None:
+            self.restoreState(windowState)
+
+    def closeEvent(self, *args, **kwargs):
+        '''
+        Saves the window state on close.
+        :param args:
+        :param kwargs:
+        '''
+        self.settings.setValue("geometry", self.saveGeometry())
+        self.settings.setValue("windowState", self.saveState())
+        super().closeEvent(*args, **kwargs)
 
     def loadColourMaps(self):
         _translate = QtCore.QCoreApplication.translate
@@ -461,7 +487,7 @@ def main():
         iconPath = os.path.abspath(os.path.join(os.path.dirname('__file__'), '../icons/Icon.ico'))
     if os.path.exists(iconPath):
         app.setWindowIcon(QIcon(iconPath))
-    form = PyPolarmap()
+    form = PyPolarmap(app.desktop())
     form.show()
     try:
         app.exec_()

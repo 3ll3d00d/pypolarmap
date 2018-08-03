@@ -47,7 +47,8 @@ class MagnitudeModel:
         # TODO might need to update the ylim even if we haven't refreshed
         if self.shouldRefresh():
             data = self._measurementModel.getMagnitudeData(type=self._type, ref=1)
-            for idx, x in enumerate(data):
+            power = self._measurementModel.getPowerResponse(type=self._type, ref=1)
+            for idx, x in enumerate(data+[power]):
                 curve = self._curves.get(x.name)
                 if curve:
                     curve.set_data(x.x, x.y)
@@ -58,7 +59,7 @@ class MagnitudeModel:
                                                                antialiased=True,
                                                                linestyle='solid',
                                                                color=self._chart.getColour(idx,
-                                                                                           len(self._measurementModel)),
+                                                                                           len(self._measurementModel)+1),
                                                                label=x.name)[0]
             configureFreqAxisFormatting(self._axes)
             ymax, ymin, _, _ = calculate_dBFS_Scales(np.concatenate([x.y for x in data]), maxRange=self._dBRange)

@@ -132,7 +132,7 @@ class WavLoader(FileLoader):
         :param fileName: the file name.
         :return: fs, data
         '''
-        return wavfile.read(fileName)
+        return wavfile.read(os.path.join(self.dir, fileName))
 
 
 class HolmLoader(RawDataLoader):
