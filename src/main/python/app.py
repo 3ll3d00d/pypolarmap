@@ -2,10 +2,11 @@ import logging
 import math
 import os
 import sys
+from contextlib import contextmanager
 
 import matplotlib
 from qtpy.QtCore import QSettings
-from qtpy.QtGui import QIcon, QFont
+from qtpy.QtGui import QIcon, QFont, QCursor
 from qtpy.QtWidgets import QMainWindow, QFileDialog, QDialog, QDialogButtonBox, QMessageBox, QApplication, QErrorMessage
 
 from model.contour import ContourModel
@@ -305,11 +306,13 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
                 wrapper.removeWindowBtn.setDisabled(True)
                 wrapper.zoomInButton.setDisabled(False)
                 wrapper.zoomOutBtn.setDisabled(False)
+                wrapper.findPeakButton.setDisabled(False)
             else:
                 wrapper.applyWindowBtn.setDisabled(True)
                 wrapper.removeWindowBtn.setDisabled(True)
                 wrapper.zoomInButton.setDisabled(True)
                 wrapper.zoomOutBtn.setDisabled(True)
+                wrapper.findPeakButton.setDisabled(True)
             wrapper.refreshNormalisationAngles()
 
         dialog.buttonBox.accepted.connect(_trigger_load)
@@ -379,12 +382,20 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
     def zoomIn(self):
         '''
         propagates the zoom button click to the impulse model.
-        :return:
         '''
         self._impulseModel.zoomIn()
 
     def zoomOut(self):
+        '''
+        Propagates the zoom button click to the impulse model.
+        '''
         self._impulseModel.zoomOut()
+
+    def findFirstPeak(self):
+        '''
+        Propagates the find peaks button click to the impulse model.
+        '''
+        self._impulseModel.findFirstPeak()
 
     def removeWindow(self):
         '''
@@ -548,3 +559,15 @@ sys.excepthook = dump_exception_to_log
 
 if __name__ == '__main__':
     main()
+
+@contextmanager
+def wait_cursor(msg=None):
+    '''
+    Allows long running functions to show a busy cursor.
+    :param msg: a message to put in the status bar.
+    '''
+    try:
+        QApplication.setOverrideCursor(QCursor(QtCore.Qt.WaitCursor))
+        yield
+    finally:
+        QApplication.restoreOverrideCursor()

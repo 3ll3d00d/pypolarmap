@@ -54,25 +54,17 @@ class ImpulseModel:
         if type == LOAD_MEASUREMENTS:
             start = time.time()
             self._setMaxSample(self._measurementModel.getMaxSample())
-            a = time.time()
-            logger.debug(f"setMaxSample {to_millis(start, a)}ms")
             self._leftWindow['position'].setMaximum(self._maxSample - 1)
-            b = time.time()
-            logger.debug(f"left.setMax {to_millis(a, b)}ms")
             self._leftWindow['position'].setValue(self._measurementModel[0].startIndex())
-            c = time.time()
-            logger.debug(f"left.setPosition {to_millis(b, c)}ms")
             self._rightWindow['position'].setMaximum(self._maxSample)
-            d = time.time()
-            logger.debug(f"right.setMax {to_millis(c, d)}ms")
-            self._rightWindow['position'].setValue(self._measurementModel[0].firstReflectionIndex())
-            e = time.time()
-            logger.debug(f"right.setPosition {to_millis(d, e)}ms")
+            self._rightWindow['position'].setValue(self._maxSample)
+            mid = time.time()
+            logger.debug(f"updated window parameters {to_millis(start, mid)}ms")
             self.zoomOut(draw=False)
             self.updateLeftWindow(draw=False)
             self.updateRightWindow(draw=False)
-            f = time.time()
-            logger.debug(f"Updated chart controls in {to_millis(e, f)}ms")
+            end = time.time()
+            logger.debug(f"Updated chart controls in {to_millis(mid, end)}ms")
             self._displayData(updatedIdx=kwargs.get('idx', None))
         elif type == CLEAR_MEASUREMENTS:
             self._setMaxSample(0)
@@ -86,6 +78,19 @@ class ImpulseModel:
             self.clear()
         elif type == ANALYSED:
             pass
+
+    def findFirstPeak(self):
+        '''
+        Searches for the 1st reflection and updates the right window to that location.
+        '''
+        if len(self._measurementModel) > 0:
+            from app import wait_cursor
+            with wait_cursor('Finding peak in first measurement'):
+                start = time.time()
+                self._rightWindow['position'].setValue(self._measurementModel[0].firstReflectionIndex())
+                end = time.time()
+                logger.debug(f"Found peaks in {to_millis(start, end)}ms")
+                self.updateRightWindow()
 
     def _addPlotForMeasurement(self, idx, measurement, mCount):
         '''
