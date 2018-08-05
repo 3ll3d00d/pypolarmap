@@ -349,8 +349,15 @@ class Measurement:
         :return: a guess at the location of the first reflection using scipy find_peaks_cwt
         '''
         peak = self.peakIndex()
-        return next((i + peak for i in signal.find_peaks_cwt(self.samples[peak:], np.arange(10, 20)) if i > 40),
-                    self.size() - 1)
+        endIndex = self.size()
+        lengthMs = (endIndex - peak) / self._fs * 1000
+        if lengthMs > 50.0:
+            search_end = peak+(round(self._fs/20))
+            logger.debug(f"{self} has {round(lengthMs)}ms from peak to end, searching 50ms ({peak}:{search_end}) for 1st reflection")
+            to_search = self.samples[peak:search_end]
+        else:
+            to_search = self.samples[peak:]
+        return next((i + peak for i in signal.find_peaks_cwt(to_search, np.arange(10, 20)) if i > 40), self.size() - 1)
 
     def startIndex(self):
         '''
