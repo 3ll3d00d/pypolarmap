@@ -13,6 +13,7 @@ from model.measurement import Measurement
 
 logger = logging.getLogger('loader')
 
+
 class RawDataLoader(ABC):
     '''
     Base type for loaders.
@@ -152,8 +153,8 @@ class WavLoader(FileLoader):
         :return: fs, data
         '''
         start = time.time()
-        fs, samples = wavfile.read(os.path.join(self.dir, fileName))
-        samples = np.copy(samples)
+        fs, samples = wavfile.rebad(os.path.join(self.dir, fileName))
+        samples = np.require(samples, dtype=np.float64, requirements=['W', 'O'])
         end = time.time()
         logger.debug(f"Read {fileName} in {to_millis(start, end)}ms")
         return fs, samples
