@@ -40,6 +40,9 @@ class ContourModel:
         self._dBRange = dBRange
         self._required_clim = None
 
+    def __repr__(self):
+        return self.name
+
     def shouldRefresh(self):
         return self._refreshData
 

@@ -1,4 +1,6 @@
+import logging
 import math
+import time
 import typing
 from collections.abc import Sequence
 
@@ -7,6 +9,7 @@ from qtpy.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant
 from scipy import signal
 
 from meascalcs import fft, linToLog, calSpatial, calPolar, smooth
+from model.log import to_millis
 
 WINDOW_MAPPING = {
     'Hann': signal.windows.hann,
@@ -24,6 +27,8 @@ COMPUTED_MODAL_DATA = 'MODAL'
 LOAD_MEASUREMENTS = 'LOAD'
 ANALYSED = 'ANALYSED'
 CLEAR_MEASUREMENTS = 'CLEAR'
+
+logger = logging.getLogger('measurement')
 
 
 class MeasurementModel(Sequence):
@@ -67,14 +72,17 @@ class MeasurementModel(Sequence):
         '''
         self.__listeners.append(listener)
 
-    def __propagateEvent(self, type, **kwargs):
+    def __propagateEvent(self, eventType, **kwargs):
         '''
         propagates the specified event to all listeners.
-        :param type: the event type.
+        :param eventType: the event type.
         :param kwargs: the event args.
         '''
         for l in self.__listeners:
-            l.onUpdate(type, **kwargs)
+            start = time.time()
+            l.onUpdate(eventType, **kwargs)
+            end = time.time()
+            logger.debug(f"Propagated event: {eventType} to {l} in {round((end-start)*1000)}ms")
 
     def load(self, measurements):
         '''
@@ -123,11 +131,16 @@ class MeasurementModel(Sequence):
         :param left: the left parameters.
         :param right: the right parameters.
         '''
+        start = time.time()
         completeWindow = self.createWindow(left, right)
         for m in self.__measurements:
             m.analyse(left['position'].value(), right['position'].value(), win=completeWindow)
         self.__complexData[REAL_WORLD_DATA] = [self._createFRData(x) for x in self.__measurements]
+        mid = time.time()
         self.analyseModal()
+        end = time.time()
+        logger.debug(
+            f"Analysed {len(self)} real world measurements in {to_millis(start, mid)}ms, modal in {to_millis(mid, end)}ms")
         self.__propagateEvent(ANALYSED)
 
     def _createFRData(self, measurement):

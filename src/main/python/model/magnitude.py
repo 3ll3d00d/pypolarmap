@@ -27,6 +27,9 @@ class MagnitudeModel:
         self._dBRange = dBRange
         self.updateDecibelRange(self._dBRange, draw=False)
 
+    def __repr__(self):
+        return self.name
+
     def shouldRefresh(self):
         return self._refreshData
 
@@ -58,7 +61,8 @@ class MagnitudeModel:
                                                                antialiased=True,
                                                                linestyle='solid',
                                                                color=self._chart.getColour(idx,
-                                                                                           len(self._measurementModel)+1),
+                                                                                           len(
+                                                                                               self._measurementModel) + 1),
                                                                label=x.name)[0]
             configureFreqAxisFormatting(self._axes)
             ymax, ymin, _, _ = calculate_dBFS_Scales(np.concatenate([x.y for x in data]), maxRange=self._dBRange)
@@ -138,6 +142,7 @@ class AnimatedSingleLineMagnitudeModel:
         self._axes = self._chart.canvas.figure.add_subplot(subplotSpec)
         formatAxes_dBFS_Hz(self._axes)
         self._type = type
+        self.name = f"single-magnitude_{type}"
         self._refreshData = False
         self._type = type
         self.yPosition = None
@@ -146,6 +151,9 @@ class AnimatedSingleLineMagnitudeModel:
         self._y_range_update_required = False
         self._redrawOnDisplay = redrawOnDisplay
         self._dBRange = dBRange
+
+    def __repr__(self):
+        return self.name
 
     def shouldRefresh(self):
         return self._refreshData

@@ -1,12 +1,18 @@
+import logging
 import math
 import os
 import sys
+import time
+
+from model.log import to_millis
 
 __all__ = ['fft', 'linToLog', 'calSpatial', 'calPolar']
 
 import ctypes as ct
 
 import numpy as np
+
+logger = logging.getLogger('meascalcs')
 
 WRITEABLE_ALIGNED = 'F_CONTIGUOUS,WRITEABLE,ALIGNED,OWNDATA'
 WRITEABLE_ALIGNED_ARR = WRITEABLE_ALIGNED.split(',')
@@ -37,6 +43,7 @@ def fft(data):
     :param data: the input data.
     :return: (the complex FFT'ed data, the number of points in the FFT)
     '''
+    start = time.time()
     # minimum size of 512 to provide enough space for the linToLog to work sensibly
     nextPower = np.ceil(max(np.log2(data.shape[0]), 9))
     padding = int(np.power(2, nextPower) - data.shape[0])
@@ -44,8 +51,11 @@ def fft(data):
     numPoints = ct.c_int32(paddedData.shape[0])
     paddedData = np.require(paddedData, dtype=np.float64, requirements=WRITEABLE_ALIGNED_ARR)
     fft_func(paddedData, numPoints)
-    return np.concatenate(([complex(paddedData[0], 0)], paddedData[2:].view(dtype=np.complex128),
-                           [complex(paddedData[1], 0)])), numPoints.value
+    result = np.concatenate(
+        ([complex(paddedData[0], 0)], paddedData[2:].view(dtype=np.complex128), [complex(paddedData[1], 0)]))
+    end = time.time()
+    logger.debug(f"{to_millis(start, end)}ms")
+    return result, numPoints.value
 
 
 # no of log spaced points to use given a set number of linear points
@@ -85,6 +95,7 @@ def linToLog(linearFreqs, freqStep):
     :param freqStep: the frequency step in the input data.
     :return: the log spaced complex data.
     '''
+    start = time.time()
     inputData = np.require(linearFreqs, dtype=np.complex128, requirements=ALIGNED_ARR)
     freqStep = ct.c_double(freqStep)
     inputPts = ct.c_int32(linearFreqs.shape[0] - 1)
@@ -98,6 +109,8 @@ def linToLog(linearFreqs, freqStep):
                           dtype=np.float64, requirements=WRITEABLE_ALIGNED_ARR)
     logPoints = ct.c_int32(outputPts - 1)
     linToLog_func(inputData, freqStep, inputPts, outputData, logPoints, logFreqs)
+    end = time.time()
+    logger.debug(f"{to_millis(start, end)}ms")
     return outputData.copy(), logFreqs.copy()
 
 
@@ -156,6 +169,7 @@ def calSpatial(logSpacedMeasurements, logSpacedFreqs, anglesInRadians, measureme
     :param sourceType: dipole f
     :return: the modal parameters by frequency.
     '''
+    start = time.time()
     if driverRadius >= boxRadius:
         raise ValueError('driverRadius must be less than boxRadius')
     dataOut = np.require(np.zeros((fitCoefficientsExpected, logSpacedFreqs.shape[0]), dtype=np.complex128),
@@ -175,6 +189,8 @@ def calSpatial(logSpacedMeasurements, logSpacedFreqs, anglesInRadians, measureme
                     ct.c_double(f0),
                     ct.c_double(q0),
                     ct.c_int32(sourceType))
+    end = time.time()
+    logger.debug(f"{to_millis(start, end)}ms")
     return dataOut.copy()
 
 
@@ -209,9 +225,12 @@ def calPolar(modalData, angle, freq, boxRadius):
     :param boxRadius: the radius of a sphere with the same valume as the enclosure.
     :return: the polar response.
     '''
+    start = time.time()
     arg1 = np.require(modalData, dtype=np.complex128, requirements=ALIGNED_ARR)
     result = calpolar_func(arg1, modalData.size, math.radians(angle), freq, 0.10, boxRadius)
     retVal = complex(result.real, result.imag)
+    end = time.time()
+    logger.debug(f"{to_millis(start, end)}ms")
     return retVal
 
 
@@ -243,10 +262,13 @@ def smooth(data, freqs, smoothingType):
     :param smoothingType: the smoothing algorithm to use.
     :return: the smoothed data.
     '''
+    start = time.time()
     dataIn = np.require(np.copy(data), dtype=np.float64, requirements=WRITEABLE_ALIGNED_ARR)
     freqs = np.require(freqs, dtype=np.float64, requirements=ALIGNED_ARR)
     if smoothingType in SMOOTH_TYPES:
         smooth_func(dataIn, freqs, ct.c_int32(freqs.size), ct.c_int32(SMOOTH_TYPES[smoothingType]))
+        end = time.time()
+        logger.debug(f"{to_millis(start, end)}ms")
         return dataIn.copy()
     else:
         raise ValueError('Unknown smoothing algorithm ' + str(smoothingType))
@@ -275,8 +297,11 @@ def calPower(modalData, freq, boxRadius):
     :param boxRadius: the radius of a sphere with the same valume as the enclosure.
     :return: the DI.
     '''
+    start = time.time()
     arg1 = np.require(modalData, dtype=np.complex128, requirements=ALIGNED_ARR)
     result = calpower_func(arg1, modalData.size, freq, boxRadius)
+    end = time.time()
+    logger.debug(f"{to_millis(start, end)}ms")
     return result
 
 # CalVelocity

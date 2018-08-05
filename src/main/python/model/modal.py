@@ -14,6 +14,9 @@ class ModalParameterModel:
         self.__measurementDistance = measurementDistance
         self.__refreshData = False
 
+    def __repr__(self):
+        return self.__class__.__name__
+
     @property
     def measurementDistance(self):
         return self.__measurementDistance

@@ -22,6 +22,7 @@ class PolarModel:
         self._curve = None
         self._refreshData = False
         self._type = type
+        self.name = f"polar_{self._type}"
         self._measurementModel = measurementModel
         self._measurementModel.registerListener(self)
         self.xPosition = 1000
@@ -30,6 +31,9 @@ class PolarModel:
         self._dBRange = dBRange
         self._y_range_update_required = False
         self.updateDecibelRange(self._dBRange, draw=False)
+
+    def __repr__(self):
+        return self.name
 
     def shouldRefresh(self):
         return self._refreshData

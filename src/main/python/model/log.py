@@ -3,7 +3,6 @@ import logging
 
 from PyQt5 import QtGui
 from qtpy.QtWidgets import QMainWindow
-
 from ui.logs import Ui_logsForm
 
 
@@ -13,10 +12,7 @@ class LogViewer(QMainWindow, Ui_logsForm):
     '''
 
     def __init__(self, owner, max_size):
-        if owner is not None:
-            super(LogViewer, self).__init__(parent=owner.parent)
-        else:
-            super(LogViewer, self).__init__()
+        super(LogViewer, self).__init__()
         self.setupUi(self)
         self.logViewer.setMaximumBlockCount(max_size)
         self.__owner = owner
@@ -66,7 +62,7 @@ class LogViewer(QMainWindow, Ui_logsForm):
 
 class RollingLogger(logging.Handler):
     def __init__(self, level=logging.INFO, size=1000, parent=None):
-        super().__init__(level)
+        super().__init__()
         self.__buffer = RingBuffer(size)
         self.__visible = False
         self.__logWindow = None
@@ -198,3 +194,13 @@ def resize(old_size, new_size, data, idx):
             return idx
     else:
         return idx
+
+
+def to_millis(start, end):
+    '''
+    Calculates the differences in time in millis.
+    :param start: start time in seconds.
+    :param end: end time in seconds.
+    :return: delta in millis.
+    '''
+    return round((end - start) * 1000)

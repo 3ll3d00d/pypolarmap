@@ -11,6 +11,9 @@ class DisplayModel:
         self.resultCharts = []
         self.measurementModel = None
 
+    def __repr__(self):
+        return self.__class__.__name__
+
     @property
     def dBRange(self):
         return self.__dBRange

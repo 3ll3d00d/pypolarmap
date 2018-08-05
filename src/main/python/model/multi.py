@@ -29,6 +29,9 @@ class MultiChartModel:
                                  subplotSpec=gs.new_subplotspec((1, 2), 1, 1), dBRange=dBRange)
         self._mouseReactor = MouseReactor(0.10, self.propagateCoords)
 
+    def __repr__(self):
+        return self.name
+
     def display(self):
         '''
         Displays all the charts and then draws the canvas.

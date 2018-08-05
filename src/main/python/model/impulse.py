@@ -1,7 +1,14 @@
+import logging
+import time
+
 import numpy as np
 
+from model.log import to_millis
 from model.measurement import CLEAR_MEASUREMENTS, LOAD_MEASUREMENTS, ANALYSED
 
+NAME = 'impulse'
+
+logger = logging.getLogger(NAME)
 
 class ImpulseModel:
     '''
@@ -10,7 +17,7 @@ class ImpulseModel:
 
     def __init__(self, chart, left, right, measurementModel):
         self._chart = chart
-        self.name = 'impulse'
+        self.name = NAME
         self._axes = self._chart.canvas.figure.add_subplot(111)
         self._initChart()
         self._curves = {}
@@ -22,6 +29,9 @@ class ImpulseModel:
         self._activeX = None
         self._setMaxSample(0)
         self._windowLine = None
+
+    def __repr__(self):
+        return self.__class__.__name__
 
     def _initChart(self):
         self._axes.spines['bottom'].set_position('center')
@@ -42,14 +52,27 @@ class ImpulseModel:
         :return:
         '''
         if type == LOAD_MEASUREMENTS:
+            start = time.time()
             self._setMaxSample(self._measurementModel.getMaxSample())
+            a = time.time()
+            logger.debug(f"setMaxSample {to_millis(start, a)}ms")
             self._leftWindow['position'].setMaximum(self._maxSample - 1)
+            b = time.time()
+            logger.debug(f"left.setMax {to_millis(a, b)}ms")
             self._leftWindow['position'].setValue(self._measurementModel[0].startIndex())
+            c = time.time()
+            logger.debug(f"left.setPosition {to_millis(b, c)}ms")
             self._rightWindow['position'].setMaximum(self._maxSample)
+            d = time.time()
+            logger.debug(f"right.setMax {to_millis(c, d)}ms")
             self._rightWindow['position'].setValue(self._measurementModel[0].firstReflectionIndex())
-            self.zoomOut()
-            self.updateLeftWindow()
-            self.updateRightWindow()
+            e = time.time()
+            logger.debug(f"right.setPosition {to_millis(d, e)}ms")
+            self.zoomOut(draw=False)
+            self.updateLeftWindow(draw=False)
+            self.updateRightWindow(draw=False)
+            f = time.time()
+            logger.debug(f"Updated chart controls in {to_millis(e, f)}ms")
             self._displayData(updatedIdx=kwargs.get('idx', None))
         elif type == CLEAR_MEASUREMENTS:
             self._setMaxSample(0)
@@ -84,23 +107,23 @@ class ImpulseModel:
         '''
         return (self._zeroPadGated(m.gatedSamples) if self._showWindowed else m.samples) / ref * 100
 
-    def updateLeftWindow(self):
+    def updateLeftWindow(self, draw=True):
         '''
         pushes the left window spinner value to the line position, creating the line if necessary
         '''
         value = self._leftWindow['position'].value()
         if value > self._rightWindow['position'].value():
             self._rightWindow['position'].setValue(value + 1)
-        self._redrawWindow()
+        self._redrawWindow(draw)
 
-    def updateRightWindow(self):
+    def updateRightWindow(self, draw=True):
         '''
         pushes the right window spinner value to the line position, creating the line if necessary
         '''
         value = self._rightWindow['position'].value()
         if value <= self._leftWindow['position'].value():
             self._leftWindow['position'].setValue(value - 1)
-        self._redrawWindow()
+        self._redrawWindow(draw)
 
     def _redrawWindow(self, draw=True):
         '''
@@ -126,23 +149,25 @@ class ImpulseModel:
         else:
             return data
 
-    def zoomIn(self):
+    def zoomIn(self, draw=True):
         '''
         sets the x axis range to the positions of the left and right windows.
         :return:
         '''
         self._axes.set_xlim(left=max(0, self._leftWindow['position'].value() - 10),
                             right=min(self._rightWindow['position'].value() + 10, self._maxSample))
-        self._chart.canvas.draw()
+        if draw:
+            self._chart.canvas.draw()
 
-    def zoomOut(self):
+    def zoomOut(self, draw=True):
         '''
         sets the x axis range to the x range
         :return:
         '''
         if self._activeX is not None:
             self._axes.set_xlim(left=0, right=np.nanmax(self._activeX))
-            self._chart.canvas.draw()
+            if draw:
+                self._chart.canvas.draw()
 
     def removeWindow(self):
         '''
@@ -157,17 +182,21 @@ class ImpulseModel:
         '''
         applies the window to the data & makes this the viewable data.
         '''
+        start = time.time()
         self._showWindowed = True
         if len(self._measurementModel) > 0:
             self._redrawWindow(draw=False)
             self._measurementModel.analyseMeasuredData(self._leftWindow, self._rightWindow)
+            self.zoomIn(draw=False)
             self._displayData()
-            self.zoomIn()
+            end = time.time()
+            logger.debug(f"in {to_millis(start, end)}ms")
 
     def _displayData(self, updatedIdx=None):
         '''
         Ensures the data is visible on the chart.
         '''
+        start = time.time()
         ref = self._measurementModel.getMaxSampleValue()
         for idx, m in enumerate(self._measurementModel):
             if updatedIdx is None or updatedIdx == idx:
@@ -176,7 +205,10 @@ class ImpulseModel:
                     curve.set_data(self._activeX, self._getY(m, ref))
                 else:
                     self._addPlotForMeasurement(idx, m, len(self._measurementModel))
+        mid = time.time()
         self._chart.canvas.draw()
+        end = time.time()
+        logger.debug(f"Updated curves in {to_millis(start, mid)}ms, redrew canvas in {to_millis(mid, end)}ms")
 
     def clear(self):
         '''

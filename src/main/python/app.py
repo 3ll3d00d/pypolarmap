@@ -5,7 +5,7 @@ import sys
 
 import matplotlib
 from qtpy.QtCore import QSettings
-from qtpy.QtGui import QIcon
+from qtpy.QtGui import QIcon, QFont
 from qtpy.QtWidgets import QMainWindow, QFileDialog, QDialog, QDialogButtonBox, QMessageBox, QApplication, QErrorMessage
 
 from model.contour import ContourModel
@@ -204,10 +204,10 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
     The main UI.
     '''
 
-    def __init__(self, desktop, parent=None):
+    def __init__(self, app, parent=None):
         super(PyPolarmap, self).__init__(parent)
         self.logger = logging.getLogger('pypolarmap')
-        self.desktop = desktop
+        self.app = app
         self.settings = QSettings("3ll3d00d", "pypolarmap")
         self.setupUi(self)
         self.logViewer = RollingLogger(parent=self)
@@ -257,7 +257,7 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
         if not geometry == None:
             self.restoreGeometry(geometry)
         else:
-            screenGeometry = self.desktop.availableGeometry()
+            screenGeometry = self.app.desktop().availableGeometry()
             if screenGeometry.height() < 800:
                 self.showMaximized()
         windowState = self.settings.value("windowState")
@@ -273,6 +273,7 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
         self.settings.setValue("geometry", self.saveGeometry())
         self.settings.setValue("windowState", self.saveState())
         super().closeEvent(*args, **kwargs)
+        self.app.closeAllWindows()
 
     def loadColourMaps(self):
         _translate = QtCore.QCoreApplication.translate
@@ -514,11 +515,15 @@ def main():
         iconPath = os.path.abspath(os.path.join(os.path.dirname('__file__'), '../icons/Icon.ico'))
     if os.path.exists(iconPath):
         app.setWindowIcon(QIcon(iconPath))
-    form = PyPolarmap(app.desktop())
+    form = PyPolarmap(app)
     # setup the error handler
     global e_dialog
     e_dialog = QErrorMessage(form)
     e_dialog.setWindowModality(QtCore.Qt.WindowModal)
+    font = QFont()
+    font.setFamily("Consolas")
+    font.setPointSize(8)
+    e_dialog.setFont(font)
     form.show()
     app.exec_()
 
@@ -534,6 +539,7 @@ def dump_exception_to_log(exctype, value, tb):
         msg = '<br>'.join(formatted)
         e_dialog.setWindowTitle('Unexpected Error')
         e_dialog.showMessage(msg)
+        e_dialog.resize(1200, 400)
     else:
         print(exctype, value, tb)
 

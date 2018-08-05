@@ -1,13 +1,17 @@
+import logging
 import os
 import re
 import struct
+import time
 from abc import ABC, abstractmethod
 
 import numpy as np
 from scipy.io import wavfile
 
+from model.log import to_millis
 from model.measurement import Measurement
 
+logger = logging.getLogger('loader')
 
 class RawDataLoader(ABC):
     '''
@@ -34,6 +38,8 @@ class RawDataLoader(ABC):
             meas = Measurement(name, v=v)
         else:
             pass  # ignore - filename format is invalid
+        if meas is not None:
+            logger.info(f"Loaded {meas}")
         return meas
 
     def _getAngle(self, fileName, angle):
@@ -96,7 +102,11 @@ class ConstantFsLoader(FileLoader):
         self.__fs = fs
 
     def loadFsAndSamples(self, fileName):
-        return self.__fs, self.loadSamples(fileName)
+        start = time.time()
+        samples = self.loadSamples(fileName)
+        end = time.time()
+        logger.debug(f"Loaded {fileName} in {to_millis(start, end)}ms")
+        return self.__fs, samples
 
     @abstractmethod
     def loadSamples(self, fileName):
@@ -141,7 +151,12 @@ class WavLoader(FileLoader):
         :param fileName: the file name.
         :return: fs, data
         '''
-        return wavfile.read(os.path.join(self.dir, fileName))
+        start = time.time()
+        fs, samples = wavfile.read(os.path.join(self.dir, fileName))
+        samples = np.copy(samples)
+        end = time.time()
+        logger.debug(f"Read {fileName} in {to_millis(start, end)}ms")
+        return fs, samples
 
 
 class HolmLoader(RawDataLoader):
@@ -232,7 +247,11 @@ class REWLoader(FileLoader):
                     if idx != -1:
                         fs = int(1 / float(line[0:idx]))
         if fs is not None:
-            return fs, np.genfromtxt(fullPath, skip_header=ignoreLines + 1)
+            start = time.time()
+            samples = np.genfromtxt(fullPath, skip_header=ignoreLines + 1)
+            end = time.time()
+            logger.debug(f"Loaded {fileName} in {to_millis(start, end)}ms")
+            return fs, samples
         return None
 
 
@@ -274,12 +293,15 @@ class ARTALoader(FileLoader):
         statinfo = os.stat(fullPath)
         size = statinfo.st_size
         if size > 68:
+            start = time.time()
             with open(fullPath, "rb") as f:
                 f.seek(24, 1)
                 fs = struct.unpack('i', f.read(4))[0]
                 n = struct.unpack('i', f.read(4))[0]
                 f.seek(44, 1)
                 data = np.array(struct.unpack('f' * n, f.read(4 * n)))
+                end = time.time()
+                logger.debug(f"Loaded {fileName} in {to_millis(start, end)}ms")
                 return fs, data
         else:
             return None
