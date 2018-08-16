@@ -32,6 +32,7 @@ Note
 ## TODO 
 
 * multi chart still not redrawing properly as the dB range changes
+* redraw the charts on clear
 
 # Freeze
 

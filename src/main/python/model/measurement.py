@@ -8,7 +8,7 @@ import numpy as np
 from qtpy.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant
 from scipy import signal
 
-from meascalcs import fft, linToLog, calSpatial, calPolar, smooth
+from meascalcs import fft, linToLog, calSpatial, calPolar, smooth, calPower
 from model.log import to_millis
 
 WINDOW_MAPPING = {
@@ -56,6 +56,8 @@ class MeasurementModel(Sequence):
         self.__displayModel = displayModel
         self.__displayModel.measurementModel = self
         self.__complexData = {}
+        self.__powerResponse = {}
+        self.table = None
         super().__init__()
 
     def __getitem__(self, i):
@@ -89,19 +91,27 @@ class MeasurementModel(Sequence):
         Loads measurements.
         :param measurements: the measurements.
         '''
+        if self.table is not None:
+            self.table.beginResetModel()
         if len(self.__measurements) > 0:
-            self.clear()
+            self.clear(reset=False)
         self.__measurements = measurements
+        if self.table is not None:
+            self.table.endResetModel()
         if len(self.__measurements) > 0:
             self.__propagateEvent(LOAD_MEASUREMENTS)
         else:
             self.__propagateEvent(CLEAR_MEASUREMENTS)
 
-    def clear(self):
+    def clear(self, reset=True):
         '''
         Clears the loaded measurements.
         '''
+        if self.table is not None and reset:
+            self.table.beginResetModel()
         self.__measurements = []
+        if self.table is not None and reset:
+            self.table.endResetModel()
         self.__propagateEvent(CLEAR_MEASUREMENTS)
 
     def getMaxSample(self):
@@ -131,17 +141,36 @@ class MeasurementModel(Sequence):
         :param left: the left parameters.
         :param right: the right parameters.
         '''
-        start = time.time()
+        a = time.time()
         completeWindow = self.createWindow(left, right)
         for m in self.__measurements:
             m.analyse(left['position'].value(), right['position'].value(), win=completeWindow)
         self.__complexData[REAL_WORLD_DATA] = [self._createFRData(x) for x in self.__measurements]
-        mid = time.time()
+        b = time.time()
+        logger.debug(f"Analysed {len(self)} real world measurements in {to_millis(a, b)}ms")
+        self._computePowerResponse(REAL_WORLD_DATA)
+        c = time.time()
+        logger.debug(f"Analysed power response in {to_millis(b, c)}ms")
+
         self.analyseModal()
-        end = time.time()
-        logger.debug(
-            f"Analysed {len(self)} real world measurements in {to_millis(start, mid)}ms, modal in {to_millis(mid, end)}ms")
+        d = time.time()
+        logger.debug(f"Analysed modal response in {to_millis(c, d)}ms")
         self.__propagateEvent(ANALYSED)
+
+    def _computePowerResponse(self, dataType):
+        '''
+        Calculates the power response of the specified type of data.
+        :param dataType: the type of data to analyse.
+        '''
+        power = []
+        for idx, lf in enumerate(self.__complexData[dataType][0].x):
+            polarAtFreq = [x.y[idx] for x in self.__complexData[dataType]]
+            result = calPower(np.array(polarAtFreq), lf, self.__modalParameters.boxRadius)
+            power.append(result)
+        self.__powerResponse[dataType] = ComplexData(name='power',
+                                                     hAngle=None,
+                                                     x=np.copy(self.__complexData[dataType][0].x),
+                                                     y=np.array(power))
 
     def _createFRData(self, measurement):
         logData, logFreqs = linToLog(measurement.fftData, measurement._fs / measurement.fftPoints)
@@ -218,6 +247,7 @@ class MeasurementModel(Sequence):
                     y.append(result)
                 modal.append(ComplexData(name=name, hAngle=angle, x=x, y=np.array(y)))
             self.__complexData[COMPUTED_MODAL_DATA] = modal
+            self._computePowerResponse(COMPUTED_MODAL_DATA)
 
     def getMagnitudeData(self, type=REAL_WORLD_DATA, ref=1):
         '''
@@ -236,6 +266,17 @@ class MeasurementModel(Sequence):
             else:
                 print(f"Unable to normalise {self.__displayModel.normalisationAngle}")
         return data
+
+    def getPowerResponse(self, type=REAL_WORLD_DATA, ref=1):
+        '''
+        gets the power response.
+        :param type: the type.
+        :return: the power response.
+        '''
+        power = self.__powerResponse.get(type, None)
+        if power is not None:
+            return power.getMagnitude(ref, self.__smoothingType)
+        return None
 
     def getContourData(self, type=REAL_WORLD_DATA):
         '''
@@ -352,8 +393,9 @@ class Measurement:
         endIndex = self.size()
         lengthMs = (endIndex - peak) / self._fs * 1000
         if lengthMs > 50.0:
-            search_end = peak+(round(self._fs/20))
-            logger.debug(f"{self} has {round(lengthMs)}ms from peak to end, searching 50ms ({peak}:{search_end}) for 1st reflection")
+            search_end = peak + (round(self._fs / 20))
+            logger.debug(
+                f"{self} has {round(lengthMs)}ms from peak to end, searching 50ms ({peak}:{search_end}) for 1st reflection")
             to_search = self.samples[peak:search_end]
         else:
             to_search = self.samples[peak:]
@@ -402,6 +444,7 @@ class MeasurementTableModel(QAbstractTableModel):
         super().__init__(parent=parent)
         self._headers = ['File', 'Samples', 'H', 'V']
         self._measurementModel = model
+        self._measurementModel.table = self
 
     def rowCount(self, parent: QModelIndex = ...):
         return len(self._measurementModel)
@@ -430,11 +473,6 @@ class MeasurementTableModel(QAbstractTableModel):
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:
             return QVariant(self._headers[section])
         return QVariant()
-
-    def accept(self, measurementModel):
-        self.layoutAboutToBeChanged.emit()
-        self._measurementModel = measurementModel
-        self.layoutChanged.emit()
 
     def completeRendering(self, view):
         for x in range(0, 4):

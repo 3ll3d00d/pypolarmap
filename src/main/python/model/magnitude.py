@@ -15,6 +15,7 @@ class MagnitudeModel:
                  subplotSpec=SINGLE_SUBPLOT_SPEC, showLegend=True, dBRange=60):
         self._chart = chart
         self._axes = self._chart.canvas.figure.add_subplot(subplotSpec)
+        self._powerAxes = self._axes.twinx()
         formatAxes_dBFS_Hz(self._axes)
         self._curves = {}
         self._refreshData = False
@@ -41,6 +42,7 @@ class MagnitudeModel:
         self._dBRange = dBRange
         if draw:
             setYLimits(self._axes, dBRange)
+            setYLimits(self._powerAxes, dBRange)
             self._chart.canvas.draw()
 
     def display(self):
@@ -49,24 +51,17 @@ class MagnitudeModel:
         '''
         # TODO might need to update the ylim even if we haven't refreshed
         if self.shouldRefresh():
+            # magnitude data on primary axis
             data = self._measurementModel.getMagnitudeData(type=self._type, ref=1)
             for idx, x in enumerate(data):
-                curve = self._curves.get(x.name, None)
-                if curve:
-                    curve.set_data(x.x, x.y)
-                else:
-                    # todo consider making the reference user selectable, e.g. to allow for dB SPL output
-                    self._curves[x.name] = self._axes.semilogx(x.x, x.y,
-                                                               linewidth=2,
-                                                               antialiased=True,
-                                                               linestyle='solid',
-                                                               color=self._chart.getColour(idx,
-                                                                                           len(
-                                                                                               self._measurementModel) + 1),
-                                                               label=x.name)[0]
-            configureFreqAxisFormatting(self._axes)
-            ymax, ymin, _, _ = calculate_dBFS_Scales(np.concatenate([x.y for x in data]), maxRange=self._dBRange)
-            self._axes.set_ylim(bottom=ymin, top=ymax)
+                self._create_or_update_curve(x, self._axes, self._chart.getColour(idx, len(self._measurementModel)))
+            self._update_y_lim(np.concatenate([x.y for x in data]), self._axes)
+
+            # power data on secondary axis
+            power = self._measurementModel.getPowerResponse(type=self._type, ref=1)
+            self._create_or_update_curve(power, self._powerAxes, 'k')
+            self._update_y_lim(power.y, self._powerAxes)
+
             if self._axes.get_legend() is None and self._showLegend:
                 self.makeClickableLegend()
             self._chart.canvas.draw()
@@ -76,19 +71,33 @@ class MagnitudeModel:
             if ylim[1] - ylim[0] != self._dBRange:
                 self.updateDecibelRange(self._dBRange)
 
+    def _update_y_lim(self, data, axes):
+        configureFreqAxisFormatting(axes)
+        ymax, ymin, _, _ = calculate_dBFS_Scales(data, maxRange=self._dBRange)
+        axes.set_ylim(bottom=ymin, top=ymax)
+
+    def _create_or_update_curve(self, data, axes, colour):
+        curve = self._curves.get(data.name, None)
+        if curve:
+            curve.set_data(data.x, data.y)
+        else:
+            self._curves[data.name] = axes.semilogx(data.x, data.y,
+                                                    linewidth=2,
+                                                    antialiased=True,
+                                                    linestyle='solid',
+                                                    color=colour,
+                                                    label=data.name)[0]
+
     def makeClickableLegend(self):
         '''
         Add a legend that allows you to make a line visible or invisible by clicking on it.
         ripped from https://matplotlib.org/2.0.0/examples/event_handling/legend_picking.html
         and https://stackoverflow.com/questions/4700614/how-to-put-the-legend-out-of-the-plot
         '''
-        # box = self._axes.get_position()
-        # self._axes.set_position([box.x0, box.y0 + box.height * 0.2, box.width, box.height * 0.8])
-        # # Put a legend below current axis
-        # legend = self._axes.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=5)
-        legend = self._axes.legend(loc='best', fancybox=True, shadow=True)
+        lines = self._curves.values()
+        legend = self._axes.legend(lines, [l.get_label() for l in lines], loc=8, ncol=4, fancybox=True, shadow=True)
         lined = dict()
-        for legline, origline in zip(legend.get_lines(), self._curves.values()):
+        for legline, origline in zip(legend.get_lines(), lines):
             legline.set_picker(5)  # 5 pts tolerance
             lined[legline] = origline
 
@@ -140,13 +149,17 @@ class AnimatedSingleLineMagnitudeModel:
         self._measurementModel = measurementModel
         self._measurementModel.registerListener(self)
         self._axes = self._chart.canvas.figure.add_subplot(subplotSpec)
+        self._powerAxes = self._axes.twinx()
         formatAxes_dBFS_Hz(self._axes)
         self._type = type
         self.name = f"single-magnitude_{type}"
         self._refreshData = False
         self._type = type
         self.yPosition = None
+        self._data = None
         self._curve = None
+        self._powerData = None
+        self._powerCurve = None
         self._ani = None
         self._y_range_update_required = False
         self._redrawOnDisplay = redrawOnDisplay
@@ -166,6 +179,7 @@ class AnimatedSingleLineMagnitudeModel:
         self._dBRange = dBRange
         self._y_range_update_required = True
         setYLimits(self._axes, dBRange)
+        setYLimits(self._powerAxes, dBRange)
         if self._ani:
             # have to clear the blit cache to get the r grid to redraw as per
             # https://stackoverflow.com/questions/25021311/matplotlib-animation-updating-radial-view-limit-for-polar-plot
@@ -181,15 +195,26 @@ class AnimatedSingleLineMagnitudeModel:
         '''
         if self.shouldRefresh():
             if self._curve is None:
+                # main data
                 self._data = self._measurementModel.getMagnitudeData(type=self._type, ref=1)
                 self._curve = self._axes.semilogx(self._data[0].x,
                                                   [np.nan] * len(self._data[0].x),
                                                   linewidth=2,
                                                   antialiased=True,
                                                   linestyle='solid')[0]
-                yMax = max([np.max(x.y) for x in self._data])
-                yMin = yMax - self._dBRange
-                self._axes.set_ylim(bottom=yMin, top=yMax, auto=False)
+                ymax, ymin, _, _ = calculate_dBFS_Scales(np.concatenate([x.y for x in self._data]), maxRange=self._dBRange)
+                self._axes.set_ylim(bottom=ymin, top=ymax, auto=False)
+                # power data
+                self._powerData = self._measurementModel.getPowerResponse(type=self._type, ref=1)
+                self._powerCurve = self._powerAxes.semilogx(self._powerData.x,
+                                                            self._powerData.y,
+                                                            linewidth=2,
+                                                            antialiased=True,
+                                                            color='k',
+                                                            linestyle='solid')[0]
+                ymax, ymin, _, _ = calculate_dBFS_Scales(self._powerData.y, maxRange=self._dBRange)
+                self._powerAxes.set_ylim(bottom=ymin, top=ymax, auto=False)
+
                 self._ani = animation.FuncAnimation(self._chart.canvas.figure, self.redraw, interval=50,
                                                     init_func=self.initAnimation, blit=True, save_count=50)
                 configureFreqAxisFormatting(self._axes)
@@ -207,7 +232,7 @@ class AnimatedSingleLineMagnitudeModel:
         :return: the curve artist.
         '''
         self._curve.set_ydata([np.nan] * len(self._data[0].x))
-        return self._curve,
+        return self._curve, self._powerCurve
 
     def redraw(self, frame, *fargs):
         '''
@@ -217,7 +242,7 @@ class AnimatedSingleLineMagnitudeModel:
         if curveIdx != -1:
             self._curve.set_ydata(curveData.y)
             self._curve.set_color(self._chart.getColour(curveIdx, len(self._measurementModel)))
-        return self._curve,
+        return self._curve, self._powerCurve
 
     def findNearestXYData(self):
         '''

@@ -57,6 +57,10 @@ def calculate_dBFS_Scales(data, maxRange=60):
     :return: max, min, steps, fillSteps
     '''
     vmax = np.math.ceil(np.nanmax(data))
+    # coerce max to a round value
+    multiple = 5 if maxRange <= 30 else 10
+    if vmax % multiple != 0:
+        vmax = (vmax - vmax % multiple) + multiple
     vmin = vmax - maxRange
     steps = np.sort(np.concatenate((np.arange(vmax, vmax - 14, -2), np.arange(vmax - 18, vmin - 6, -6))))
     fillSteps = np.sort(np.arange(vmax, vmin, -0.05))
