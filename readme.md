@@ -17,9 +17,9 @@ to compile a test dll
 
 32bit python is required so use a 32bit installation of anaconda
 
-    conda create -n scanner32 numpy colorcet qtawesome scipy qtpy mkl==2018.0.2
+    conda create -n pypolarmap numpy colorcet qtawesome scipy qtpy mkl==2018.0.2
     pip install pyqt5 matplotlib
-    activate scanner32
+    activate pypolarmap
     python -m pip install --upgrade pip
     pip install https://github.com/pyinstaller/pyinstaller/tarball/develop
 
@@ -33,6 +33,10 @@ Note
 
 * multi chart still not redrawing properly as the dB range changes
 * redraw the charts on clear
+
+## Bugs
+
+* holm importer blows up if the data file contains no measurements (columns) with correct names
 
 # Freeze
 
