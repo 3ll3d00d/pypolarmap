@@ -73,7 +73,7 @@ class ContourModel:
             self._tcf.set_clim(vmin=self._required_clim[0], vmax=self._required_clim[1])
         if draw:
             self._required_clim = None
-            self._chart.canvas.draw()
+            self._chart.canvas.draw_idle()
 
     def onUpdate(self, type, **kwargs):
         '''
@@ -103,7 +103,7 @@ class ContourModel:
                 self._redraw()
                 self.connectMouse()
                 if self._redrawOnDisplay:
-                    self._chart.canvas.draw()
+                    self._chart.canvas.draw_idle()
                 self._refreshData = False
                 return True
             else:
@@ -174,7 +174,7 @@ class ContourModel:
         cmap = self._chart.getColourMap(cmap)
         if self._tcf:
             self._tcf.set_cmap(cmap)
-            self._chart.canvas.draw()
+            self._chart.canvas.draw_idle()
         self._selectedCmap = cmap
 
     def clear(self, disconnect=True):
@@ -191,4 +191,4 @@ class ContourModel:
             self._tc = None
             self._tcf = None
             self._initChart(self._subplotSpec)
-            self._chart.canvas.draw()
+            self._chart.canvas.draw_idle()

@@ -41,7 +41,7 @@ class MultiChartModel:
         self._magnitude.display()
         self._polar.display()
         self._sonagram.display()
-        self._chart.canvas.draw()
+        self._chart.canvas.draw_idle()
         return True
 
     def updateDecibelRange(self, dBRange, draw=True):
@@ -58,7 +58,7 @@ class MultiChartModel:
         self._polar.updateDecibelRange(dBRange, draw=False)
         self._sonagram.updateDecibelRange(dBRange, draw=False)
         if draw:
-            self._chart.canvas.draw()
+            self._chart.canvas.draw_idle()
 
     def propagateCoords(self):
         '''

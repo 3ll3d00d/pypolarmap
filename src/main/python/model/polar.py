@@ -51,7 +51,7 @@ class PolarModel:
             # https://stackoverflow.com/questions/25021311/matplotlib-animation-updating-radial-view-limit-for-polar-plot
             self._ani._blit_cache.clear()
         if draw:
-            self._chart.canvas.draw()
+            self._chart.canvas.draw_idle()
             self._y_range_update_required = False
 
     def display(self):

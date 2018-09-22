@@ -43,7 +43,7 @@ class MagnitudeModel:
         if draw:
             setYLimits(self._axes, dBRange)
             setYLimits(self._powerAxes, dBRange)
-            self._chart.canvas.draw()
+            self._chart.canvas.draw_idle()
 
     def display(self):
         '''
@@ -64,7 +64,7 @@ class MagnitudeModel:
 
             if self._axes.get_legend() is None and self._showLegend:
                 self.makeClickableLegend()
-            self._chart.canvas.draw()
+            self._chart.canvas.draw_idle()
             self._refreshData = False
         else:
             ylim = self._axes.get_ylim()
@@ -112,7 +112,7 @@ class MagnitudeModel:
                 legline.set_alpha(1.0)
             else:
                 legline.set_alpha(0.2)
-            self._chart.canvas.draw()
+            self._chart.canvas.draw_idle()
 
         self._chart.canvas.mpl_connect('pick_event', onpick)
 
@@ -185,7 +185,7 @@ class AnimatedSingleLineMagnitudeModel:
             # https://stackoverflow.com/questions/25021311/matplotlib-animation-updating-radial-view-limit-for-polar-plot
             self._ani._blit_cache.clear()
         if draw:
-            self._chart.canvas.draw()
+            self._chart.canvas.draw_idle()
             self._y_range_update_required = False
 
     def display(self):

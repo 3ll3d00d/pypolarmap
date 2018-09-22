@@ -140,7 +140,7 @@ class ImpulseModel:
         else:
             self._windowLine = self._axes.plot(self._activeX, window, 'b--')[0]
         if draw:
-            self._chart.canvas.draw()
+            self._chart.canvas.draw_idle()
 
     def _zeroPadGated(self, data):
         '''
@@ -162,7 +162,7 @@ class ImpulseModel:
         self._axes.set_xlim(left=max(0, self._leftWindow['position'].value() - 10),
                             right=min(self._rightWindow['position'].value() + 10, self._maxSample))
         if draw:
-            self._chart.canvas.draw()
+            self._chart.canvas.draw_idle()
 
     def zoomOut(self, draw=True):
         '''
@@ -172,7 +172,7 @@ class ImpulseModel:
         if self._activeX is not None:
             self._axes.set_xlim(left=0, right=np.nanmax(self._activeX))
             if draw:
-                self._chart.canvas.draw()
+                self._chart.canvas.draw_idle()
 
     def removeWindow(self):
         '''
@@ -211,7 +211,7 @@ class ImpulseModel:
                 else:
                     self._addPlotForMeasurement(idx, m, len(self._measurementModel))
         mid = time.time()
-        self._chart.canvas.draw()
+        self._chart.canvas.draw_idle()
         end = time.time()
         logger.debug(f"Updated curves in {to_millis(start, mid)}ms, redrew canvas in {to_millis(mid, end)}ms")
 
