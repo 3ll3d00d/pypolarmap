@@ -109,3 +109,5 @@ venv.bak/
 .idea
 fortran/
 src/scratch
+
+src/test/data/*.txt
