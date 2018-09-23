@@ -5,7 +5,7 @@ import typing
 from collections.abc import Sequence
 
 import numpy as np
-from qtpy.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant
+from qtpy.QtCore import QModelIndex, Qt, QVariant, QAbstractListModel
 from scipy import signal
 
 from meascalcs import fft, linToLog, calSpatial, calPolar, smooth, calPower
@@ -234,6 +234,8 @@ class MeasurementModel(Sequence):
                                               self.__modalParameters.boxRadius,
                                               self.__modalParameters.f0,
                                               self.__modalParameters.q0)
+            np.savetxt('modal.csv', np.transpose(np.abs(self.__modalResponse)), delimiter=',')
+            np.savetxt('freqs.csv', self.__complexData[REAL_WORLD_DATA][0].x, delimiter=',')
             # compute the polar response using the modal parameters
             modal = []
             logFreqs = self.__complexData[REAL_WORLD_DATA][0].x
@@ -435,22 +437,18 @@ class Measurement:
         return '{}: {}'.format(self.__class__.__name__, self.getDisplayName())
 
 
-class MeasurementTableModel(QAbstractTableModel):
+class MeasurementListModel(QAbstractListModel):
     '''
     A Qt table model to feed the measurements view.
     '''
 
     def __init__(self, model, parent=None):
         super().__init__(parent=parent)
-        self._headers = ['File', 'Samples', 'H', 'V']
         self._measurementModel = model
         self._measurementModel.table = self
 
     def rowCount(self, parent: QModelIndex = ...):
         return len(self._measurementModel)
-
-    def columnCount(self, parent: QModelIndex = ...):
-        return len(self._headers)
 
     def data(self, index: QModelIndex, role: int = ...) -> typing.Any:
         if not index.isValid():
@@ -458,21 +456,9 @@ class MeasurementTableModel(QAbstractTableModel):
         elif role != Qt.DisplayRole:
             return QVariant()
         else:
-            if index.column() == 0:
-                return QVariant(self._measurementModel[index.row()]._name)
-            elif index.column() == 1:
-                return QVariant(self._measurementModel[index.row()].size())
-            elif index.column() == 2:
-                return QVariant(self._measurementModel[index.row()]._h)
-            elif index.column() == 3:
-                return QVariant(self._measurementModel[index.row()]._v)
-            else:
-                return QVariant()
-
-    def headerData(self, section: int, orientation: Qt.Orientation, role: int = ...) -> typing.Any:
-        if orientation == Qt.Horizontal and role == Qt.DisplayRole:
-            return QVariant(self._headers[section])
-        return QVariant()
+            m = self._measurementModel[index.row()]
+            display_name = f"{m._name} ({m.size()})"
+            return QVariant(display_name)
 
     def completeRendering(self, view):
         for x in range(0, 4):

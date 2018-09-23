@@ -9,8 +9,8 @@ class ContourModel:
     Allows a set of FRs to be displayed as a directivity sonargram.
     '''
 
-    def __init__(self, chart, measurementModel, type, subplotSpec=SINGLE_SUBPLOT_SPEC, redrawOnDisplay=True,
-                 dBRange=60):
+    def __init__(self, chart, measurementModel, type, display_model, subplotSpec=SINGLE_SUBPLOT_SPEC,
+                 redrawOnDisplay=True):
         '''
         Creates a new contour model.
         :param chart: the MplWidget that owns the canvas onto which the chart will be drawn.
@@ -37,7 +37,7 @@ class ContourModel:
         self.cursorX = None
         self.cursorY = None
         self._redrawOnDisplay = redrawOnDisplay
-        self._dBRange = dBRange
+        self._dBRange = display_model.dBRange
         self._required_clim = None
 
     def __repr__(self):
@@ -166,7 +166,7 @@ class ContourModel:
             self._cid.append(self._chart.canvas.mpl_connect('axes_enter_event', self.enterAxes))
             self._cid.append(self._chart.canvas.mpl_connect('axes_leave_event', self.leaveAxes))
 
-    def updateColourMap(self, cmap):
+    def updateColourMap(self, cmap, draw=True):
         '''
         Updates the currently selected colour map.
         :param cmap: the cmap name.
@@ -174,7 +174,8 @@ class ContourModel:
         cmap = self._chart.getColourMap(cmap)
         if self._tcf:
             self._tcf.set_cmap(cmap)
-            self._chart.canvas.draw_idle()
+            if draw:
+                self._chart.canvas.draw_idle()
         self._selectedCmap = cmap
 
     def clear(self, disconnect=True):

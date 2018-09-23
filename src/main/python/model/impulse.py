@@ -10,6 +10,7 @@ NAME = 'impulse'
 
 logger = logging.getLogger(NAME)
 
+
 class ImpulseModel:
     '''
     Allows a set of measurements to be displayed on a chart as impulse responses.
@@ -113,22 +114,16 @@ class ImpulseModel:
         return (self._zeroPadGated(m.gatedSamples) if self._showWindowed else m.samples) / ref * 100
 
     def updateLeftWindow(self, draw=True):
-        '''
-        pushes the left window spinner value to the line position, creating the line if necessary
-        '''
-        value = self._leftWindow['position'].value()
-        if value > self._rightWindow['position'].value():
-            self._rightWindow['position'].setValue(value + 1)
+        ''' pushes the left window spinner value to the line position, creating the line if necessary '''
         self._redrawWindow(draw)
 
     def updateRightWindow(self, draw=True):
-        '''
-        pushes the right window spinner value to the line position, creating the line if necessary
-        '''
-        value = self._rightWindow['position'].value()
-        if value <= self._leftWindow['position'].value():
-            self._leftWindow['position'].setValue(value - 1)
+        ''' pushes the right window spinner value to the line position, creating the line if necessary '''
         self._redrawWindow(draw)
+
+    def is_window_valid(self):
+        ''' :return True if left < right '''
+        return self._leftWindow['position'].value() < self._rightWindow['position'].value()
 
     def _redrawWindow(self, draw=True):
         '''
@@ -139,6 +134,14 @@ class ImpulseModel:
             self._windowLine.set_data(self._activeX, window)
         else:
             self._windowLine = self._axes.plot(self._activeX, window, 'b--')[0]
+        x_lim = self._axes.get_xlim()
+        x_min = x_lim[0]
+        x_max = x_lim[1]
+        if self._leftWindow['position'].value() < x_min:
+            x_min = max(0, self._leftWindow['position'].value() - 30)
+        if self._rightWindow['position'].value() > x_max:
+            x_max = min(self._maxSample, self._rightWindow['position'].value() + 50)
+        self._axes.set_xlim(left=x_min, right=x_max)
         if draw:
             self._chart.canvas.draw_idle()
 
@@ -156,11 +159,10 @@ class ImpulseModel:
 
     def zoomIn(self, draw=True):
         '''
-        sets the x axis range to the positions of the left and right windows.
-        :return:
+        sets the x axis range to the positions of the left and right windows (+/- a bit on each side).
         '''
-        self._axes.set_xlim(left=max(0, self._leftWindow['position'].value() - 10),
-                            right=min(self._rightWindow['position'].value() + 10, self._maxSample))
+        self._axes.set_xlim(left=max(0, self._leftWindow['position'].value() - 30),
+                            right=min(self._rightWindow['position'].value() + 100, self._maxSample))
         if draw:
             self._chart.canvas.draw_idle()
 

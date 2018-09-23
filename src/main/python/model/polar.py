@@ -13,8 +13,8 @@ class PolarModel:
     Allows a set of measurements to be displayed on a polar chart with the displayed curve interactively changing.
     '''
 
-    def __init__(self, chart, measurementModel, type=REAL_WORLD_DATA, subplotSpec=SINGLE_SUBPLOT_SPEC,
-                 redrawOnDisplay=True, dBRange=60):
+    def __init__(self, chart, measurementModel, display_model, type=REAL_WORLD_DATA, subplotSpec=SINGLE_SUBPLOT_SPEC,
+                 redrawOnDisplay=True):
         self._chart = chart
         self._axes = self._chart.canvas.figure.add_subplot(subplotSpec, projection='polar')
         self._axes.grid(linestyle='--', axis='y', alpha=0.7)
@@ -28,7 +28,7 @@ class PolarModel:
         self.xPosition = 1000
         self._ani = None
         self._redrawOnDisplay = redrawOnDisplay
-        self._dBRange = dBRange
+        self._dBRange = display_model.dBRange
         self._y_range_update_required = False
         self.updateDecibelRange(self._dBRange, draw=False)
 
@@ -86,6 +86,7 @@ class PolarModel:
         else:
             if self._axes is not None and self._y_range_update_required:
                 self.updateDecibelRange(self._dBRange, self._redrawOnDisplay)
+
         return False
 
     def formatAngle(self, x, pos=None):
@@ -152,4 +153,13 @@ class PolarModel:
         self._axes.clear()
         self._data = {}
         self._curve = None
-        self._ani = None
+        self.stop_animation()
+
+    def stop_animation(self):
+        '''
+        Stops the animation.
+        '''
+        if self._ani is not None:
+            self._ani._stop()
+            self._ani = None
+            self._refreshData = True
