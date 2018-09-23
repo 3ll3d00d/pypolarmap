@@ -118,8 +118,9 @@ class DisplayControlDialog(QDialog, Ui_displayControlsDialog):
         self.yAxisRange.setValue(self.__display_model.dBRange)
         self.normaliseCheckBox.setChecked(self.__display_model.normalised)
         self.__select_combo(self.smoothingType, self.__display_model.smoothing_type)
-        self.__load_angles()
-        if not self.__select_combo(self.normalisationAngle, self.__display_model.normalisationAngle):
+        for m in self.__measurement_model:
+            self.normalisationAngle.addItem(str(m._h))
+        if not self.__select_combo(self.normalisationAngle, str(self.__display_model.normalisationAngle)):
             self.__display_model.normalisationAngle = None
         stored_idx = 0
         from app import cms_by_name

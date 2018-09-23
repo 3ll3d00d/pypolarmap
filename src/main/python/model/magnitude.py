@@ -1,5 +1,6 @@
 import numpy as np
 from matplotlib import animation
+from qtpy.QtWidgets import QListWidgetItem
 
 from model import configureFreqAxisFormatting, formatAxes_dBFS_Hz, setYLimits, SINGLE_SUBPLOT_SPEC, \
     calculate_dBFS_Scales
@@ -12,10 +13,9 @@ class MagnitudeModel:
     '''
 
     def __init__(self, chart, measurementModel, display_model, type=REAL_WORLD_DATA, modelListener=None,
-                 subplotSpec=SINGLE_SUBPLOT_SPEC, showLegend=True):
+                 subplotSpec=SINGLE_SUBPLOT_SPEC, showLegend=True, selector=None):
         self._chart = chart
         self._axes = self._chart.canvas.figure.add_subplot(subplotSpec)
-        self._powerAxes = self._axes.twinx()
         formatAxes_dBFS_Hz(self._axes)
         self._curves = {}
         self._refreshData = False
@@ -26,7 +26,17 @@ class MagnitudeModel:
         self._showLegend = showLegend
         self._measurementModel.registerListener(self)
         self._dBRange = display_model.dBRange
+        self._selector = selector
+        if self._selector is not None:
+            self._selector.itemSelectionChanged.connect(self.set_visible)
         self.updateDecibelRange(self._dBRange, draw=False)
+
+    def set_visible(self):
+        ''' ensures the visible curves tracks the contents of the selector '''
+        selected = [x.text() for x in self._selector.selectedItems()]
+        for name, curve in self._curves.items():
+            curve.set_visible(name in selected)
+        self._chart.canvas.draw_idle()
 
     def __repr__(self):
         return self.name
@@ -42,7 +52,6 @@ class MagnitudeModel:
         self._dBRange = dBRange
         if draw:
             setYLimits(self._axes, dBRange)
-            setYLimits(self._powerAxes, dBRange)
             self._chart.canvas.draw_idle()
 
     def display(self):
@@ -59,12 +68,17 @@ class MagnitudeModel:
 
             # power data on secondary axis
             power = self._measurementModel.getPowerResponse(type=self._type, ref=1)
-            self._create_or_update_curve(power, self._powerAxes, 'k')
-            self._update_y_lim(power.y, self._powerAxes)
+            if power is not None:
+                self._create_or_update_curve(power, self._axes, 'k')
+                self._update_y_lim(power.y, self._axes)
 
             if self._axes.get_legend() is None and self._showLegend:
-                self.makeClickableLegend()
-            self._chart.canvas.draw_idle()
+                lines = self._curves.values()
+                self._axes.legend(lines, [l.get_label() for l in lines], loc=8, ncol=4, fancybox=True, shadow=True)
+            if self._selector is not None:
+                self._selector.selectAll()
+            else:
+                self._chart.canvas.draw_idle()
             self._refreshData = False
         else:
             ylim = self._axes.get_ylim()
@@ -87,34 +101,8 @@ class MagnitudeModel:
                                                     linestyle='solid',
                                                     color=colour,
                                                     label=data.name)[0]
-
-    def makeClickableLegend(self):
-        '''
-        Add a legend that allows you to make a line visible or invisible by clicking on it.
-        ripped from https://matplotlib.org/2.0.0/examples/event_handling/legend_picking.html
-        and https://stackoverflow.com/questions/4700614/how-to-put-the-legend-out-of-the-plot
-        '''
-        lines = self._curves.values()
-        legend = self._axes.legend(lines, [l.get_label() for l in lines], loc=8, ncol=4, fancybox=True, shadow=True)
-        lined = dict()
-        for legline, origline in zip(legend.get_lines(), lines):
-            legline.set_picker(5)  # 5 pts tolerance
-            lined[legline] = origline
-
-        def onpick(event):
-            # on the pick event, find the orig line corresponding to the legend proxy line, and toggle the visibility
-            legline = event.artist
-            origline = lined[legline]
-            vis = not origline.get_visible()
-            origline.set_visible(vis)
-            # Change the alpha on the line in the legend so we can see what lines have been toggled
-            if vis:
-                legline.set_alpha(1.0)
-            else:
-                legline.set_alpha(0.2)
-            self._chart.canvas.draw_idle()
-
-        self._chart.canvas.mpl_connect('pick_event', onpick)
+            if self._selector is not None:
+                self._selector.addItem(QListWidgetItem(data.name, self._selector))
 
     def onUpdate(self, type, **kwargs):
         '''

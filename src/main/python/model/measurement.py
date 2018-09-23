@@ -21,7 +21,8 @@ WINDOW_MAPPING = {
 }
 
 REAL_WORLD_DATA = 'REALWORLD'
-COMPUTED_MODAL_DATA = 'MODAL'
+MODAL_PARAMS_DATA = 'MODAL1'
+COMPUTED_MODAL_DATA = 'MODAL2'
 
 # events that listeners have to handle
 LOAD_MEASUREMENTS = 'LOAD'
@@ -234,9 +235,15 @@ class MeasurementModel(Sequence):
                                               self.__modalParameters.boxRadius,
                                               self.__modalParameters.f0,
                                               self.__modalParameters.q0)
+            logFreqs = self.__complexData[REAL_WORLD_DATA][0].x
+            # store the modal response by frequency
+            modal = []
+            for idx in range(0, self.__modalResponse.shape[0]):
+                # TODO get rid of hAngle
+                modal.append(ComplexData(name=f"mode {idx}", hAngle=idx, x=logFreqs, y=self.__modalResponse[idx]))
+            self.__complexData[MODAL_PARAMS_DATA] = modal
             # compute the polar response using the modal parameters
             modal = []
-            logFreqs = self.__complexData[REAL_WORLD_DATA][0].x
             for angle in range(0, 182, 2):
                 name = 'modal ' + str(angle)
                 x = logFreqs
@@ -258,7 +265,7 @@ class MeasurementModel(Sequence):
         '''
         data = [x.getMagnitude(ref, self.__smoothingType) for x in
                 self.__complexData[type]] if type in self.__complexData else []
-        if self.__displayModel.normalised:
+        if self.__displayModel.normalised and self.can_normalise(type):
             target = next(
                 (x for x in data if math.isclose(float(x.hAngle), float(self.__displayModel.normalisationAngle))), None)
             if target:
@@ -266,6 +273,15 @@ class MeasurementModel(Sequence):
             else:
                 print(f"Unable to normalise {self.__displayModel.normalisationAngle}")
         return data
+
+    def can_normalise(self, type):
+        '''
+        :param type: the data type.
+        :return: True if that type can be normalised.
+        '''
+        if type == REAL_WORLD_DATA or type == COMPUTED_MODAL_DATA:
+            return True
+        return False
 
     def getPowerResponse(self, type=REAL_WORLD_DATA, ref=1):
         '''

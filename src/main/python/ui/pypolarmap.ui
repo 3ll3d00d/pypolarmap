@@ -359,7 +359,31 @@
        <layout class="QGridLayout" name="measuredMagnitudeGridLayout" columnstretch="0,1">
         <item row="0" column="0">
          <layout class="QGridLayout" name="measuredMagnitudeControlLayout">
-          <item row="0" column="0">
+          <item row="1" column="0">
+           <widget class="QPushButton" name="selectAllMeasuredButton">
+            <property name="text">
+             <string>Select All</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QPushButton" name="clearAllMeasuredButton">
+            <property name="text">
+             <string>Clear All</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0" colspan="2">
+           <widget class="QListWidget" name="measuredMagnitudeCurves">
+            <property name="editTriggers">
+             <set>QAbstractItemView::NoEditTriggers</set>
+            </property>
+            <property name="selectionMode">
+             <enum>QAbstractItemView::MultiSelection</enum>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0" colspan="2">
            <widget class="QLabel" name="measuredMagnitudeCurvesLabel">
             <property name="font">
              <font>
@@ -380,9 +404,6 @@
              <set>Qt::AlignCenter</set>
             </property>
            </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QListWidget" name="measuredMagnitudeCurves"/>
           </item>
          </layout>
         </item>
@@ -432,10 +453,65 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="tab">
+      <widget class="QWidget" name="modalParametersTab">
        <attribute name="title">
         <string>Modal - Parameters</string>
        </attribute>
+       <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,1">
+        <item>
+         <layout class="QGridLayout" name="modalParametersSelectorLayout">
+          <item row="1" column="0">
+           <widget class="QPushButton" name="selectAllModalParametersButton">
+            <property name="text">
+             <string>Select All</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QPushButton" name="clearAllModalParametersButton">
+            <property name="text">
+             <string>Clear All</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0" colspan="2">
+           <widget class="QLabel" name="modesLabel">
+            <property name="font">
+             <font>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="frameShape">
+             <enum>QFrame::Box</enum>
+            </property>
+            <property name="frameShadow">
+             <enum>QFrame::Sunken</enum>
+            </property>
+            <property name="text">
+             <string>Modes</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0" colspan="2">
+           <widget class="QListWidget" name="modalParametersList">
+            <property name="editTriggers">
+             <set>QAbstractItemView::NoEditTriggers</set>
+            </property>
+            <property name="selectionMode">
+             <enum>QAbstractItemView::MultiSelection</enum>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="MplWidget" name="modalParametersGraph"/>
+        </item>
+       </layout>
       </widget>
       <widget class="QWidget" name="modalPolarTab">
        <attribute name="title">
@@ -770,6 +846,70 @@
     <hint type="destinationlabel">
      <x>295</x>
      <y>338</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>selectAllModalParametersButton</sender>
+   <signal>clicked()</signal>
+   <receiver>modalParametersList</receiver>
+   <slot>selectAll()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>85</x>
+     <y>133</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>106</x>
+     <y>209</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>clearAllModalParametersButton</sender>
+   <signal>clicked()</signal>
+   <receiver>modalParametersList</receiver>
+   <slot>clearSelection()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>219</x>
+     <y>129</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>234</x>
+     <y>192</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>selectAllMeasuredButton</sender>
+   <signal>clicked()</signal>
+   <receiver>measuredMagnitudeCurves</receiver>
+   <slot>selectAll()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>116</x>
+     <y>123</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>121</x>
+     <y>183</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>clearAllMeasuredButton</sender>
+   <signal>clicked()</signal>
+   <receiver>measuredMagnitudeCurves</receiver>
+   <slot>clearSelection()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>201</x>
+     <y>119</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>222</x>
+     <y>202</y>
     </hint>
    </hints>
   </connection>

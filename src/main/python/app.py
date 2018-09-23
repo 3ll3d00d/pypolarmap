@@ -13,7 +13,7 @@ from model.contour import ContourModel
 from model.display import DisplayModel, DisplayControlDialog
 from model.load import WavLoader, HolmLoader, TxtLoader, DblLoader, REWLoader, ARTALoader
 from model.log import RollingLogger
-from model.measurement import REAL_WORLD_DATA, COMPUTED_MODAL_DATA
+from model.measurement import REAL_WORLD_DATA, COMPUTED_MODAL_DATA, MODAL_PARAMS_DATA
 from model.modal import ModalParametersDialog
 from model.multi import MultiChartModel
 from model.preferences import Preferences
@@ -240,13 +240,17 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
                                                    self.__display_model)
         self.__modal_polar_model = ContourModel(self.modalPolarGraph, self.__measurement_model, COMPUTED_MODAL_DATA,
                                                 self.__display_model)
+        self.__modal_magnitude_model = mag.MagnitudeModel(self.modalParametersGraph, self.__measurement_model,
+                                                          self.__display_model, type=MODAL_PARAMS_DATA,
+                                                          selector=self.modalParametersList)
         # measured graphs
         self.__measured_multi_model = MultiChartModel(self.measuredMultiGraph, self.__measurement_model,
                                                       REAL_WORLD_DATA, self.__display_model)
         self.__measured_polar_model = ContourModel(self.measuredPolarGraph, self.__measurement_model,
                                                    REAL_WORLD_DATA, self.__display_model)
         self.__measured_magnitude_model = mag.MagnitudeModel(self.measuredMagnitudeGraph, self.__measurement_model,
-                                                             self.__display_model, type=REAL_WORLD_DATA)
+                                                             self.__display_model, type=REAL_WORLD_DATA,
+                                                             selector=self.measuredMagnitudeCurves)
         self.__display_model.results_charts = [self.__modal_multi_model, self.__modal_polar_model,
                                                self.__measured_multi_model, self.__measured_polar_model,
                                                self.__measured_magnitude_model]
@@ -356,8 +360,10 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
         elif idx == 3:
             return self.__measured_multi_model
         elif idx == 4:
-            return self.__modal_polar_model
+            return self.__modal_magnitude_model
         elif idx == 5:
+            return self.__modal_polar_model
+        elif idx == 6:
             return self.__modal_multi_model
         else:
             return None
