@@ -13,14 +13,15 @@ class MultiChartModel:
     is driven by the position of the cursor over the sonagram.
     '''
 
-    def __init__(self, chart, measurementModel, type, display_model):
+    def __init__(self, chart, measurementModel, type, display_model, preferences):
         self._chart = chart
         self._measurementModel = measurementModel
         self._type = type
         self.name = f"multi_{self._type}"
         gs = GridSpec(2, 3, width_ratios=[1, 1, 0.75])
         self._magnitude = AnimatedSingleLineMagnitudeModel(self._chart, self._measurementModel, display_model,
-                                                           type=type, subplotSpec=gs.new_subplotspec((0, 0), 1, 3))
+                                                           preferences, type=type,
+                                                           subplotSpec=gs.new_subplotspec((0, 0), 1, 3))
         self._sonagram = ContourModel(self._chart, self._measurementModel, type, display_model,
                                       subplotSpec=gs.new_subplotspec((1, 0), 1, 2),
                                       redrawOnDisplay=False)

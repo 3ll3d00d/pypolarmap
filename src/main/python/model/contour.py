@@ -10,7 +10,7 @@ class ContourModel:
     '''
 
     def __init__(self, chart, measurementModel, type, display_model, subplotSpec=SINGLE_SUBPLOT_SPEC,
-                 redrawOnDisplay=True):
+                 redrawOnDisplay=True, depends_on=lambda: False):
         '''
         Creates a new contour model.
         :param chart: the MplWidget that owns the canvas onto which the chart will be drawn.
@@ -24,6 +24,7 @@ class ContourModel:
         self._subplotSpec = subplotSpec
         self._initChart(subplotSpec)
         self._measurementModel = measurementModel
+        self.__depends_on = depends_on
         self._selectedCmap = 'bgyw'
         self._type = type
         self.name = f"contour_{self._type}"
@@ -44,7 +45,7 @@ class ContourModel:
         return self.name
 
     def shouldRefresh(self):
-        return self._refreshData
+        return self._refreshData or self.__depends_on
 
     def _initChart(self, subplotSpec):
         '''

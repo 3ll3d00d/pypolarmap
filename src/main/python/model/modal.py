@@ -1,8 +1,12 @@
-from qtpy.QtWidgets import QDialog
+import logging
+
+from qtpy.QtWidgets import QDialog, QDialogButtonBox
 
 from model.preferences import MODAL_BOX_RADIUS, MODAL_LF_GAIN, MODAL_TRANS_FREQ, MODAL_Q0, MODAL_F0, MODAL_COEFFS, \
-    MODAL_DRIVER_RADIUS, MODAL_MEASUREMENT_DISTANCE
+    MODAL_DRIVER_RADIUS, MODAL_MEASUREMENT_DISTANCE, MODAL_GROUP
 from ui.modalparameters import Ui_modalParametersDialog
+
+logger = logging.getLogger('modal')
 
 
 class ModalParameterModel:
@@ -12,15 +16,22 @@ class ModalParameterModel:
 
     def __init__(self, preferences):
         self.__preferences = preferences
-        self.__boxRadius = preferences.get(MODAL_BOX_RADIUS)
-        self.__lfGain = preferences.get(MODAL_LF_GAIN)
-        self.__transFreq = preferences.get(MODAL_TRANS_FREQ)
-        self.__q0 = preferences.get(MODAL_Q0)
-        self.__f0 = preferences.get(MODAL_F0)
-        self.__modalCoeffs = preferences.get(MODAL_COEFFS)
-        self.__driverRadius = preferences.get(MODAL_DRIVER_RADIUS)
-        self.__measurementDistance = preferences.get(MODAL_MEASUREMENT_DISTANCE)
+        self.__init()
         self.__refreshData = False
+
+    def __init(self):
+        self.__boxRadius = self.__preferences.get(MODAL_BOX_RADIUS)
+        self.__lfGain = self.__preferences.get(MODAL_LF_GAIN)
+        self.__transFreq = self.__preferences.get(MODAL_TRANS_FREQ)
+        self.__q0 = self.__preferences.get(MODAL_Q0)
+        self.__f0 = self.__preferences.get(MODAL_F0)
+        self.__modalCoeffs = self.__preferences.get(MODAL_COEFFS)
+        self.__driverRadius = self.__preferences.get(MODAL_DRIVER_RADIUS)
+        self.__measurementDistance = self.__preferences.get(MODAL_MEASUREMENT_DISTANCE)
+
+    def reset(self):
+        self.__preferences.clear_all(MODAL_GROUP)
+        self.__init()
 
     def __repr__(self):
         return self.__class__.__name__
@@ -117,11 +128,18 @@ class ModalParametersDialog(QDialog, Ui_modalParametersDialog):
     Modal Parameters dialog
     '''
 
-    def __init__(self, parent, parameters, measurement_model):
+    def __init__(self, parent, parameters, measurement_model, display_model):
         super(ModalParametersDialog, self).__init__(parent)
         self.setupUi(self)
         self.__parameters = parameters
         self.__measurement_model = measurement_model
+        self.__display_model = display_model
+        self.__load_values()
+        self.buttonBox.button(QDialogButtonBox.Apply).clicked.connect(self.apply)
+        self.buttonBox.button(QDialogButtonBox.RestoreDefaults).clicked.connect(self.reset)
+
+    def __load_values(self):
+        ''' Loads the values from the parameters. '''
         self.measurementDistance.setValue(self.__parameters.measurementDistance)
         self.driverRadius.setValue(self.__parameters.driverRadius * 100)
         self.modalCoeffs.setValue(self.__parameters.modalCoeffs)
@@ -131,8 +149,14 @@ class ModalParametersDialog(QDialog, Ui_modalParametersDialog):
         self.lfGain.setValue(self.__parameters.lfGain)
         self.boxRadius.setValue(self.__parameters.boxRadius)
 
-    def accept(self):
+    def reset(self):
+        ''' Resets the parameters '''
+        self.__parameters.reset()
+        self.__load_values()
+
+    def apply(self):
         ''' Updates the parameters and reanalyses the model. '''
+        logger.info('Updating modal parameters')
         self.__parameters.measurementDistance = self.measurementDistance.value()
         self.__parameters.driverRadius = self.driverRadius.value() / 100  # convert cm to m
         self.__parameters.modalCoeffs = self.modalCoeffs.value()
@@ -142,5 +166,7 @@ class ModalParametersDialog(QDialog, Ui_modalParametersDialog):
         self.__parameters.lfGain = self.lfGain.value()
         self.__parameters.boxRadius = self.boxRadius.value()
         self.__parameters.save()
-        self.__measurement_model.analyseModal()
-        QDialog.accept(self)
+        from app import wait_cursor
+        with wait_cursor('Applying modal parameter change'):
+            self.__measurement_model.reanalyse()
+            self.__display_model.redrawVisible()

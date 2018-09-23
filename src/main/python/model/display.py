@@ -16,7 +16,7 @@ class DisplayModel:
         self.__normalisationAngle = 0
         self.__visibleChart = None
         self.__colour_map = self.__preferences.get(DISPLAY_COLOUR_MAP)
-        self.__smoothing = None
+        self.__smoothing_type = None
         self.__locked = False
         self.results_charts = []
         self.measurement_model = None
@@ -49,12 +49,12 @@ class DisplayModel:
 
     @property
     def smoothing_type(self):
-        return self.__smoothing
+        return self.__smoothing_type
 
     @smoothing_type.setter
     def smoothing_type(self, smoothing_type):
-        self.__smoothing = smoothing_type
-        self.measurement_model.smooth(self.__smoothing)
+        self.__smoothing_type = smoothing_type
+        self.measurement_model.smooth(self.__smoothing_type)
 
     @property
     def normalised(self):

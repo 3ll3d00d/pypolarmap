@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_modalParametersDialog(object):
     def setupUi(self, modalParametersDialog):
         modalParametersDialog.setObjectName("modalParametersDialog")
-        modalParametersDialog.resize(338, 380)
+        modalParametersDialog.resize(394, 380)
         self.gridLayout = QtWidgets.QGridLayout(modalParametersDialog)
         self.gridLayout.setObjectName("gridLayout")
         self.formLayout = QtWidgets.QFormLayout()
@@ -112,7 +112,7 @@ class Ui_modalParametersDialog(object):
         self.gridLayout.addLayout(self.formLayout, 0, 0, 1, 1)
         self.buttonBox = QtWidgets.QDialogButtonBox(modalParametersDialog)
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
-        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Save)
+        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Apply|QtWidgets.QDialogButtonBox.Close|QtWidgets.QDialogButtonBox.RestoreDefaults)
         self.buttonBox.setObjectName("buttonBox")
         self.gridLayout.addWidget(self.buttonBox, 1, 0, 1, 1)
 

@@ -4,7 +4,7 @@ import logging
 from PyQt5 import QtGui
 from qtpy.QtWidgets import QMainWindow
 
-from model.preferences import LOGGING_LEVEL
+from model.preferences import LOGGING_LEVEL, LOGGING_BUFFER_SIZE
 from ui.logs import Ui_logsForm
 
 
@@ -63,11 +63,11 @@ class LogViewer(QMainWindow, Ui_logsForm):
 
 
 class RollingLogger(logging.Handler):
-    def __init__(self, parent, preferences, size=1000):
+    def __init__(self, parent, preferences):
         super().__init__()
-        self.__buffer = RingBuffer(size)
         self.__visible = False
         self.__preferences = preferences
+        self.__buffer = RingBuffer(self.__preferences.get(LOGGING_BUFFER_SIZE))
         self.__logWindow = None
         self.parent = parent
         self.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(funcName)s - %(message)s'))
@@ -116,6 +116,7 @@ class RollingLogger(logging.Handler):
         Changes the size of the log cache.
         '''
         if self.__buffer.set_size(size):
+            self.__preferences.set(LOGGING_BUFFER_SIZE, size)
             if self.__logWindow is not None:
                 self.__logWindow.refresh(self.__buffer)
 

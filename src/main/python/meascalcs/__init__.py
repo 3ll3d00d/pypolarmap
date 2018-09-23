@@ -4,6 +4,8 @@ import os
 import sys
 import time
 
+from matplotlib.pyplot import box
+
 from model.log import to_millis
 
 __all__ = ['fft', 'linToLog', 'calSpatial', 'calPolar']
@@ -54,7 +56,7 @@ def fft(data):
     result = np.concatenate(
         ([complex(paddedData[0], 0)], paddedData[2:].view(dtype=np.complex128), [complex(paddedData[1], 0)]))
     end = time.time()
-    logger.debug(f"{to_millis(start, end)}ms")
+    logger.debug(f"fft - {to_millis(start, end)}ms")
     return result, numPoints.value
 
 
@@ -110,7 +112,7 @@ def linToLog(linearFreqs, freqStep):
     logPoints = ct.c_int32(outputPts - 1)
     linToLog_func(inputData, freqStep, inputPts, outputData, logPoints, logFreqs)
     end = time.time()
-    logger.debug(f"{to_millis(start, end)}ms")
+    logger.debug(f"linToLog - {to_millis(start, end)}ms")
     return outputData.copy(), logFreqs.copy()
 
 
@@ -190,7 +192,10 @@ def calSpatial(logSpacedMeasurements, logSpacedFreqs, anglesInRadians, measureme
                     ct.c_double(q0),
                     ct.c_int32(sourceType))
     end = time.time()
-    logger.debug(f"{to_millis(start, end)}ms")
+    logger.debug(f"calSpatial ({to_millis(start, end)}ms) - numAngleIn: {anglesInRadians.shape[0]}, "
+                 f"numLogPts: {logSpacedFreqs.shape[0]}, numCoefs: {fitCoefficientsExpected}, "
+                 f"measureR: {measurementDistance}, transFreq: {transFreq}, lfGain: {lowFreqGain}, "
+                 f"boxRadius: {boxRadius}, radius: {driverRadius}, F0: {f0}, Q0: {f0}, SourceType: {sourceType}")
     return dataOut.copy()
 
 
@@ -230,7 +235,8 @@ def calPolar(modalData, angle, freq, boxRadius):
     result = calpolar_func(arg1, modalData.size, math.radians(angle), freq, 0.10, boxRadius)
     retVal = complex(result.real, result.imag)
     end = time.time()
-    logger.debug(f"{to_millis(start, end)}ms")
+    logger.debug(f"calPolar ({to_millis(start, end)}ms) - numCoef: {modalData.size}, angl: {math.radians(angle):.3f}, "
+                 f"freq: {freq:.1f}, farnum: 0.10, velnum: {boxRadius}")
     return retVal
 
 
@@ -268,7 +274,7 @@ def smooth(data, freqs, smoothingType):
     if smoothingType in SMOOTH_TYPES:
         smooth_func(dataIn, freqs, ct.c_int32(freqs.size), ct.c_int32(SMOOTH_TYPES[smoothingType]))
         end = time.time()
-        logger.debug(f"{to_millis(start, end)}ms")
+        logger.debug(f"smooth ({to_millis(start, end)}ms) - {smoothingType}")
         return dataIn.copy()
     else:
         raise ValueError('Unknown smoothing algorithm ' + str(smoothingType))
@@ -291,17 +297,18 @@ calpower_func.argtypes = [
 
 def calPower(modalData, freq, boxRadius):
     '''
-    Calculates the directivity index at the given frequency for the modal data.
+    Calculates the power response at the given frequency for the modal data.
     :param modalData: the data.
     :param freq: the freq at which we want to calculate the DI.
     :param boxRadius: the radius of a sphere with the same valume as the enclosure.
-    :return: the DI.
+    :return: the power response.
     '''
     start = time.time()
     arg1 = np.require(modalData, dtype=np.complex128, requirements=ALIGNED_ARR)
     result = calpower_func(arg1, modalData.size, freq, boxRadius)
     end = time.time()
-    logger.debug(f"{to_millis(start, end)}ms")
+    logger.debug(
+        f"calPower ({to_millis(start, end)}ms) - numCoef: {modalData.size}, freq: {freq:.1f}, farnum: {boxRadius}")
     return result
 
 # CalVelocity

@@ -5,7 +5,10 @@ import sys
 from contextlib import contextmanager
 
 import matplotlib
-from qtpy.QtCore import QSettings, QModelIndex, QItemSelectionModel
+
+matplotlib.use("Qt5Agg")
+
+from qtpy.QtCore import QSettings, QItemSelectionModel
 from qtpy.QtGui import QIcon, QFont, QCursor
 from qtpy.QtWidgets import QMainWindow, QFileDialog, QDialog, QDialogButtonBox, QMessageBox, QApplication, QErrorMessage
 
@@ -20,8 +23,6 @@ from model.preferences import Preferences
 from ui.loadMeasurements import Ui_loadMeasurementDialog
 from ui.pypolarmap import Ui_MainWindow
 from ui.savechart import Ui_saveChartDialog
-
-matplotlib.use("Qt5Agg")
 
 from model import impulse as imp, magnitude as mag, measurement as m, modal
 from qtpy import QtCore, QtWidgets
@@ -235,22 +236,27 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
         self.__modal_parameter_model = modal.ModalParameterModel(self.preferences)
         self.__display_model = DisplayModel(self.preferences)
         self.__measurement_model = m.MeasurementModel(self.__modal_parameter_model, self.__display_model)
+        self.__display_model.measurement_model = self.__measurement_model
+        depends_on_modal_params = lambda: self.__modal_parameter_model.shouldRefresh
         # modal graphs
         self.__modal_multi_model = MultiChartModel(self.modalMultiGraph, self.__measurement_model, COMPUTED_MODAL_DATA,
-                                                   self.__display_model)
+                                                   self.__display_model, self.preferences)
         self.__modal_polar_model = ContourModel(self.modalPolarGraph, self.__measurement_model, COMPUTED_MODAL_DATA,
-                                                self.__display_model)
+                                                self.__display_model, depends_on=depends_on_modal_params)
         self.__modal_magnitude_model = mag.MagnitudeModel(self.modalParametersGraph, self.__measurement_model,
-                                                          self.__display_model, type=MODAL_PARAMS_DATA,
-                                                          selector=self.modalParametersList)
+                                                          self.__display_model, self.preferences,
+                                                          type=MODAL_PARAMS_DATA, selector=self.modalParametersList,
+                                                          depends_on=depends_on_modal_params)
         # measured graphs
         self.__measured_multi_model = MultiChartModel(self.measuredMultiGraph, self.__measurement_model,
-                                                      REAL_WORLD_DATA, self.__display_model)
+                                                      REAL_WORLD_DATA, self.__display_model, self.preferences)
         self.__measured_polar_model = ContourModel(self.measuredPolarGraph, self.__measurement_model,
                                                    REAL_WORLD_DATA, self.__display_model)
         self.__measured_magnitude_model = mag.MagnitudeModel(self.measuredMagnitudeGraph, self.__measurement_model,
-                                                             self.__display_model, type=REAL_WORLD_DATA,
-                                                             selector=self.measuredMagnitudeCurves)
+                                                             self.__display_model, self.preferences,
+                                                             type=REAL_WORLD_DATA,
+                                                             selector=self.measuredMagnitudeCurves,
+                                                             depends_on=depends_on_modal_params)
         self.__display_model.results_charts = [self.__modal_multi_model, self.__modal_polar_model,
                                                self.__measured_multi_model, self.__measured_polar_model,
                                                self.__measured_magnitude_model]
@@ -282,7 +288,7 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
         '''
         Shows the parameters dialog.
         '''
-        ModalParametersDialog(self, self.__modal_parameter_model, self.__measurement_model).show()
+        ModalParametersDialog(self, self.__modal_parameter_model, self.__measurement_model, self.__display_model).show()
 
     def show_display_controls_dialog(self):
         '''

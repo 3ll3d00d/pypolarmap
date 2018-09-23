@@ -1,14 +1,17 @@
 LOGGING_LEVEL = 'logging/level'
-MODAL_BOX_RADIUS = 'modal/box_radius'
-MODAL_LF_GAIN = 'modal/lf_gain'
-MODAL_TRANS_FREQ = 'modal/trans_freq'
-MODAL_Q0 = 'modal/q0'
-MODAL_F0 = 'modal/f0'
-MODAL_COEFFS = 'modal/coeffs'
-MODAL_DRIVER_RADIUS = 'modal/driver_radius'
-MODAL_MEASUREMENT_DISTANCE = 'modal/measurement_distance'
+LOGGING_BUFFER_SIZE = 'logging/buffer_size'
+MODAL_GROUP = 'modal'
+MODAL_BOX_RADIUS = f"{MODAL_GROUP}/box_radius"
+MODAL_LF_GAIN = f"{MODAL_GROUP}/lf_gain"
+MODAL_TRANS_FREQ = f"{MODAL_GROUP}/trans_freq"
+MODAL_Q0 = f"{MODAL_GROUP}/q0"
+MODAL_F0 = f"{MODAL_GROUP}/f0"
+MODAL_COEFFS = f"{MODAL_GROUP}/coeffs"
+MODAL_DRIVER_RADIUS = f"{MODAL_GROUP}/driver_radius"
+MODAL_MEASUREMENT_DISTANCE = f"{MODAL_GROUP}/measurement_distance"
 DISPLAY_DB_RANGE = 'display/db_range'
 DISPLAY_COLOUR_MAP = 'display/colour_map'
+DISPLAY_SHOW_POWER_RESPONSE = 'display/show_power'
 
 DEFAULT_PREFS = {
     MODAL_BOX_RADIUS: 1.0,
@@ -20,8 +23,10 @@ DEFAULT_PREFS = {
     MODAL_DRIVER_RADIUS: 0.15,
     MODAL_MEASUREMENT_DISTANCE: 1.00,
     LOGGING_LEVEL: 'INFO',
+    LOGGING_BUFFER_SIZE: 5000,
     DISPLAY_DB_RANGE: 60,
-    DISPLAY_COLOUR_MAP: 'bgyw'
+    DISPLAY_COLOUR_MAP: 'bgyw',
+    DISPLAY_SHOW_POWER_RESPONSE: False,
 }
 
 TYPES = {
@@ -33,7 +38,9 @@ TYPES = {
     MODAL_COEFFS: int,
     MODAL_DRIVER_RADIUS: float,
     MODAL_MEASUREMENT_DISTANCE: float,
-    DISPLAY_DB_RANGE: int
+    DISPLAY_DB_RANGE: int,
+    DISPLAY_SHOW_POWER_RESPONSE: bool,
+    LOGGING_BUFFER_SIZE: int
 }
 
 
@@ -85,6 +92,15 @@ class Preferences:
             self.__settings.remove(key)
         else:
             self.__settings.setValue(key, value)
+
+    def clear_all(self, group):
+        ''' clears all in the group '''
+        self.__settings.beginGroup(group)
+        try:
+            for x in self.__settings.childKeys():
+                self.__settings.remove(x)
+        finally:
+            self.__settings.endGroup()
 
     def clear(self, key):
         '''
