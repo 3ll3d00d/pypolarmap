@@ -5,7 +5,7 @@ import typing
 from collections.abc import Sequence
 
 import numpy as np
-from qtpy.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant
+from qtpy.QtCore import QModelIndex, Qt, QVariant, QAbstractListModel
 from scipy import signal
 
 from meascalcs import fft, linToLog, calSpatial, calPolar, smooth, calPower
@@ -21,7 +21,8 @@ WINDOW_MAPPING = {
 }
 
 REAL_WORLD_DATA = 'REALWORLD'
-COMPUTED_MODAL_DATA = 'MODAL'
+MODAL_PARAMS_DATA = 'MODAL1'
+COMPUTED_MODAL_DATA = 'MODAL2'
 
 # events that listeners have to handle
 LOAD_MEASUREMENTS = 'LOAD'
@@ -47,13 +48,13 @@ class MeasurementModel(Sequence):
     CalPolar needs a vector (a row) of the complex array Modal.model at the desired frequency Freq.log(Current Frequency) and the desired R.angle, Freq.log(Current Frequency) and FieldRadius (your farnum) as double real numbers. It also needs the assumed source.radius (your velnum) which is not the driver radius, but the radius of a sphere which is the same volume as the enclosure.
     '''
 
-    def __init__(self, modalParameters, displayModel, m=None, listeners=None):
+    def __init__(self, modal_parameters, display_model, m=None, listeners=None):
         self.__measurements = m if m is not None else []
         self.__listeners = listeners if listeners is not None else []
         self.__modalResponse = None
         self.__smoothingType = None
-        self.__modalParameters = modalParameters
-        self.__displayModel = displayModel
+        self.__modalParameters = modal_parameters
+        self.__displayModel = display_model
         self.__displayModel.measurementModel = self
         self.__complexData = {}
         self.__powerResponse = {}
@@ -142,20 +143,25 @@ class MeasurementModel(Sequence):
         :param right: the right parameters.
         '''
         a = time.time()
-        completeWindow = self.createWindow(left, right)
+        self.__completeWindow = self.createWindow(left, right)
         for m in self.__measurements:
-            m.analyse(left['position'].value(), right['position'].value(), win=completeWindow)
+            m.analyse(left['position'].value(), right['position'].value(), win=self.__completeWindow)
         self.__complexData[REAL_WORLD_DATA] = [self._createFRData(x) for x in self.__measurements]
         b = time.time()
         logger.debug(f"Analysed {len(self)} real world measurements in {to_millis(a, b)}ms")
-        self._computePowerResponse(REAL_WORLD_DATA)
-        c = time.time()
-        logger.debug(f"Analysed power response in {to_millis(b, c)}ms")
+        self.reanalyse()
 
-        self.analyseModal()
-        d = time.time()
-        logger.debug(f"Analysed modal response in {to_millis(c, d)}ms")
-        self.__propagateEvent(ANALYSED)
+    def reanalyse(self):
+        ''' reanalyses the derived data '''
+        if REAL_WORLD_DATA in self.__complexData:
+            b = time.time()
+            self._computePowerResponse(REAL_WORLD_DATA)
+            c = time.time()
+            logger.debug(f"Analysed power response in {to_millis(b, c)}ms")
+            self.analyseModal()
+            d = time.time()
+            logger.debug(f"Analysed modal response in {to_millis(c, d)}ms")
+            self.__propagateEvent(ANALYSED)
 
     def _computePowerResponse(self, dataType):
         '''
@@ -234,9 +240,14 @@ class MeasurementModel(Sequence):
                                               self.__modalParameters.boxRadius,
                                               self.__modalParameters.f0,
                                               self.__modalParameters.q0)
+            logFreqs = self.__complexData[REAL_WORLD_DATA][0].x
+            # store the modal response by frequency
+            modal = []
+            for idx in range(0, self.__modalResponse.shape[0]):
+                modal.append(ComplexData(name=f"mode {idx}", hAngle=None, x=logFreqs, y=self.__modalResponse[idx]))
+            self.__complexData[MODAL_PARAMS_DATA] = modal
             # compute the polar response using the modal parameters
             modal = []
-            logFreqs = self.__complexData[REAL_WORLD_DATA][0].x
             for angle in range(0, 182, 2):
                 name = 'modal ' + str(angle)
                 x = logFreqs
@@ -258,7 +269,7 @@ class MeasurementModel(Sequence):
         '''
         data = [x.getMagnitude(ref, self.__smoothingType) for x in
                 self.__complexData[type]] if type in self.__complexData else []
-        if self.__displayModel.normalised:
+        if self.__displayModel.normalised and self.can_normalise(type):
             target = next(
                 (x for x in data if math.isclose(float(x.hAngle), float(self.__displayModel.normalisationAngle))), None)
             if target:
@@ -266,6 +277,15 @@ class MeasurementModel(Sequence):
             else:
                 print(f"Unable to normalise {self.__displayModel.normalisationAngle}")
         return data
+
+    def can_normalise(self, type):
+        '''
+        :param type: the data type.
+        :return: True if that type can be normalised.
+        '''
+        if type == REAL_WORLD_DATA or type == COMPUTED_MODAL_DATA:
+            return True
+        return False
 
     def getPowerResponse(self, type=REAL_WORLD_DATA, ref=1):
         '''
@@ -361,6 +381,10 @@ class Measurement:
         self.fftOutput = np.array([])
         self.fftPoints = 0
 
+    @property
+    def name(self):
+        return self._name
+
     def size(self):
         '''
         :return: no of samples in the measurement.
@@ -435,22 +459,18 @@ class Measurement:
         return '{}: {}'.format(self.__class__.__name__, self.getDisplayName())
 
 
-class MeasurementTableModel(QAbstractTableModel):
+class MeasurementListModel(QAbstractListModel):
     '''
     A Qt table model to feed the measurements view.
     '''
 
     def __init__(self, model, parent=None):
         super().__init__(parent=parent)
-        self._headers = ['File', 'Samples', 'H', 'V']
         self._measurementModel = model
         self._measurementModel.table = self
 
     def rowCount(self, parent: QModelIndex = ...):
         return len(self._measurementModel)
-
-    def columnCount(self, parent: QModelIndex = ...):
-        return len(self._headers)
 
     def data(self, index: QModelIndex, role: int = ...) -> typing.Any:
         if not index.isValid():
@@ -458,22 +478,4 @@ class MeasurementTableModel(QAbstractTableModel):
         elif role != Qt.DisplayRole:
             return QVariant()
         else:
-            if index.column() == 0:
-                return QVariant(self._measurementModel[index.row()]._name)
-            elif index.column() == 1:
-                return QVariant(self._measurementModel[index.row()].size())
-            elif index.column() == 2:
-                return QVariant(self._measurementModel[index.row()]._h)
-            elif index.column() == 3:
-                return QVariant(self._measurementModel[index.row()]._v)
-            else:
-                return QVariant()
-
-    def headerData(self, section: int, orientation: Qt.Orientation, role: int = ...) -> typing.Any:
-        if orientation == Qt.Horizontal and role == Qt.DisplayRole:
-            return QVariant(self._headers[section])
-        return QVariant()
-
-    def completeRendering(self, view):
-        for x in range(0, 4):
-            view.resizeColumnToContents(x)
+            return QVariant(self._measurementModel[index.row()]._name)

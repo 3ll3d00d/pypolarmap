@@ -23,238 +23,20 @@
      <verstretch>0</verstretch>
     </sizepolicy>
    </property>
-   <layout class="QGridLayout" name="gridLayout" columnstretch="0,0">
+   <layout class="QGridLayout" name="gridLayout" columnstretch="0">
     <item row="0" column="0">
-     <layout class="QGridLayout" name="menuGridLayout">
-      <property name="sizeConstraint">
-       <enum>QLayout::SetMaximumSize</enum>
-      </property>
-      <item row="3" column="0" rowspan="2" colspan="2">
-       <layout class="QFormLayout" name="optionsFormLayout">
-        <item row="0" column="0">
-         <widget class="QLabel" name="label_13">
-          <property name="text">
-           <string>Fs</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="1">
-         <widget class="QSpinBox" name="fs">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="suffix">
-           <string>Hz</string>
-          </property>
-          <property name="minimum">
-           <number>44100</number>
-          </property>
-          <property name="maximum">
-           <number>384000</number>
-          </property>
-          <property name="singleStep">
-           <number>100</number>
-          </property>
-          <property name="value">
-           <number>48000</number>
-          </property>
-          <property name="displayIntegerBase">
-           <number>10</number>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0">
-         <widget class="QLabel" name="label_16">
-          <property name="text">
-           <string>Active Axis</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1">
-         <widget class="QComboBox" name="comboBox_2">
-          <item>
-           <property name="text">
-            <string>Horizontal</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Vertical</string>
-           </property>
-          </item>
-         </widget>
-        </item>
-        <item row="2" column="0" colspan="2">
-         <widget class="QLabel" name="label_18">
-          <property name="font">
-           <font>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="frameShape">
-           <enum>QFrame::Box</enum>
-          </property>
-          <property name="frameShadow">
-           <enum>QFrame::Sunken</enum>
-          </property>
-          <property name="text">
-           <string>Display Controls</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="0">
-         <widget class="QLabel" name="label_14">
-          <property name="text">
-           <string>Smoothing</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="1">
-         <widget class="QComboBox" name="smoothingType">
-          <item>
-           <property name="text">
-            <string>None</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>1/3 Octave</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>1/6 Octave</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>1/12 Octave</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>CB Zwicker</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>CB Moore</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Narrow</string>
-           </property>
-          </item>
-         </widget>
-        </item>
-        <item row="4" column="0">
-         <widget class="QLabel" name="label_3">
-          <property name="text">
-           <string>Colour Scheme</string>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="1">
-         <widget class="QComboBox" name="colourMapSelector"/>
-        </item>
-        <item row="5" column="0">
-         <widget class="QLabel" name="label_4">
-          <property name="text">
-           <string>Y Range</string>
-          </property>
-         </widget>
-        </item>
-        <item row="5" column="1">
-         <widget class="QSpinBox" name="yAxisRange">
-          <property name="suffix">
-           <string>dB</string>
-          </property>
-          <property name="minimum">
-           <number>10</number>
-          </property>
-          <property name="maximum">
-           <number>120</number>
-          </property>
-          <property name="singleStep">
-           <number>5</number>
-          </property>
-          <property name="value">
-           <number>60</number>
-          </property>
-         </widget>
-        </item>
-        <item row="6" column="1">
-         <widget class="QCheckBox" name="normaliseCheckBox">
-          <property name="text">
-           <string>Normalise?</string>
-          </property>
-         </widget>
-        </item>
-        <item row="7" column="0">
-         <widget class="QLabel" name="label_15">
-          <property name="text">
-           <string>Normalisation Angle</string>
-          </property>
-         </widget>
-        </item>
-        <item row="7" column="1">
-         <widget class="QComboBox" name="normalisationAngle">
-          <item>
-           <property name="text">
-            <string>0</string>
-           </property>
-          </item>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item row="0" column="0">
-       <widget class="QPushButton" name="selectDirBtn">
-        <property name="text">
-         <string>Load Measurements</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0" colspan="2">
-       <widget class="QLineEdit" name="dataPath">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>320</width>
-          <height>16777215</height>
-         </size>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QPushButton" name="saveImageBtn">
-        <property name="text">
-         <string>Save Image</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0" colspan="2">
-       <widget class="QTreeView" name="measurementView"/>
-      </item>
-     </layout>
-    </item>
-    <item row="0" column="1">
      <widget class="QTabWidget" name="graphTabs">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
       <property name="minimumSize">
        <size>
         <width>0</width>
         <height>0</height>
        </size>
+      </property>
+      <property name="tabShape">
+       <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
        <number>0</number>
@@ -288,14 +70,91 @@
           <item row="0" column="0">
            <layout class="QVBoxLayout" name="impulseControlsContainer">
             <item>
-             <layout class="QHBoxLayout" name="horizontalLayout">
+             <layout class="QVBoxLayout" name="verticalLayout">
               <item>
-               <widget class="QPushButton" name="applyWindowBtn">
-                <property name="enabled">
-                 <bool>false</bool>
+               <widget class="QLabel" name="measurementsHeaderLabel">
+                <property name="font">
+                 <font>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="frameShape">
+                 <enum>QFrame::Box</enum>
+                </property>
+                <property name="frameShadow">
+                 <enum>QFrame::Sunken</enum>
                 </property>
                 <property name="text">
-                 <string>Apply Window</string>
+                 <string>Measurements</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <layout class="QFormLayout" name="measurementDetailsLayout">
+                <item row="1" column="0">
+                 <widget class="QLabel" name="fsLabel">
+                  <property name="text">
+                   <string>Fs</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="1">
+                 <widget class="QSpinBox" name="fs">
+                  <property name="enabled">
+                   <bool>false</bool>
+                  </property>
+                  <property name="suffix">
+                   <string>Hz</string>
+                  </property>
+                  <property name="minimum">
+                   <number>44100</number>
+                  </property>
+                  <property name="maximum">
+                   <number>384000</number>
+                  </property>
+                  <property name="singleStep">
+                   <number>100</number>
+                  </property>
+                  <property name="value">
+                   <number>48000</number>
+                  </property>
+                  <property name="displayIntegerBase">
+                   <number>10</number>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="0" colspan="2">
+                 <widget class="QLineEdit" name="dataPath">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>320</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <widget class="QListView" name="measurementView">
+                <property name="editTriggers">
+                 <set>QAbstractItemView::NoEditTriggers</set>
+                </property>
+                <property name="selectionMode">
+                 <enum>QAbstractItemView::MultiSelection</enum>
+                </property>
+                <property name="selectionBehavior">
+                 <enum>QAbstractItemView::SelectRows</enum>
                 </property>
                </widget>
               </item>
@@ -312,6 +171,16 @@
                 </property>
                 <property name="flat">
                  <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="applyWindowBtn">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="text">
+                 <string>Apply Window</string>
                 </property>
                </widget>
               </item>
@@ -457,282 +326,25 @@
              </layout>
             </item>
             <item>
-             <layout class="QHBoxLayout" name="zoomBtnContainer">
-              <item>
-               <widget class="QPushButton" name="zoomInButton">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-                <property name="text">
-                 <string>Zoom In</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="zoomOutBtn">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-                <property name="text">
-                 <string>Zoom Out</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="findPeakButton">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-                <property name="text">
-                 <string>Find First Peak</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
+             <widget class="QPushButton" name="findPeakButton">
+              <property name="text">
+               <string>Find First Peak</string>
+              </property>
+             </widget>
             </item>
             <item>
-             <layout class="QFormLayout" name="modalControlsContainer">
-              <property name="sizeConstraint">
-               <enum>QLayout::SetMinimumSize</enum>
+             <widget class="QPushButton" name="zoomOutBtn">
+              <property name="text">
+               <string>Zoom Out</string>
               </property>
-              <item row="2" column="0">
-               <widget class="QLabel" name="label_5">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="maximumSize">
-                 <size>
-                  <width>16777215</width>
-                  <height>16777215</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string>Measurement Distance (m)</string>
-                </property>
-                <property name="wordWrap">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="1">
-               <widget class="QDoubleSpinBox" name="measurementDistance">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="minimum">
-                 <double>0.100000000000000</double>
-                </property>
-                <property name="maximum">
-                 <double>10.000000000000000</double>
-                </property>
-                <property name="singleStep">
-                 <double>0.010000000000000</double>
-                </property>
-                <property name="value">
-                 <double>1.000000000000000</double>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="0">
-               <widget class="QLabel" name="label_12">
-                <property name="text">
-                 <string>Box Radius (m)</string>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="1">
-               <widget class="QDoubleSpinBox" name="boxRadius">
-                <property name="minimum">
-                 <double>0.010000000000000</double>
-                </property>
-                <property name="maximum">
-                 <double>3.000000000000000</double>
-                </property>
-                <property name="singleStep">
-                 <double>0.010000000000000</double>
-                </property>
-                <property name="value">
-                 <double>0.250000000000000</double>
-                </property>
-               </widget>
-              </item>
-              <item row="4" column="0">
-               <widget class="QLabel" name="label_6">
-                <property name="text">
-                 <string>Driver Radius (cm)</string>
-                </property>
-               </widget>
-              </item>
-              <item row="4" column="1">
-               <widget class="QDoubleSpinBox" name="driverRadius">
-                <property name="decimals">
-                 <number>1</number>
-                </property>
-                <property name="minimum">
-                 <double>1.000000000000000</double>
-                </property>
-                <property name="maximum">
-                 <double>40.000000000000000</double>
-                </property>
-                <property name="singleStep">
-                 <double>0.100000000000000</double>
-                </property>
-                <property name="value">
-                 <double>15.000000000000000</double>
-                </property>
-               </widget>
-              </item>
-              <item row="5" column="0">
-               <widget class="QLabel" name="label_7">
-                <property name="text">
-                 <string>Modal Coefficients</string>
-                </property>
-                <property name="wordWrap">
-                 <bool>false</bool>
-                </property>
-               </widget>
-              </item>
-              <item row="5" column="1">
-               <widget class="QSpinBox" name="modalCoeffs">
-                <property name="minimum">
-                 <number>5</number>
-                </property>
-                <property name="maximum">
-                 <number>14</number>
-                </property>
-                <property name="value">
-                 <number>14</number>
-                </property>
-               </widget>
-              </item>
-              <item row="6" column="0">
-               <widget class="QLabel" name="label_8">
-                <property name="text">
-                 <string>f0</string>
-                </property>
-               </widget>
-              </item>
-              <item row="6" column="1">
-               <widget class="QSpinBox" name="f0">
-                <property name="minimum">
-                 <number>1</number>
-                </property>
-                <property name="maximum">
-                 <number>200</number>
-                </property>
-                <property name="value">
-                 <number>70</number>
-                </property>
-               </widget>
-              </item>
-              <item row="7" column="0">
-               <widget class="QLabel" name="label_9">
-                <property name="text">
-                 <string>q0</string>
-                </property>
-               </widget>
-              </item>
-              <item row="7" column="1">
-               <widget class="QDoubleSpinBox" name="q0">
-                <property name="decimals">
-                 <number>3</number>
-                </property>
-                <property name="minimum">
-                 <double>0.200000000000000</double>
-                </property>
-                <property name="maximum">
-                 <double>1.500000000000000</double>
-                </property>
-                <property name="singleStep">
-                 <double>0.001000000000000</double>
-                </property>
-                <property name="value">
-                 <double>0.700000000000000</double>
-                </property>
-               </widget>
-              </item>
-              <item row="8" column="0">
-               <widget class="QLabel" name="label_10">
-                <property name="text">
-                 <string>Transition Frequency (Hz)</string>
-                </property>
-                <property name="wordWrap">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item row="8" column="1">
-               <widget class="QSpinBox" name="transFreq">
-                <property name="minimum">
-                 <number>1</number>
-                </property>
-                <property name="maximum">
-                 <number>1000</number>
-                </property>
-                <property name="value">
-                 <number>200</number>
-                </property>
-               </widget>
-              </item>
-              <item row="9" column="0">
-               <widget class="QLabel" name="label_11">
-                <property name="text">
-                 <string>LF Gain (dB)</string>
-                </property>
-               </widget>
-              </item>
-              <item row="9" column="1">
-               <widget class="QDoubleSpinBox" name="lfGain">
-                <property name="decimals">
-                 <number>1</number>
-                </property>
-                <property name="minimum">
-                 <double>-10.000000000000000</double>
-                </property>
-                <property name="maximum">
-                 <double>10.000000000000000</double>
-                </property>
-                <property name="singleStep">
-                 <double>0.100000000000000</double>
-                </property>
-               </widget>
-              </item>
-              <item row="10" column="1">
-               <widget class="QPushButton" name="refreshSpatialBtn">
-                <property name="text">
-                 <string>Update</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="0" colspan="2">
-               <widget class="QLabel" name="label_17">
-                <property name="font">
-                 <font>
-                  <weight>75</weight>
-                  <bold>true</bold>
-                 </font>
-                </property>
-                <property name="frameShape">
-                 <enum>QFrame::Box</enum>
-                </property>
-                <property name="frameShadow">
-                 <enum>QFrame::Sunken</enum>
-                </property>
-                <property name="text">
-                 <string>Modal Controls</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignCenter</set>
-                </property>
-               </widget>
-              </item>
-             </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="zoomInButton">
+              <property name="text">
+               <string>Zoom To Window</string>
+              </property>
+             </widget>
             </item>
            </layout>
           </item>
@@ -744,8 +356,58 @@
        <attribute name="title">
         <string>Measured - Magnitude</string>
        </attribute>
-       <layout class="QGridLayout" name="gridLayout_3">
+       <layout class="QGridLayout" name="measuredMagnitudeGridLayout" columnstretch="0,1">
         <item row="0" column="0">
+         <layout class="QGridLayout" name="measuredMagnitudeControlLayout">
+          <item row="1" column="0">
+           <widget class="QPushButton" name="selectAllMeasuredButton">
+            <property name="text">
+             <string>Select All</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QPushButton" name="clearAllMeasuredButton">
+            <property name="text">
+             <string>Clear All</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0" colspan="2">
+           <widget class="QListWidget" name="measuredMagnitudeCurves">
+            <property name="editTriggers">
+             <set>QAbstractItemView::NoEditTriggers</set>
+            </property>
+            <property name="selectionMode">
+             <enum>QAbstractItemView::MultiSelection</enum>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0" colspan="2">
+           <widget class="QLabel" name="measuredMagnitudeCurvesLabel">
+            <property name="font">
+             <font>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="frameShape">
+             <enum>QFrame::Box</enum>
+            </property>
+            <property name="frameShadow">
+             <enum>QFrame::Sunken</enum>
+            </property>
+            <property name="text">
+             <string>Curves</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="0" column="1">
          <widget class="MplWidget" name="measuredMagnitudeGraph">
           <property name="minimumSize">
            <size>
@@ -788,6 +450,66 @@
            </size>
           </property>
          </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="modalParametersTab">
+       <attribute name="title">
+        <string>Modal - Parameters</string>
+       </attribute>
+       <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,1">
+        <item>
+         <layout class="QGridLayout" name="modalParametersSelectorLayout">
+          <item row="1" column="0">
+           <widget class="QPushButton" name="selectAllModalParametersButton">
+            <property name="text">
+             <string>Select All</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QPushButton" name="clearAllModalParametersButton">
+            <property name="text">
+             <string>Clear All</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0" colspan="2">
+           <widget class="QLabel" name="modesLabel">
+            <property name="font">
+             <font>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="frameShape">
+             <enum>QFrame::Box</enum>
+            </property>
+            <property name="frameShadow">
+             <enum>QFrame::Sunken</enum>
+            </property>
+            <property name="text">
+             <string>Modes</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0" colspan="2">
+           <widget class="QListWidget" name="modalParametersList">
+            <property name="editTriggers">
+             <set>QAbstractItemView::NoEditTriggers</set>
+            </property>
+            <property name="selectionMode">
+             <enum>QAbstractItemView::MultiSelection</enum>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="MplWidget" name="modalParametersGraph"/>
         </item>
        </layout>
       </widget>
@@ -840,24 +562,33 @@
    </property>
    <widget class="QMenu" name="menuFile">
     <property name="title">
-     <string>File</string>
+     <string>&amp;File</string>
     </property>
     <addaction name="actionLoad"/>
     <addaction name="actionSave_Current_Image"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
-     <string>Help</string>
+     <string>&amp;Help</string>
     </property>
     <addaction name="actionShow_Logs"/>
+    <addaction name="actionAbout"/>
+   </widget>
+   <widget class="QMenu" name="menuSettings">
+    <property name="title">
+     <string>&amp;Settings</string>
+    </property>
+    <addaction name="actionModal_Parameters"/>
+    <addaction name="action_Display"/>
    </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuSettings"/>
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionLoad">
    <property name="text">
-    <string>Load</string>
+    <string>&amp;Load</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
@@ -865,7 +596,7 @@
   </action>
   <action name="actionSave_Current_Image">
    <property name="text">
-    <string>Save Chart</string>
+    <string>Save &amp;Chart</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
@@ -873,10 +604,31 @@
   </action>
   <action name="actionShow_Logs">
    <property name="text">
-    <string>Show Logs</string>
+    <string>Show &amp;Logs</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+L</string>
+   </property>
+  </action>
+  <action name="actionModal_Parameters">
+   <property name="text">
+    <string>&amp;Modal Parameters</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+M</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>&amp;About</string>
+   </property>
+  </action>
+  <action name="action_Display">
+   <property name="text">
+    <string>&amp;Display</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+D</string>
    </property>
   </action>
  </widget>
@@ -890,30 +642,14 @@
  <resources/>
  <connections>
   <connection>
-   <sender>selectDirBtn</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>selectDirectory()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>131</x>
-     <y>75</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>418</x>
-     <y>114</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>zoomInButton</sender>
    <signal>clicked()</signal>
    <receiver>MainWindow</receiver>
    <slot>zoomIn()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>429</x>
-     <y>304</y>
+     <x>287</x>
+     <y>730</y>
     </hint>
     <hint type="destinationlabel">
      <x>736</x>
@@ -928,8 +664,8 @@
    <slot>removeWindow()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>671</x>
-     <y>121</y>
+     <x>286</x>
+     <y>419</y>
     </hint>
     <hint type="destinationlabel">
      <x>715</x>
@@ -960,188 +696,12 @@
    <slot>zoomOut()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>550</x>
-     <y>304</y>
+     <x>287</x>
+     <y>687</y>
     </hint>
     <hint type="destinationlabel">
      <x>588</x>
      <y>47</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>colourMapSelector</sender>
-   <signal>currentIndexChanged(QString)</signal>
-   <receiver>MainWindow</receiver>
-   <slot>updateColourMap()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>288</x>
-     <y>647</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>593</x>
-     <y>1069</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>measurementDistance</sender>
-   <signal>valueChanged(double)</signal>
-   <receiver>MainWindow</receiver>
-   <slot>updateMeasurementDistance()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>671</x>
-     <y>381</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>593</x>
-     <y>907</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>driverRadius</sender>
-   <signal>valueChanged(double)</signal>
-   <receiver>MainWindow</receiver>
-   <slot>updateDriverRadius()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>671</x>
-     <y>462</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>593</x>
-     <y>971</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>modalCoeffs</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>MainWindow</receiver>
-   <slot>updateModalCoeffs()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>671</x>
-     <y>496</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>593</x>
-     <y>1013</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>f0</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>MainWindow</receiver>
-   <slot>updateF0()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>671</x>
-     <y>530</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>590</x>
-     <y>1096</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>q0</sender>
-   <signal>valueChanged(double)</signal>
-   <receiver>MainWindow</receiver>
-   <slot>updateQ0()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>671</x>
-     <y>564</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>588</x>
-     <y>1055</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>transFreq</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>MainWindow</receiver>
-   <slot>updateTransitionFrequency()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>671</x>
-     <y>598</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>591</x>
-     <y>937</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>lfGain</sender>
-   <signal>valueChanged(double)</signal>
-   <receiver>MainWindow</receiver>
-   <slot>updateLFGain()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>671</x>
-     <y>645</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>589</x>
-     <y>884</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>boxRadius</sender>
-   <signal>valueChanged(double)</signal>
-   <receiver>MainWindow</receiver>
-   <slot>updateBoxRadius()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>671</x>
-     <y>428</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>203</x>
-     <y>896</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>refreshSpatialBtn</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>refreshModal()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>671</x>
-     <y>688</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>589</x>
-     <y>856</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>smoothingType</sender>
-   <signal>currentIndexChanged(QString)</signal>
-   <receiver>MainWindow</receiver>
-   <slot>updateSmoothing()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>288</x>
-     <y>613</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>163</x>
-     <y>1123</y>
     </hint>
    </hints>
   </connection>
@@ -1152,8 +712,8 @@
    <slot>updateWindow()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>415</x>
-     <y>94</y>
+     <x>286</x>
+     <y>462</y>
     </hint>
     <hint type="destinationlabel">
      <x>301</x>
@@ -1168,8 +728,8 @@
    <slot>zoomOut()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>550</x>
-     <y>304</y>
+     <x>287</x>
+     <y>687</y>
     </hint>
     <hint type="destinationlabel">
      <x>348</x>
@@ -1179,13 +739,13 @@
   </connection>
   <connection>
    <sender>rightWindowSample</sender>
-   <signal>editingFinished()</signal>
+   <signal>valueChanged(int)</signal>
    <receiver>MainWindow</receiver>
    <slot>updateRightWindow()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>671</x>
-     <y>259</y>
+     <x>286</x>
+     <y>600</y>
     </hint>
     <hint type="destinationlabel">
      <x>373</x>
@@ -1195,13 +755,13 @@
   </connection>
   <connection>
    <sender>leftWindowSample</sender>
-   <signal>editingFinished()</signal>
+   <signal>valueChanged(int)</signal>
    <receiver>MainWindow</receiver>
    <slot>updateLeftWindow()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>671</x>
-     <y>191</y>
+     <x>286</x>
+     <y>532</y>
     </hint>
     <hint type="destinationlabel">
      <x>373</x>
@@ -1216,8 +776,8 @@
    <slot>updateLeftWindow()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>550</x>
-     <y>191</y>
+     <x>198</x>
+     <y>532</y>
     </hint>
     <hint type="destinationlabel">
      <x>14</x>
@@ -1232,8 +792,8 @@
    <slot>updateLeftWindow()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>671</x>
-     <y>157</y>
+     <x>286</x>
+     <y>498</y>
     </hint>
     <hint type="destinationlabel">
      <x>8</x>
@@ -1248,8 +808,8 @@
    <slot>updateRightWindow()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>671</x>
-     <y>225</y>
+     <x>286</x>
+     <y>566</y>
     </hint>
     <hint type="destinationlabel">
      <x>374</x>
@@ -1264,76 +824,12 @@
    <slot>updateRightWindow()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>550</x>
-     <y>259</y>
+     <x>198</x>
+     <y>600</y>
     </hint>
     <hint type="destinationlabel">
      <x>374</x>
      <y>482</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>yAxisRange</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>MainWindow</receiver>
-   <slot>setYRange()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>288</x>
-     <y>681</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>374</x>
-     <y>1115</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>normaliseCheckBox</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>toggleNormalised()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>288</x>
-     <y>713</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>97</x>
-     <y>1070</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>normalisationAngle</sender>
-   <signal>currentIndexChanged(QString)</signal>
-   <receiver>MainWindow</receiver>
-   <slot>setNormalisationAngle()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>288</x>
-     <y>747</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>182</x>
-     <y>1094</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>saveImageBtn</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>saveCurrentChart()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>227</x>
-     <y>50</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>458</x>
-     <y>36</y>
     </hint>
    </hints>
   </connection>
@@ -1344,12 +840,76 @@
    <slot>findFirstPeak()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>626</x>
-     <y>290</y>
+     <x>287</x>
+     <y>644</y>
     </hint>
     <hint type="destinationlabel">
      <x>295</x>
      <y>338</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>selectAllModalParametersButton</sender>
+   <signal>clicked()</signal>
+   <receiver>modalParametersList</receiver>
+   <slot>selectAll()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>85</x>
+     <y>133</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>106</x>
+     <y>209</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>clearAllModalParametersButton</sender>
+   <signal>clicked()</signal>
+   <receiver>modalParametersList</receiver>
+   <slot>clearSelection()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>219</x>
+     <y>129</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>234</x>
+     <y>192</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>selectAllMeasuredButton</sender>
+   <signal>clicked()</signal>
+   <receiver>measuredMagnitudeCurves</receiver>
+   <slot>selectAll()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>116</x>
+     <y>123</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>121</x>
+     <y>183</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>clearAllMeasuredButton</sender>
+   <signal>clicked()</signal>
+   <receiver>measuredMagnitudeCurves</receiver>
+   <slot>clearSelection()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>201</x>
+     <y>119</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>222</x>
+     <y>202</y>
     </hint>
    </hints>
   </connection>
@@ -1367,15 +927,6 @@
   <slot>updateWindow()</slot>
   <slot>updateColourMap()</slot>
   <slot>updateContourInterval()</slot>
-  <slot>updateMeasurementDistance()</slot>
-  <slot>updateDriverRadius()</slot>
-  <slot>updateModalCoeffs()</slot>
-  <slot>updateF0()</slot>
-  <slot>updateQ0()</slot>
-  <slot>updateLFGain()</slot>
-  <slot>updateTransitionFrequency()</slot>
-  <slot>updateBoxRadius()</slot>
-  <slot>refreshModal()</slot>
   <slot>updateSmoothing()</slot>
   <slot>setYRange()</slot>
   <slot>toggleNormalised()</slot>

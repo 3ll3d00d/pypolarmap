@@ -13,20 +13,20 @@ class MultiChartModel:
     is driven by the position of the cursor over the sonagram.
     '''
 
-    def __init__(self, chart, measurementModel, type, dBRange=60):
+    def __init__(self, chart, measurementModel, type, display_model, preferences):
         self._chart = chart
         self._measurementModel = measurementModel
         self._type = type
         self.name = f"multi_{self._type}"
         gs = GridSpec(2, 3, width_ratios=[1, 1, 0.75])
-        self._magnitude = AnimatedSingleLineMagnitudeModel(self._chart, self._measurementModel, type=type,
-                                                           subplotSpec=gs.new_subplotspec((0, 0), 1, 3),
-                                                           dBRange=dBRange)
-        self._sonagram = ContourModel(self._chart, self._measurementModel, type,
+        self._magnitude = AnimatedSingleLineMagnitudeModel(self._chart, self._measurementModel, display_model,
+                                                           preferences, type=type,
+                                                           subplotSpec=gs.new_subplotspec((0, 0), 1, 3))
+        self._sonagram = ContourModel(self._chart, self._measurementModel, type, display_model,
                                       subplotSpec=gs.new_subplotspec((1, 0), 1, 2),
                                       redrawOnDisplay=False)
-        self._polar = PolarModel(self._chart, self._measurementModel, type=type,
-                                 subplotSpec=gs.new_subplotspec((1, 2), 1, 1), dBRange=dBRange)
+        self._polar = PolarModel(self._chart, self._measurementModel, display_model, type=type,
+                                 subplotSpec=gs.new_subplotspec((1, 2), 1, 1))
         self._mouseReactor = MouseReactor(0.10, self.propagateCoords)
 
     def __repr__(self):
@@ -41,8 +41,13 @@ class MultiChartModel:
         self._magnitude.display()
         self._polar.display()
         self._sonagram.display()
-        self._chart.canvas.draw()
+        self._chart.canvas.draw_idle()
         return True
+
+    def hide(self):
+        ''' Reacts to the chart no longer being visible by stopping the animation '''
+        self._polar.stop_animation()
+        self._magnitude.stop_animation()
 
     def updateDecibelRange(self, dBRange, draw=True):
         '''
@@ -58,7 +63,7 @@ class MultiChartModel:
         self._polar.updateDecibelRange(dBRange, draw=False)
         self._sonagram.updateDecibelRange(dBRange, draw=False)
         if draw:
-            self._chart.canvas.draw()
+            self._chart.canvas.draw_idle()
 
     def propagateCoords(self):
         '''

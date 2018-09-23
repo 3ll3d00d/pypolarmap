@@ -5,27 +5,32 @@ import sys
 from contextlib import contextmanager
 
 import matplotlib
-from qtpy.QtCore import QSettings
+
+matplotlib.use("Qt5Agg")
+
+from qtpy.QtCore import QSettings, QItemSelectionModel
 from qtpy.QtGui import QIcon, QFont, QCursor
 from qtpy.QtWidgets import QMainWindow, QFileDialog, QDialog, QDialogButtonBox, QMessageBox, QApplication, QErrorMessage
 
 from model.contour import ContourModel
-from model.display import DisplayModel
+from model.display import DisplayModel, DisplayControlDialog
 from model.load import WavLoader, HolmLoader, TxtLoader, DblLoader, REWLoader, ARTALoader
 from model.log import RollingLogger
-from model.measurement import REAL_WORLD_DATA, COMPUTED_MODAL_DATA
+from model.measurement import REAL_WORLD_DATA, COMPUTED_MODAL_DATA, MODAL_PARAMS_DATA
+from model.modal import ModalParametersDialog
 from model.multi import MultiChartModel
+from model.preferences import Preferences
 from ui.loadMeasurements import Ui_loadMeasurementDialog
 from ui.pypolarmap import Ui_MainWindow
 from ui.savechart import Ui_saveChartDialog
-
-matplotlib.use("Qt5Agg")
 
 from model import impulse as imp, magnitude as mag, measurement as m, modal
 from qtpy import QtCore, QtWidgets
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as Canvas
 import colorcet as cc
+
+logger = logging.getLogger('pypolarmap')
 
 # from http://colorcet.pyviz.org/index.html
 inverse = {}
@@ -207,61 +212,100 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
 
     def __init__(self, app, parent=None):
         super(PyPolarmap, self).__init__(parent)
-        self.logger = logging.getLogger('pypolarmap')
         self.app = app
-        self.settings = QSettings("3ll3d00d", "pypolarmap")
+        self.preferences = Preferences(QSettings("3ll3d00d", "beqdesigner"))
         self.setupUi(self)
-        self.logViewer = RollingLogger(parent=self)
+        self.logViewer = RollingLogger(self, self.preferences)
+        self.logger = logging.getLogger('pypolarmap')
+        if getattr(sys, 'frozen', False):
+            self.__root_path = sys._MEIPASS
+        else:
+            self.__root_path = os.path.dirname(__file__)
+        self.__version = 'UNKNOWN'
+        try:
+            with open(os.path.join(self.__root_path, 'VERSION')) as version_file:
+                self.__version = version_file.read().strip()
+        except:
+            logger.exception('Unable to load version')
+        # menus
         self.actionLoad.triggered.connect(self.selectDirectory)
         self.actionSave_Current_Image.triggered.connect(self.saveCurrentChart)
         self.actionShow_Logs.triggered.connect(self.logViewer.show_logs)
-        self.loadColourMaps()
+        self.actionAbout.triggered.connect(self.showAbout)
         self.dataPath.setDisabled(True)
-        self._modalParameterModel = modal.ModalParameterModel(self.measurementDistance.value(),
-                                                              self.driverRadius.value() / 100,
-                                                              self.modalCoeffs.value(), self.f0.value(),
-                                                              self.q0.value(),
-                                                              self.transFreq.value(), self.lfGain.value(),
-                                                              self.boxRadius.value())
-        self._displayModel = DisplayModel(self.yAxisRange.value(), self.normaliseCheckBox.isChecked(),
-                                          self.normalisationAngle.itemData(self.normalisationAngle.currentIndex()))
-        self._measurementModel = m.MeasurementModel(self._modalParameterModel, self._displayModel)
+        self.__modal_parameter_model = modal.ModalParameterModel(self.preferences)
+        self.__display_model = DisplayModel(self.preferences)
+        self.__measurement_model = m.MeasurementModel(self.__modal_parameter_model, self.__display_model)
+        self.__display_model.measurement_model = self.__measurement_model
+        depends_on_modal_params = lambda: self.__modal_parameter_model.shouldRefresh
         # modal graphs
-        self._modalMultiModel = MultiChartModel(self.modalMultiGraph, self._measurementModel, COMPUTED_MODAL_DATA,
-                                                dBRange=self.yAxisRange.value())
-        self._modalPolarModel = ContourModel(self.modalPolarGraph, self._measurementModel, COMPUTED_MODAL_DATA)
+        self.__modal_multi_model = MultiChartModel(self.modalMultiGraph, self.__measurement_model, COMPUTED_MODAL_DATA,
+                                                   self.__display_model, self.preferences)
+        self.__modal_polar_model = ContourModel(self.modalPolarGraph, self.__measurement_model, COMPUTED_MODAL_DATA,
+                                                self.__display_model, depends_on=depends_on_modal_params)
+        self.__modal_magnitude_model = mag.MagnitudeModel(self.modalParametersGraph, self.__measurement_model,
+                                                          self.__display_model, self.preferences,
+                                                          type=MODAL_PARAMS_DATA, selector=self.modalParametersList,
+                                                          depends_on=depends_on_modal_params)
         # measured graphs
-        self._measuredMultiModel = MultiChartModel(self.measuredMultiGraph, self._measurementModel, REAL_WORLD_DATA,
-                                                   dBRange=self.yAxisRange.value())
-        self._measuredPolarModel = ContourModel(self.measuredPolarGraph, self._measurementModel,
-                                                type=REAL_WORLD_DATA)
-        self._measuredMagnitudeModel = mag.MagnitudeModel(self.measuredMagnitudeGraph, self._measurementModel,
-                                                          type=REAL_WORLD_DATA, dBRange=self.yAxisRange.value())
-        self._displayModel.resultCharts = [self._modalMultiModel, self._modalPolarModel, self._measuredMultiModel,
-                                           self._measuredPolarModel, self._measuredMagnitudeModel]
+        self.__measured_multi_model = MultiChartModel(self.measuredMultiGraph, self.__measurement_model,
+                                                      REAL_WORLD_DATA, self.__display_model, self.preferences)
+        self.__measured_polar_model = ContourModel(self.measuredPolarGraph, self.__measurement_model,
+                                                   REAL_WORLD_DATA, self.__display_model)
+        self.__measured_magnitude_model = mag.MagnitudeModel(self.measuredMagnitudeGraph, self.__measurement_model,
+                                                             self.__display_model, self.preferences,
+                                                             type=REAL_WORLD_DATA,
+                                                             selector=self.measuredMagnitudeCurves,
+                                                             depends_on=depends_on_modal_params)
+        self.__display_model.results_charts = [self.__modal_multi_model, self.__modal_polar_model,
+                                               self.__measured_multi_model, self.__measured_polar_model,
+                                               self.__measured_magnitude_model]
         # impulse graph
-        self._impulseModel = imp.ImpulseModel(self.impulseGraph,
-                                              {'position': self.leftWindowSample,
-                                               'type': self.leftWindowType,
-                                               'percent': self.leftWindowPercent},
-                                              {'position': self.rightWindowSample,
-                                               'type': self.rightWindowType,
-                                               'percent': self.rightWindowPercent},
-                                              self._measurementModel)
-        self._measurementTableModel = m.MeasurementTableModel(self._measurementModel, parent=parent)
-        self.measurementView.setModel(self._measurementTableModel)
-        # TODO replace the show windowed button with a slider like https://stackoverflow.com/a/51023362/123054
+        self.__impulse_model = imp.ImpulseModel(self.impulseGraph,
+                                                {'position': self.leftWindowSample,
+                                                 'type': self.leftWindowType,
+                                                 'percent': self.leftWindowPercent},
+                                                {'position': self.rightWindowSample,
+                                                 'type': self.rightWindowType,
+                                                 'percent': self.rightWindowPercent},
+                                                self.__measurement_model)
+        self.__measurement_list_model = m.MeasurementListModel(self.__measurement_model, parent=parent)
+        self.measurementView.setModel(self.__measurement_list_model)
+        self.measurementView.selectionModel().selectionChanged.connect(self.__impulse_model.selection_changed)
+        self.actionModal_Parameters.triggered.connect(self.show_modal_parameters_dialog)
+        self.action_Display.triggered.connect(self.show_display_controls_dialog)
+
+    def showAbout(self):
+        ''' Shows the about dialog '''
+        msg_box = QMessageBox()
+        msg_box.setText(
+            f"<a href='https://github.com/3ll3d00d/pypolarmap'>pypolarmap</a> v{self.__version} by 3ll3d00d")
+        msg_box.setIcon(QMessageBox.Information)
+        msg_box.setWindowTitle('About')
+        msg_box.exec()
+
+    def show_modal_parameters_dialog(self):
+        '''
+        Shows the parameters dialog.
+        '''
+        ModalParametersDialog(self, self.__modal_parameter_model, self.__measurement_model, self.__display_model).show()
+
+    def show_display_controls_dialog(self):
+        '''
+        Shows the parameters dialog.
+        '''
+        DisplayControlDialog(self, self.__display_model, self.__measurement_model).show()
 
     def setupUi(self, mainWindow):
         super().setupUi(self)
-        geometry = self.settings.value("geometry")
+        geometry = self.preferences.get("geometry")
         if not geometry == None:
             self.restoreGeometry(geometry)
         else:
             screenGeometry = self.app.desktop().availableGeometry()
             if screenGeometry.height() < 800:
                 self.showMaximized()
-        windowState = self.settings.value("windowState")
+        windowState = self.preferences.get("windowState")
         if not windowState == None:
             self.restoreState(windowState)
 
@@ -271,19 +315,10 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
         :param args:
         :param kwargs:
         '''
-        self.settings.setValue("geometry", self.saveGeometry())
-        self.settings.setValue("windowState", self.saveState())
+        self.preferences.set("geometry", self.saveGeometry())
+        self.preferences.set("windowState", self.saveState())
         super().closeEvent(*args, **kwargs)
         self.app.closeAllWindows()
-
-    def loadColourMaps(self):
-        _translate = QtCore.QCoreApplication.translate
-        defaultIdx = 0
-        for idx, (name, cm) in enumerate(cms_by_name.items()):
-            self.colourMapSelector.addItem(_translate("MainWindow", name))
-            if name == 'bgyw':
-                defaultIdx = idx
-        self.colourMapSelector.setCurrentIndex(defaultIdx)
 
     # signal handlers
     def selectDirectory(self):
@@ -298,22 +333,18 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
         wrapper = self
 
         def _trigger_load():
-            dialog.load(wrapper._measurementModel, wrapper.dataPath)
-            if len(wrapper._measurementModel) > 0:
-                wrapper.fs.setValue(wrapper._measurementModel[0]._fs)
-                wrapper._measurementTableModel.completeRendering(wrapper.measurementView)
-                wrapper.applyWindowBtn.setDisabled(False)
-                wrapper.removeWindowBtn.setDisabled(True)
-                wrapper.zoomInButton.setDisabled(False)
-                wrapper.zoomOutBtn.setDisabled(False)
-                wrapper.findPeakButton.setDisabled(False)
+            dialog.load(wrapper.__measurement_model, wrapper.dataPath)
+            if len(wrapper.__measurement_model) > 0:
+                wrapper.fs.setValue(wrapper.__measurement_model[0]._fs)
+                wrapper.graphTabs.setEnabled(True)
+                wrapper.graphTabs.setCurrentIndex(0)
+                wrapper.graphTabs.setTabEnabled(0, True)
+                wrapper.disable_analysed_tabs()
+                wrapper.measurementView.selectionModel().select(wrapper.__measurement_list_model.index(0, 0),
+                                                                QItemSelectionModel.Select)
             else:
-                wrapper.applyWindowBtn.setDisabled(True)
-                wrapper.removeWindowBtn.setDisabled(True)
-                wrapper.zoomInButton.setDisabled(True)
-                wrapper.zoomOutBtn.setDisabled(True)
-                wrapper.findPeakButton.setDisabled(True)
-            wrapper.refreshNormalisationAngles()
+                wrapper.graphTabs.setCurrentIndex(0)
+                wrapper.graphTabs.setEnabled(False)
 
         dialog.buttonBox.accepted.connect(_trigger_load)
         result = dialog.exec()
@@ -326,38 +357,22 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
         dialog = SaveChartDialog(self, selectedGraph, self.statusbar)
         dialog.exec()
 
-    def refreshNormalisationAngles(self):
-        # TODO allow V angles to be displayed
-        angles = sorted(set([x._h for x in self._measurementModel]))
-        for idx in range(0, max(len(angles), self.normalisationAngle.count())):
-            if idx < len(angles):
-                if idx < self.normalisationAngle.count():
-                    self.normalisationAngle.setItemData(idx, str(angles[idx]))
-                else:
-                    self.normalisationAngle.addItem(str(angles[idx]))
-            else:
-                if idx < self.normalisationAngle.count():
-                    self.normalisationAngle.removeItem(idx)
-        if len(angles) > 0:
-            self.normalisationAngle.setCurrentIndex(0)
-            self._displayModel.normalisationAngle = angles[0]
-        else:
-            self._displayModel.normalisationAngle = None
-
     def getSelectedGraph(self):
         idx = self.graphTabs.currentIndex()
         if idx == 0:
-            return self._impulseModel
+            return self.__impulse_model
         elif idx == 1:
-            return self._measuredMagnitudeModel
+            return self.__measured_magnitude_model
         elif idx == 2:
-            return self._measuredPolarModel
+            return self.__measured_polar_model
         elif idx == 3:
-            return self._measuredMultiModel
+            return self.__measured_multi_model
         elif idx == 4:
-            return self._modalPolarModel
+            return self.__modal_magnitude_model
         elif idx == 5:
-            return self._modalMultiModel
+            return self.__modal_polar_model
+        elif idx == 6:
+            return self.__modal_multi_model
         else:
             return None
 
@@ -365,154 +380,51 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
         '''
         Updates the visible chart.
         '''
-        self._displayModel.visibleChart = self.getSelectedGraph()
+        self.__display_model.visibleChart = self.getSelectedGraph()
 
     def updateLeftWindow(self):
-        '''
-        propagates left window changes to the impulse model.
-        '''
-        self._impulseModel.updateLeftWindow()
+        ''' propagates left window changes to the impulse model. '''
+        self.__impulse_model.updateLeftWindow()
+        self.applyWindowBtn.setEnabled(self.__impulse_model.is_window_valid())
 
     def updateRightWindow(self):
-        '''
-        propagates right window changes to the impulse model.
-        '''
-        self._impulseModel.updateRightWindow()
+        ''' propagates right window changes to the impulse model. '''
+        self.__impulse_model.updateRightWindow()
+        self.applyWindowBtn.setEnabled(self.__impulse_model.is_window_valid())
 
     def zoomIn(self):
-        '''
-        propagates the zoom button click to the impulse model.
-        '''
-        self._impulseModel.zoomIn()
+        ''' propagates the zoom button click to the impulse model. '''
+        self.__impulse_model.zoomIn()
 
     def zoomOut(self):
-        '''
-        Propagates the zoom button click to the impulse model.
-        '''
-        self._impulseModel.zoomOut()
+        ''' Propagates the zoom button click to the impulse model. '''
+        self.__impulse_model.zoomOut()
 
     def findFirstPeak(self):
-        '''
-        Propagates the find peaks button click to the impulse model.
-        '''
-        self._impulseModel.findFirstPeak()
+        ''' Propagates the find peaks button click to the impulse model. '''
+        self.__impulse_model.findFirstPeak()
 
     def removeWindow(self):
-        '''
-        propagates the window button click to the impulse model.
-        :return:
-        '''
+        ''' propagates the window button click to the impulse model. '''
         self.removeWindowBtn.setEnabled(False)
-        self._impulseModel.removeWindow()
-        self.zoomOut()
+        self.__impulse_model.removeWindow()
+        self.disable_analysed_tabs()
 
     def updateWindow(self):
-        '''
-        Propagates the button click to the model.
-        '''
+        ''' Propagates the button click to the model. '''
         self.removeWindowBtn.setEnabled(True)
-        self._impulseModel.applyWindow()
+        self.__impulse_model.applyWindow()
+        self.enable_analysed_tabs()
 
-    def updateColourMap(self, cmap):
-        '''
-        Updates the colour map in the charts.
-        :param cmap: the named colour map.
-        '''
-        if hasattr(self, '_measuredPolarModel'):
-            self._measuredPolarModel.updateColourMap(cmap)
-            self._modalPolarModel.updateColourMap(cmap)
+    def disable_analysed_tabs(self):
+        ''' Disables all tabs that depend on the impulse analysis '''
+        for idx in range(1, self.graphTabs.count()):
+            self.graphTabs.setTabEnabled(idx, False)
 
-    def updateMeasurementDistance(self, value):
-        '''
-        propagates UI field to spatial model
-        :param value: the value
-        '''
-        self._modalParameterModel.measurementDistance = value
-
-    def updateDriverRadius(self, value):
-        '''
-        propagates UI field to spatial model
-        :param value: the value
-        '''
-        self._modalParameterModel.driverRadius = value / 100  # convert cm to m
-
-    def updateModalCoeffs(self, value):
-        '''
-        propagates UI field to spatial model
-        :param value: the value
-        '''
-        self._modalParameterModel.modalCoeffs = value
-
-    def updateF0(self, value):
-        '''
-        propagates UI field to spatial model
-        :param value: the value
-        '''
-        self._modalParameterModel.f0 = value
-
-    def updateQ0(self, value):
-        '''
-        propagates UI field to spatial model
-        :param value: the value
-        '''
-        self._modalParameterModel.q0 = value
-
-    def updateTransitionFrequency(self, value):
-        '''
-        propagates UI field to spatial model
-        :param value: the value
-        '''
-        self._modalParameterModel.transFreq = value
-
-    def updateLFGain(self, value):
-        '''
-        propagates UI field to spatial model
-        :param value: the value
-        '''
-        self._modalParameterModel.lfGain = value
-
-    def updateBoxRadius(self, value):
-        '''
-        propagates UI field to spatial model
-        :param value: the value
-        '''
-        self._modalParameterModel.boxRadius = value
-
-    def refreshModal(self):
-        '''
-        Tells the modal data to refresh.
-        '''
-        self._measurementModel.analyseModal()
-
-    def updateSmoothing(self, smoothingType):
-        '''
-        Smooths the data in the measurement mode.
-        :param smoothingType: the smoothing type.
-        '''
-        self._measurementModel.smooth(smoothingType)
-        self.onGraphTabChange()
-
-    def setYRange(self, yRange):
-        '''
-        Updates the y range for the displayed graphs.
-        :param yRange:
-        :return:
-        '''
-        self._displayModel.dBRange = yRange
-
-    def toggleNormalised(self):
-        '''
-        toggles whether to normalise the displayed data or not.
-        :param state: normalisation selection.
-        '''
-        self._displayModel.normalised = self.normaliseCheckBox.isChecked()
-
-    def setNormalisationAngle(self, angle):
-        '''
-        controls what the currently selected normalisation angle is.
-        :param angle: the selected angle.
-        '''
-        self._displayModel.normalisationAngle = angle
+    def enable_analysed_tabs(self):
+        ''' Enables all tabs that depend on the impulse analysis '''
+        for idx in range(1, self.graphTabs.count()):
+            self.graphTabs.setTabEnabled(idx, True)
 
 
 e_dialog = None
@@ -559,6 +471,7 @@ sys.excepthook = dump_exception_to_log
 
 if __name__ == '__main__':
     main()
+
 
 @contextmanager
 def wait_cursor(msg=None):

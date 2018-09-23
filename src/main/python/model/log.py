@@ -3,6 +3,8 @@ import logging
 
 from PyQt5 import QtGui
 from qtpy.QtWidgets import QMainWindow
+
+from model.preferences import LOGGING_LEVEL, LOGGING_BUFFER_SIZE
 from ui.logs import Ui_logsForm
 
 
@@ -61,13 +63,19 @@ class LogViewer(QMainWindow, Ui_logsForm):
 
 
 class RollingLogger(logging.Handler):
-    def __init__(self, level=logging.INFO, size=1000, parent=None):
+    def __init__(self, parent, preferences):
         super().__init__()
-        self.__buffer = RingBuffer(size)
         self.__visible = False
+        self.__preferences = preferences
+        self.__buffer = RingBuffer(self.__preferences.get(LOGGING_BUFFER_SIZE))
         self.__logWindow = None
         self.parent = parent
         self.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(funcName)s - %(message)s'))
+        level = self.__preferences.get(LOGGING_LEVEL)
+        if level is not None and level in logging._nameToLevel:
+            level = logging._nameToLevel[level]
+        else:
+            level = logging.INFO
         self.__root = self.__init_root_logger(level)
         self.__levelName = logging.getLevelName(level)
 
@@ -108,6 +116,7 @@ class RollingLogger(logging.Handler):
         Changes the size of the log cache.
         '''
         if self.__buffer.set_size(size):
+            self.__preferences.set(LOGGING_BUFFER_SIZE, size)
             if self.__logWindow is not None:
                 self.__logWindow.refresh(self.__buffer)
 
@@ -119,6 +128,7 @@ class RollingLogger(logging.Handler):
         logging.info(f"Changing log level from {self.__levelName} to {level}")
         self.__root.setLevel(level)
         self.__levelName = level
+        self.__preferences.set(LOGGING_LEVEL, self.__levelName)
 
 
 class RingBuffer:

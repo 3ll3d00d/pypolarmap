@@ -9,8 +9,8 @@ class ContourModel:
     Allows a set of FRs to be displayed as a directivity sonargram.
     '''
 
-    def __init__(self, chart, measurementModel, type, subplotSpec=SINGLE_SUBPLOT_SPEC, redrawOnDisplay=True,
-                 dBRange=60):
+    def __init__(self, chart, measurementModel, type, display_model, subplotSpec=SINGLE_SUBPLOT_SPEC,
+                 redrawOnDisplay=True, depends_on=lambda: False):
         '''
         Creates a new contour model.
         :param chart: the MplWidget that owns the canvas onto which the chart will be drawn.
@@ -24,6 +24,7 @@ class ContourModel:
         self._subplotSpec = subplotSpec
         self._initChart(subplotSpec)
         self._measurementModel = measurementModel
+        self.__depends_on = depends_on
         self._selectedCmap = 'bgyw'
         self._type = type
         self.name = f"contour_{self._type}"
@@ -37,14 +38,14 @@ class ContourModel:
         self.cursorX = None
         self.cursorY = None
         self._redrawOnDisplay = redrawOnDisplay
-        self._dBRange = dBRange
+        self._dBRange = display_model.dBRange
         self._required_clim = None
 
     def __repr__(self):
         return self.name
 
     def shouldRefresh(self):
-        return self._refreshData
+        return self._refreshData or self.__depends_on
 
     def _initChart(self, subplotSpec):
         '''
@@ -73,7 +74,7 @@ class ContourModel:
             self._tcf.set_clim(vmin=self._required_clim[0], vmax=self._required_clim[1])
         if draw:
             self._required_clim = None
-            self._chart.canvas.draw()
+            self._chart.canvas.draw_idle()
 
     def onUpdate(self, type, **kwargs):
         '''
@@ -103,7 +104,7 @@ class ContourModel:
                 self._redraw()
                 self.connectMouse()
                 if self._redrawOnDisplay:
-                    self._chart.canvas.draw()
+                    self._chart.canvas.draw_idle()
                 self._refreshData = False
                 return True
             else:
@@ -166,7 +167,7 @@ class ContourModel:
             self._cid.append(self._chart.canvas.mpl_connect('axes_enter_event', self.enterAxes))
             self._cid.append(self._chart.canvas.mpl_connect('axes_leave_event', self.leaveAxes))
 
-    def updateColourMap(self, cmap):
+    def updateColourMap(self, cmap, draw=True):
         '''
         Updates the currently selected colour map.
         :param cmap: the cmap name.
@@ -174,7 +175,8 @@ class ContourModel:
         cmap = self._chart.getColourMap(cmap)
         if self._tcf:
             self._tcf.set_cmap(cmap)
-            self._chart.canvas.draw()
+            if draw:
+                self._chart.canvas.draw_idle()
         self._selectedCmap = cmap
 
     def clear(self, disconnect=True):
@@ -191,4 +193,4 @@ class ContourModel:
             self._tc = None
             self._tcf = None
             self._initChart(self._subplotSpec)
-            self._chart.canvas.draw()
+            self._chart.canvas.draw_idle()
