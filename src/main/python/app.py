@@ -5,7 +5,7 @@ import sys
 from contextlib import contextmanager
 
 import matplotlib
-from qtpy.QtCore import QSettings
+from qtpy.QtCore import QSettings, QModelIndex, QItemSelectionModel
 from qtpy.QtGui import QIcon, QFont, QCursor
 from qtpy.QtWidgets import QMainWindow, QFileDialog, QDialog, QDialogButtonBox, QMessageBox, QApplication, QErrorMessage
 
@@ -261,10 +261,9 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
                                                 self.__measurement_model)
         self.__measurement_list_model = m.MeasurementListModel(self.__measurement_model, parent=parent)
         self.measurementView.setModel(self.__measurement_list_model)
-        # TODO replace the show windowed button with a slider like https://stackoverflow.com/a/51023362/123054
+        self.measurementView.selectionModel().selectionChanged.connect(self.__impulse_model.selection_changed)
         self.actionModal_Parameters.triggered.connect(self.show_modal_parameters_dialog)
         self.action_Display.triggered.connect(self.show_display_controls_dialog)
-        self.graphTabs.setEnabled(False)
 
     def showAbout(self):
         ''' Shows the about dialog '''
@@ -327,9 +326,11 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
             dialog.load(wrapper.__measurement_model, wrapper.dataPath)
             if len(wrapper.__measurement_model) > 0:
                 wrapper.fs.setValue(wrapper.__measurement_model[0]._fs)
-                wrapper.__measurement_list_model.completeRendering(wrapper.measurementView)
                 wrapper.graphTabs.setEnabled(True)
+                wrapper.graphTabs.setTabEnabled(0, True)
                 wrapper.disable_analysed_tabs()
+                wrapper.measurementView.selectionModel().select(wrapper.__measurement_list_model.index(0, 0),
+                                                                QItemSelectionModel.Select)
             else:
                 wrapper.graphTabs.setEnabled(False)
 
@@ -393,7 +394,6 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
         ''' propagates the window button click to the impulse model. '''
         self.removeWindowBtn.setEnabled(False)
         self.__impulse_model.removeWindow()
-        self.zoomOut()
         self.disable_analysed_tabs()
 
     def updateWindow(self):
@@ -403,7 +403,7 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
         self.enable_analysed_tabs()
 
     def disable_analysed_tabs(self):
-        ''' Enables all tabs that depend on the impulse analysis '''
+        ''' Disables all tabs that depend on the impulse analysis '''
         for idx in range(1, self.graphTabs.count()):
             self.graphTabs.setTabEnabled(idx, False)
 

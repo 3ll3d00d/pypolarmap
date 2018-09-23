@@ -26,6 +26,9 @@
    <layout class="QGridLayout" name="gridLayout" columnstretch="0">
     <item row="0" column="0">
      <widget class="QTabWidget" name="graphTabs">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
       <property name="minimumSize">
        <size>
         <width>0</width>
@@ -143,12 +146,22 @@
                </layout>
               </item>
               <item>
-               <widget class="QListView" name="measurementView"/>
+               <widget class="QListView" name="measurementView">
+                <property name="editTriggers">
+                 <set>QAbstractItemView::NoEditTriggers</set>
+                </property>
+                <property name="selectionMode">
+                 <enum>QAbstractItemView::MultiSelection</enum>
+                </property>
+                <property name="selectionBehavior">
+                 <enum>QAbstractItemView::SelectRows</enum>
+                </property>
+               </widget>
               </item>
               <item>
                <widget class="QPushButton" name="removeWindowBtn">
                 <property name="enabled">
-                 <bool>true</bool>
+                 <bool>false</bool>
                 </property>
                 <property name="text">
                  <string>Remove Window</string>
@@ -164,7 +177,7 @@
               <item>
                <widget class="QPushButton" name="applyWindowBtn">
                 <property name="enabled">
-                 <bool>true</bool>
+                 <bool>false</bool>
                 </property>
                 <property name="text">
                  <string>Apply Window</string>
@@ -314,9 +327,6 @@
             </item>
             <item>
              <widget class="QPushButton" name="findPeakButton">
-              <property name="enabled">
-               <bool>true</bool>
-              </property>
               <property name="text">
                <string>Find First Peak</string>
               </property>
@@ -324,9 +334,6 @@
             </item>
             <item>
              <widget class="QPushButton" name="zoomOutBtn">
-              <property name="enabled">
-               <bool>true</bool>
-              </property>
               <property name="text">
                <string>Zoom Out</string>
               </property>
@@ -334,9 +341,6 @@
             </item>
             <item>
              <widget class="QPushButton" name="zoomInButton">
-              <property name="enabled">
-               <bool>true</bool>
-              </property>
               <property name="text">
                <string>Zoom To Window</string>
               </property>
@@ -568,8 +572,8 @@
    <slot>zoomIn()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>429</x>
-     <y>705</y>
+     <x>287</x>
+     <y>730</y>
     </hint>
     <hint type="destinationlabel">
      <x>736</x>
@@ -584,8 +588,8 @@
    <slot>removeWindow()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>513</x>
-     <y>159</y>
+     <x>286</x>
+     <y>419</y>
     </hint>
     <hint type="destinationlabel">
      <x>715</x>
@@ -616,8 +620,8 @@
    <slot>zoomOut()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>429</x>
-     <y>641</y>
+     <x>287</x>
+     <y>687</y>
     </hint>
     <hint type="destinationlabel">
      <x>588</x>
@@ -632,8 +636,8 @@
    <slot>updateWindow()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>415</x>
-     <y>223</y>
+     <x>286</x>
+     <y>462</y>
     </hint>
     <hint type="destinationlabel">
      <x>301</x>
@@ -648,8 +652,8 @@
    <slot>zoomOut()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>429</x>
-     <y>641</y>
+     <x>287</x>
+     <y>687</y>
     </hint>
     <hint type="destinationlabel">
      <x>348</x>
@@ -664,8 +668,8 @@
    <slot>updateRightWindow()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>513</x>
-     <y>492</y>
+     <x>286</x>
+     <y>600</y>
     </hint>
     <hint type="destinationlabel">
      <x>373</x>
@@ -680,8 +684,8 @@
    <slot>updateLeftWindow()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>513</x>
-     <y>392</y>
+     <x>286</x>
+     <y>532</y>
     </hint>
     <hint type="destinationlabel">
      <x>373</x>
@@ -696,8 +700,8 @@
    <slot>updateLeftWindow()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>434</x>
-     <y>392</y>
+     <x>198</x>
+     <y>532</y>
     </hint>
     <hint type="destinationlabel">
      <x>14</x>
@@ -712,8 +716,8 @@
    <slot>updateLeftWindow()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>513</x>
-     <y>342</y>
+     <x>286</x>
+     <y>498</y>
     </hint>
     <hint type="destinationlabel">
      <x>8</x>
@@ -728,8 +732,8 @@
    <slot>updateRightWindow()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>513</x>
-     <y>442</y>
+     <x>286</x>
+     <y>566</y>
     </hint>
     <hint type="destinationlabel">
      <x>374</x>
@@ -744,8 +748,8 @@
    <slot>updateRightWindow()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>434</x>
-     <y>492</y>
+     <x>198</x>
+     <y>600</y>
     </hint>
     <hint type="destinationlabel">
      <x>374</x>
@@ -760,8 +764,8 @@
    <slot>findFirstPeak()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>384</x>
-     <y>563</y>
+     <x>287</x>
+     <y>644</y>
     </hint>
     <hint type="destinationlabel">
      <x>295</x>

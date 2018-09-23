@@ -234,8 +234,6 @@ class MeasurementModel(Sequence):
                                               self.__modalParameters.boxRadius,
                                               self.__modalParameters.f0,
                                               self.__modalParameters.q0)
-            np.savetxt('modal.csv', np.transpose(np.abs(self.__modalResponse)), delimiter=',')
-            np.savetxt('freqs.csv', self.__complexData[REAL_WORLD_DATA][0].x, delimiter=',')
             # compute the polar response using the modal parameters
             modal = []
             logFreqs = self.__complexData[REAL_WORLD_DATA][0].x
@@ -363,6 +361,10 @@ class Measurement:
         self.fftOutput = np.array([])
         self.fftPoints = 0
 
+    @property
+    def name(self):
+        return self._name
+
     def size(self):
         '''
         :return: no of samples in the measurement.
@@ -456,10 +458,4 @@ class MeasurementListModel(QAbstractListModel):
         elif role != Qt.DisplayRole:
             return QVariant()
         else:
-            m = self._measurementModel[index.row()]
-            display_name = f"{m._name} ({m.size()})"
-            return QVariant(display_name)
-
-    def completeRendering(self, view):
-        for x in range(0, 4):
-            view.resizeColumnToContents(x)
+            return QVariant(self._measurementModel[index.row()]._name)
