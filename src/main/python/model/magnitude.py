@@ -124,6 +124,9 @@ class MagnitudeModel:
         '''
         self._axes.clear()
         self._curves = {}
+        formatAxes_dBFS_Hz(self._axes)
+        if self._selector is not None:
+            self._selector.clear()
 
 
 class AnimatedSingleLineMagnitudeModel:

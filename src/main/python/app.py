@@ -331,11 +331,13 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
             if len(wrapper.__measurement_model) > 0:
                 wrapper.fs.setValue(wrapper.__measurement_model[0]._fs)
                 wrapper.graphTabs.setEnabled(True)
+                wrapper.graphTabs.setCurrentIndex(0)
                 wrapper.graphTabs.setTabEnabled(0, True)
                 wrapper.disable_analysed_tabs()
                 wrapper.measurementView.selectionModel().select(wrapper.__measurement_list_model.index(0, 0),
                                                                 QItemSelectionModel.Select)
             else:
+                wrapper.graphTabs.setCurrentIndex(0)
                 wrapper.graphTabs.setEnabled(False)
 
         dialog.buttonBox.accepted.connect(_trigger_load)

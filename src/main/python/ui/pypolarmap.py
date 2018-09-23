@@ -25,7 +25,7 @@ class Ui_MainWindow(object):
         self.graphTabs = QtWidgets.QTabWidget(self.centralwidget)
         self.graphTabs.setEnabled(False)
         self.graphTabs.setMinimumSize(QtCore.QSize(0, 0))
-        self.graphTabs.setTabShape(QtWidgets.QTabWidget.Triangular)
+        self.graphTabs.setTabShape(QtWidgets.QTabWidget.Rounded)
         self.graphTabs.setObjectName("graphTabs")
         self.impulseTab = QtWidgets.QWidget()
         self.impulseTab.setObjectName("impulseTab")

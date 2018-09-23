@@ -6,6 +6,10 @@ import numpy as np
 from model.log import to_millis
 from model.measurement import CLEAR_MEASUREMENTS, LOAD_MEASUREMENTS, ANALYSED
 
+RIGHT_WINDOW_PAD = 50
+
+LEFT_WINDOW_PAD = 30
+
 NAME = 'impulse'
 
 logger = logging.getLogger(NAME)
@@ -83,7 +87,7 @@ class ImpulseModel:
             self._setMaxSample(self._measurementModel.getMaxSample())
             self._leftWindow['position'].blockSignals(True)
             self._leftWindow['position'].setMaximum(self._maxSample - 1)
-            self._leftWindow['position'].setValue(max(0, self._measurementModel[0].startIndex() - 20))
+            self._leftWindow['position'].setValue(max(0, self._measurementModel[0].startIndex()))
             self._leftWindow['position'].blockSignals(False)
             self._rightWindow['position'].blockSignals(True)
             self._rightWindow['position'].setMaximum(self._maxSample)
@@ -92,10 +96,8 @@ class ImpulseModel:
             mid = time.time()
             logger.debug(f"updated window parameters {to_millis(start, mid)}ms")
             self.updateLeftWindow(draw=False)
-            self.updateRightWindow(draw=False)
             end = time.time()
             logger.debug(f"Updated chart controls in {to_millis(mid, end)}ms")
-            self._axes.set_xlim(left=self._leftWindow['position'].value(), right=self._rightWindow['position'].value())
             self._displayData(updatedIdx=kwargs.get('idx', None))
         elif type == CLEAR_MEASUREMENTS:
             self._setMaxSample(0)
@@ -168,14 +170,9 @@ class ImpulseModel:
             if self._windowLine:
                 self._windowLine.set_data(self._activeX, window)
             else:
-                self._windowLine = self._axes.plot(self._activeX, window, 'b--')[0]
-            x_lim = self._axes.get_xlim()
-            x_min = x_lim[0]
-            x_max = x_lim[1]
-            if self._leftWindow['position'].value() < x_min:
-                x_min = max(0, self._leftWindow['position'].value() - 30)
-            if self._rightWindow['position'].value() > x_max:
-                x_max = min(self._maxSample, self._rightWindow['position'].value() + 50)
+                self._windowLine = self._axes.plot(self._activeX, window, 'g--')[0]
+            x_min = max(0, self._leftWindow['position'].value() - LEFT_WINDOW_PAD)
+            x_max = min(self._maxSample, self._rightWindow['position'].value() + RIGHT_WINDOW_PAD)
             self._axes.set_xlim(left=x_min, right=x_max)
             if draw:
                 self._chart.canvas.draw_idle()
@@ -229,7 +226,6 @@ class ImpulseModel:
         if len(self._measurementModel) > 0:
             self._redrawWindow(draw=False)
             self._measurementModel.analyseMeasuredData(self._leftWindow, self._rightWindow)
-            self.zoomIn(draw=False)
             self._displayData()
             end = time.time()
             logger.debug(f"in {to_millis(start, end)}ms")
