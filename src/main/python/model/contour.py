@@ -35,10 +35,11 @@ class ContourModel:
         self._refreshData = False
         self._measurementModel.registerListener(self)
         self._recordY = False
+        self.__dragging = False
         self.cursorX = None
         self.cursorY = None
         self._redrawOnDisplay = redrawOnDisplay
-        self._dBRange = display_model.dBRange
+        self.__display_model = display_model
         self._required_clim = None
 
     def __repr__(self):
@@ -61,16 +62,14 @@ class ContourModel:
         self._axes.grid(linestyle='-', which='major', linewidth=1, alpha=0.5)
         self._axes.grid(linestyle='--', which='minor', linewidth=1, alpha=0.5)
 
-    def updateDecibelRange(self, dBRange, draw=True):
+    def updateDecibelRange(self, draw=True):
         '''
         Updates the decibel range on the chart.
-        :param dBRange: the new range.
         '''
-        self._dBRange = dBRange
         # record the target clim in case we don't want to draw right now
         if self._tcf is not None:
             _, cmax = self._tcf.get_clim()
-            self._required_clim = (cmax - self._dBRange, cmax)
+            self._required_clim = (cmax - self.__display_model.dBRange, cmax)
             self._tcf.set_clim(vmin=self._required_clim[0], vmax=self._required_clim[1])
         if draw:
             self._required_clim = None
@@ -111,7 +110,7 @@ class ContourModel:
                 # this is called when the owning tab is selected so we need to update the clim if the y range
                 # was changed while this chart was off screen
                 if self._tcf is not None and self._required_clim is not None:
-                    self.updateDecibelRange(self._dBRange, draw=self._redrawOnDisplay)
+                    self.updateDecibelRange(draw=self._redrawOnDisplay)
                     return self._redrawOnDisplay
         return False
 
@@ -120,7 +119,7 @@ class ContourModel:
         draws the contours and the colorbar.
         :return:
         '''
-        vmax, vmin, steps, fillSteps = calculate_dBFS_Scales(self._data['z'], maxRange=self._dBRange)
+        vmax, vmin, steps, fillSteps = calculate_dBFS_Scales(self._data['z'], maxRange=self.__display_model.dBRange)
         self._tc = self._axes.tricontour(self._data['x'], self._data['y'], self._data['z'], steps, linewidths=0.5,
                                          colors='k', linestyles='--')
         self._tc = self._axes.tricontour(self._data['x'], self._data['y'], self._data['z'], levels=[vmax - 6],
@@ -138,7 +137,7 @@ class ContourModel:
         Records the current location of the mouse
         :param event: the event.
         '''
-        if event is not None and self._recordY:
+        if event is not None and self._recordY and self.__dragging:
             self.cursorX = event.xdata
             self.cursorY = event.ydata
 
@@ -164,8 +163,17 @@ class ContourModel:
         '''
         if self._cid is None or len(self._cid) == 0:
             self._cid.append(self._chart.canvas.mpl_connect('motion_notify_event', self.recordDataCoords))
+            self._cid.append(self._chart.canvas.mpl_connect('button_press_event', self.depress))
+            self._cid.append(self._chart.canvas.mpl_connect('button_release_event', self.release))
             self._cid.append(self._chart.canvas.mpl_connect('axes_enter_event', self.enterAxes))
             self._cid.append(self._chart.canvas.mpl_connect('axes_leave_event', self.leaveAxes))
+
+    def depress(self, event):
+        if not event.dblclick:
+            self.__dragging = True
+
+    def release(self, event):
+        self.__dragging = False
 
     def updateColourMap(self, cmap, draw=True):
         '''

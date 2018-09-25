@@ -180,11 +180,11 @@ class MeasurementModel(Sequence):
 
     def _createFRData(self, measurement):
         logData, logFreqs = linToLog(measurement.fftData, measurement._fs / measurement.fftPoints)
+        # removed scaling factor to investigate power response scaling : scaleFactor=2 / measurement.fftPoints
         return ComplexData(name=measurement.getDisplayName(),
                            hAngle=measurement._h,
                            x=logFreqs,
-                           y=logData,
-                           scaleFactor=2 / measurement.fftPoints)
+                           y=logData)
 
     def createWindow(self, left, right):
         '''

@@ -1,3 +1,4 @@
+import logging
 import math
 
 import numpy as np
@@ -7,30 +8,35 @@ from matplotlib.ticker import MultipleLocator, FuncFormatter
 from model import calculate_dBFS_Scales, SINGLE_SUBPLOT_SPEC, setYLimits
 from model.measurement import REAL_WORLD_DATA, ANALYSED, LOAD_MEASUREMENTS, CLEAR_MEASUREMENTS
 
+logger = logging.getLogger('polar')
+
 
 class PolarModel:
     '''
     Allows a set of measurements to be displayed on a polar chart with the displayed curve interactively changing.
     '''
 
-    def __init__(self, chart, measurementModel, display_model, type=REAL_WORLD_DATA, subplotSpec=SINGLE_SUBPLOT_SPEC,
+    def __init__(self, chart, measurement_model, display_model, type=REAL_WORLD_DATA, subplotSpec=SINGLE_SUBPLOT_SPEC,
                  redrawOnDisplay=True):
         self._chart = chart
         self._axes = self._chart.canvas.figure.add_subplot(subplotSpec, projection='polar')
-        self._axes.grid(linestyle='--', axis='y', alpha=0.7)
+        self.__init_axes()
         self._data = {}
         self._curve = None
         self._refreshData = False
         self._type = type
         self.name = f"polar_{self._type}"
-        self._measurementModel = measurementModel
+        self._measurementModel = measurement_model
         self._measurementModel.registerListener(self)
         self.xPosition = 1000
+        self.yPosition = 0
+        self._vline = None
+        self._vmarker = None
         self._ani = None
         self._redrawOnDisplay = redrawOnDisplay
-        self._dBRange = display_model.dBRange
+        self.__display_model = display_model
         self._y_range_update_required = False
-        self.updateDecibelRange(self._dBRange, draw=False)
+        self.updateDecibelRange(draw=False)
 
     def __repr__(self):
         return self.name
@@ -38,14 +44,12 @@ class PolarModel:
     def shouldRefresh(self):
         return self._refreshData
 
-    def updateDecibelRange(self, dBRange, draw=True):
+    def updateDecibelRange(self, draw=True):
         '''
         Updates the decibel range on the chart.
-        :param dBRange: the new range.
         '''
-        self._dBRange = dBRange
         self._y_range_update_required = True
-        setYLimits(self._axes, dBRange)
+        setYLimits(self._axes, self.__display_model.dBRange)
         if self._ani:
             # have to clear the blit cache to get the r grid to redraw as per
             # https://stackoverflow.com/questions/25021311/matplotlib-animation-updating-radial-view-limit-for-polar-plot
@@ -59,6 +63,7 @@ class PolarModel:
         Updates the contents of the polar chart.
         :return: true if it redrew.
         '''
+        redrew = False
         if self.shouldRefresh():
             # convert x-y by theta data to theta-r by freq
             xydata = self._measurementModel.getMagnitudeData(type=self._type, ref=1)
@@ -68,26 +73,31 @@ class PolarModel:
                 self._data[freq] = (theta, r)
             self._axes.set_thetagrids(np.arange(0, 360, 15))
             rmax, rmin, rsteps, _ = calculate_dBFS_Scales(np.concatenate([x[1] for x in self._data.values()]),
-                                                          maxRange=self._dBRange)
+                                                          maxRange=self.__display_model.dBRange)
             self._axes.set_rgrids(rsteps)
             # show degrees as +/- 180
             self._axes.xaxis.set_major_formatter(FuncFormatter(self.formatAngle))
             # show label every 12dB
             self._axes.yaxis.set_major_locator(MultipleLocator(12))
+            # v line and marker
+            self._vline = self._axes.axvline(0, linewidth=2, color='gray', linestyle=':', visible=False)
+            self._vmarker = self._axes.plot(0, 0, 'bo', color='gray', markersize=6)[0]
             # plot some invisible data to initialise
             self._curve = self._axes.plot([math.radians(-180), math.radians(180)], [-200, -200], linewidth=2,
                                           antialiased=True, linestyle='solid', visible=False)[0]
             self._axes.set_ylim(bottom=rmin, top=rmax)
-            self._ani = animation.FuncAnimation(self._chart.canvas.figure, self.redraw, interval=50,
-                                                init_func=self.initAnimation, blit=True, save_count=50)
             self._y_range_update_required = False
             self._refreshData = False
-            return True
+            redrew = True
         else:
             if self._axes is not None and self._y_range_update_required:
-                self.updateDecibelRange(self._dBRange, self._redrawOnDisplay)
-
-        return False
+                self.updateDecibelRange(self._redrawOnDisplay)
+        # make sure we are animating
+        if self._ani is None and self._curve is not None:
+            logger.info(f"Starting animation in {self.name}")
+            self._ani = animation.FuncAnimation(self._chart.canvas.figure, self.redraw, interval=50,
+                                                init_func=self.initAnimation, blit=True, save_count=50)
+        return redrew
 
     def formatAngle(self, x, pos=None):
         format_str = "{value:0.{digits:d}f}\N{DEGREE SIGN}"
@@ -114,7 +124,11 @@ class PolarModel:
             self._curve.set_xdata(curveData[0])
             self._curve.set_ydata(curveData[1])
             self._curve.set_color(self._chart.getColour(curveIdx, len(self._data.keys())))
-        return self._curve,
+            self._vline.set_visible(True)
+            idx = np.argmax(np.array(curveData[0]) >= math.radians(self.yPosition))
+            self._vline.set_xdata([curveData[0][idx], curveData[0][idx]])
+            self._vmarker.set_data(curveData[0][idx], curveData[1][idx])
+        return self._curve, self._vline, self._vmarker
 
     def findNearestData(self):
         '''
@@ -150,16 +164,21 @@ class PolarModel:
         '''
         clears the graph.
         '''
+        self.stop_animation()
         self._axes.clear()
         self._data = {}
         self._curve = None
-        self.stop_animation()
+        self.__init_axes()
 
     def stop_animation(self):
         '''
         Stops the animation.
         '''
         if self._ani is not None:
-            self._ani._stop()
+            logger.info(f"Stopping animation in {self.name}")
+            ani = self._ani
             self._ani = None
-            self._refreshData = True
+            ani._stop()
+
+    def __init_axes(self):
+        self._axes.grid(linestyle='--', axis='y', alpha=0.7)

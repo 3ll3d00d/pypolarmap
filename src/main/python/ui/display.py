@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_displayControlsDialog(object):
     def setupUi(self, displayControlsDialog):
         displayControlsDialog.setObjectName("displayControlsDialog")
-        displayControlsDialog.resize(302, 230)
+        displayControlsDialog.resize(302, 266)
         self.gridLayout = QtWidgets.QGridLayout(displayControlsDialog)
         self.gridLayout.setObjectName("gridLayout")
         self.formLayout = QtWidgets.QFormLayout()
@@ -55,10 +55,13 @@ class Ui_displayControlsDialog(object):
         self.normalisationAngle.setObjectName("normalisationAngle")
         self.normalisationAngle.addItem("")
         self.formLayout.setWidget(4, QtWidgets.QFormLayout.FieldRole, self.normalisationAngle)
+        self.polarRange = QtWidgets.QCheckBox(displayControlsDialog)
+        self.polarRange.setObjectName("polarRange")
+        self.formLayout.setWidget(5, QtWidgets.QFormLayout.FieldRole, self.polarRange)
         self.gridLayout.addLayout(self.formLayout, 0, 0, 1, 1)
         self.buttonBox = QtWidgets.QDialogButtonBox(displayControlsDialog)
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
-        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
+        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Apply|QtWidgets.QDialogButtonBox.Close)
         self.buttonBox.setObjectName("buttonBox")
         self.gridLayout.addWidget(self.buttonBox, 1, 0, 1, 1)
 
@@ -84,4 +87,5 @@ class Ui_displayControlsDialog(object):
         self.normaliseCheckBox.setText(_translate("displayControlsDialog", "Normalise?"))
         self.label_15.setText(_translate("displayControlsDialog", "Normalisation Angle"))
         self.normalisationAngle.setItemText(0, _translate("displayControlsDialog", "0"))
+        self.polarRange.setText(_translate("displayControlsDialog", "+/- 180?"))
 

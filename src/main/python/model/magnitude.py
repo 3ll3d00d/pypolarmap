@@ -1,3 +1,5 @@
+import logging
+
 import numpy as np
 from qtpy import QtCore
 from matplotlib import animation
@@ -7,6 +9,8 @@ from model import configureFreqAxisFormatting, formatAxes_dBFS_Hz, setYLimits, S
     calculate_dBFS_Scales
 from model.measurement import REAL_WORLD_DATA, ANALYSED, CLEAR_MEASUREMENTS, LOAD_MEASUREMENTS
 from model.preferences import DISPLAY_SHOW_POWER_RESPONSE
+
+logger = logging.getLogger('magnitude')
 
 
 class MagnitudeModel:
@@ -27,13 +31,13 @@ class MagnitudeModel:
         self._modelListener = modelListener
         self._showLegend = showLegend
         self._measurementModel.registerListener(self)
-        self._dBRange = display_model.dBRange
+        self.__display_model = display_model
         self._selector = selector
         self.__depends_on = depends_on
         if self._selector is not None:
             self._selector.itemSelectionChanged.connect(self.set_visible)
         self.__show_power = preferences.get(DISPLAY_SHOW_POWER_RESPONSE)
-        self.updateDecibelRange(self._dBRange, draw=False)
+        self.updateDecibelRange(draw=False)
 
     def set_visible(self):
         ''' ensures the visible curves tracks the contents of the selector '''
@@ -48,14 +52,12 @@ class MagnitudeModel:
     def shouldRefresh(self):
         return self._refreshData or self.__depends_on()
 
-    def updateDecibelRange(self, dBRange, draw=True):
+    def updateDecibelRange(self, draw=True):
         '''
         Updates the decibel range on the chart.
-        :param dBRange: the new range.
         '''
-        self._dBRange = dBRange
         if draw:
-            setYLimits(self._axes, dBRange)
+            setYLimits(self._axes, self.__display_model.dBRange)
             self._chart.canvas.draw_idle()
 
     def display(self):
@@ -66,6 +68,7 @@ class MagnitudeModel:
         if self.shouldRefresh():
             # pressure
             data = self._measurementModel.getMagnitudeData(type=self._type, ref=1)
+            current_names = [x.name for x in data]
             all_y = [x.y for x in data]
             for idx, x in enumerate(data):
                 self._create_or_update_curve(x, self._axes, self._chart.getColour(idx, len(self._measurementModel)))
@@ -74,10 +77,10 @@ class MagnitudeModel:
             if power is not None and self.__show_power:
                 self._create_or_update_curve(power, self._axes, 'k')
                 all_y.append(power.y)
+                current_names.append(power.name)
             # scales
             self._update_y_lim(np.concatenate(all_y), self._axes)
             # delete redundant data
-            current_names = [d.name for d in data]
             to_delete = [k for k in self._curves.keys() if k not in current_names]
             for d in to_delete:
                 self._curves[d].remove()
@@ -98,12 +101,12 @@ class MagnitudeModel:
             self._refreshData = False
         else:
             ylim = self._axes.get_ylim()
-            if ylim[1] - ylim[0] != self._dBRange:
-                self.updateDecibelRange(self._dBRange)
+            if ylim[1] - ylim[0] != self.__display_model.dBRange:
+                self.updateDecibelRange()
 
     def _update_y_lim(self, data, axes):
         configureFreqAxisFormatting(axes)
-        ymax, ymin, _, _ = calculate_dBFS_Scales(data, maxRange=self._dBRange)
+        ymax, ymin, _, _ = calculate_dBFS_Scales(data, maxRange=self.__display_model.dBRange)
         axes.set_ylim(bottom=ymin, top=ymax)
 
     def _create_or_update_curve(self, data, axes, colour):
@@ -156,21 +159,28 @@ class AnimatedSingleLineMagnitudeModel:
         self._measurementModel = measurementModel
         self._measurementModel.registerListener(self)
         self._axes = self._chart.canvas.figure.add_subplot(subplotSpec)
+        self._secondary_axes = self._axes.twinx()
+        self._secondary_axes.set_ylim(bottom=0, top=30)
         formatAxes_dBFS_Hz(self._axes)
         self._type = type
         self.name = f"single-magnitude_{type}"
         self._refreshData = False
         self._type = type
+        self.xPosition = None
         self.yPosition = None
         self._pressure_data = None
         self._pressure_curve = None
+        self._pressure_marker = None
         self._power_data = None
         self._power_curve = None
+        self._power_marker = None
         self._di_curve = None
+        self._di_marker = None
+        self._vline = None
         self._ani = None
         self._y_range_update_required = False
         self._redrawOnDisplay = redrawOnDisplay
-        self._dBRange = display_model.dBRange
+        self.__display_model = display_model
         self.__show_power = preferences.get(DISPLAY_SHOW_POWER_RESPONSE)
 
     def __repr__(self):
@@ -179,14 +189,12 @@ class AnimatedSingleLineMagnitudeModel:
     def shouldRefresh(self):
         return self._refreshData
 
-    def updateDecibelRange(self, dBRange, draw=True):
+    def updateDecibelRange(self, draw=True):
         '''
         Updates the decibel range on the chart.
-        :param dBRange: the new range.
         '''
-        self._dBRange = dBRange
         self._y_range_update_required = True
-        setYLimits(self._axes, dBRange)
+        setYLimits(self._axes, self.__display_model.dBRange)
         if self._ani:
             # have to clear the blit cache to get the r grid to redraw as per
             # https://stackoverflow.com/questions/25021311/matplotlib-animation-updating-radial-view-limit-for-polar-plot
@@ -200,6 +208,7 @@ class AnimatedSingleLineMagnitudeModel:
         Gets fresh data and redraws.
         :return: true if it redrew.
         '''
+        redrew = False
         if self.shouldRefresh():
             if self._pressure_curve is None:
                 # pressure
@@ -209,14 +218,16 @@ class AnimatedSingleLineMagnitudeModel:
                                                            linewidth=2,
                                                            antialiased=True,
                                                            linestyle='solid')[0]
+                self._pressure_marker = self._axes.plot(0, 0, 'bo', markersize=8)[0]
                 all_data = [x.y for x in self._pressure_data]
                 # directivity
                 if self.__show_power:
-                    self._di_curve = self._axes.semilogx(self._pressure_data[0].x,
-                                                         [np.nan] * len(self._pressure_data[0].x),
-                                                         linewidth=2,
-                                                         antialiased=True,
-                                                         linestyle='--')[0]
+                    self._di_curve = self._secondary_axes.semilogx(self._pressure_data[0].x,
+                                                                   [np.nan] * len(self._pressure_data[0].x),
+                                                                   linewidth=2,
+                                                                   antialiased=True,
+                                                                   linestyle='--')[0]
+                    self._di_marker = self._secondary_axes.plot(0, 0, 'bo', markersize=8)[0]
                     # power
                     self._power_data = self._measurementModel.getPowerResponse(type=self._type, ref=1)
                     self._power_curve = self._axes.semilogx(self._power_data.x,
@@ -225,25 +236,28 @@ class AnimatedSingleLineMagnitudeModel:
                                                             antialiased=True,
                                                             color='k',
                                                             linestyle='solid')[0]
+                    self._power_marker = self._axes.plot(0, 0, 'ko', markersize=8)[0]
                     all_data.append(self._power_data.y)
+                # line
+                self._vline = self._axes.axvline(x=0, linewidth=2, color='gray', linestyle=':')
                 # scales
-                ymax, ymin, _, _ = calculate_dBFS_Scales(np.concatenate(all_data), maxRange=self._dBRange)
+                ymax, ymin, _, _ = calculate_dBFS_Scales(np.concatenate(all_data),
+                                                         maxRange=self.__display_model.dBRange)
                 self._axes.set_ylim(bottom=ymin, top=ymax, auto=False)
                 configureFreqAxisFormatting(self._axes)
                 self._y_range_update_required = False
-                # animate
-                self._ani = animation.FuncAnimation(self._chart.canvas.figure, self.redraw, interval=50,
-                                                    init_func=self.initAnimation, blit=True, save_count=50)
                 self._refreshData = False
-                return True
+                redrew = True
         else:
             if self._pressure_curve is not None:
                 if self._y_range_update_required:
-                    self.updateDecibelRange(self._dBRange, self._redrawOnDisplay)
-                if self._ani is None:
-                    self._ani = animation.FuncAnimation(self._chart.canvas.figure, self.redraw, interval=50,
-                                                        init_func=self.initAnimation, blit=True, save_count=50)
-        return False
+                    self.updateDecibelRange(self._redrawOnDisplay)
+        # make sure we are animating
+        if self._ani is None and self._pressure_data is not None:
+            logger.info(f"Starting animation in {self.name}")
+            self._ani = animation.FuncAnimation(self._chart.canvas.figure, self.redraw, interval=50,
+                                                init_func=self.initAnimation, blit=True, save_count=50, repeat=False)
+        return redrew
 
     def initAnimation(self):
         '''
@@ -252,9 +266,13 @@ class AnimatedSingleLineMagnitudeModel:
         '''
         self._pressure_curve.set_ydata([np.nan] * len(self._pressure_data[0].x))
         if self.__show_power:
-            return self._pressure_curve, self._power_curve, self._di_curve
+            return self._pressure_curve, self._pressure_marker, self._power_curve, self._power_marker, \
+                   self._di_curve, self._di_marker, self._vline
         else:
-            return self._pressure_curve,
+            return self._pressure_curve, self._pressure_marker, self._vline
+
+    def __find_nearest_xy(self, curve):
+        return np.argmax(curve.x >= self.xPosition)
 
     def redraw(self, frame, *fargs):
         '''
@@ -265,13 +283,22 @@ class AnimatedSingleLineMagnitudeModel:
             colour = self._chart.getColour(curveIdx, len(self._measurementModel))
             self._pressure_curve.set_ydata(curveData.y)
             self._pressure_curve.set_color(colour)
+            idx = self.__find_nearest_xy(curveData)
+            self._pressure_marker.set_data(curveData.x[idx], curveData.y[idx])
+            self._pressure_marker.set_color(colour)
+            self._vline.set_xdata([curveData.x[idx], curveData.x[idx]])
             if self.__show_power:
-                self._di_curve.set_ydata((curveData.y * curveData.y) / self._power_data.y)
+                di_y = (curveData.y * curveData.y) / self._power_data.y
+                di_y += (0.0 - di_y[0])
+                self._di_curve.set_ydata(di_y)
                 self._di_curve.set_color(colour)
+                self._di_marker.set_color(colour)
+                self._di_marker.set_data(curveData.x[idx], di_y[idx])
+                self._power_marker.set_data(curveData.x[idx], self._power_data.y[idx])
         if self.__show_power:
-            return self._pressure_curve, self._power_curve, self._di_curve
+            return self._pressure_curve, self._pressure_marker, self._power_curve, self._power_marker, self._di_curve, self._di_marker, self._vline
         else:
-            return self._pressure_curve,
+            return self._pressure_curve, self._pressure_marker, self._vline
 
     def findNearestXYData(self):
         '''
@@ -308,15 +335,17 @@ class AnimatedSingleLineMagnitudeModel:
         '''
         clears the graph.
         '''
+        self.stop_animation()
         self._axes.clear()
         self._pressure_curve = None
-        self.stop_animation()
+        formatAxes_dBFS_Hz(self._axes)
 
     def stop_animation(self):
         '''
         Stops the animation.
         '''
         if self._ani is not None:
-            self._ani._stop()
+            ani = self._ani
             self._ani = None
             self._refreshData = True
+            ani._stop()

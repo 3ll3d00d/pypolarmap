@@ -299,7 +299,7 @@ def calPower(modalData, freq, boxRadius):
     '''
     Calculates the power response at the given frequency for the modal data.
     :param modalData: the data.
-    :param freq: the freq at which we want to calculate the DI.
+    :param freq: the freq at which we want to calculate the power response.
     :param boxRadius: the radius of a sphere with the same valume as the enclosure.
     :return: the power response.
     '''

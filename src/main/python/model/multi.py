@@ -46,22 +46,21 @@ class MultiChartModel:
 
     def hide(self):
         ''' Reacts to the chart no longer being visible by stopping the animation '''
-        self._polar.stop_animation()
-        self._magnitude.stop_animation()
+        self._polar.clear()
+        self._magnitude.clear()
 
-    def updateDecibelRange(self, dBRange, draw=True):
+    def updateDecibelRange(self, draw=True):
         '''
         Updates the decibel range on the charts.
-        :param dBRange: the new range.
         '''
         # we have to redraw otherwise the grid & labels don't update properly because of blitting
         self._magnitude.clear()
-        self._magnitude.updateDecibelRange(dBRange, draw=False)
+        self._magnitude.updateDecibelRange(draw=False)
         self._magnitude._refreshData = True
         self._magnitude.display()
 
-        self._polar.updateDecibelRange(dBRange, draw=False)
-        self._sonagram.updateDecibelRange(dBRange, draw=False)
+        self._polar.updateDecibelRange(draw=False)
+        self._sonagram.updateDecibelRange(draw=False)
         if draw:
             self._chart.canvas.draw_idle()
 
@@ -71,8 +70,10 @@ class MultiChartModel:
         '''
         if self._sonagram.cursorX is not None and self._sonagram.cursorY is not None:
             if self._magnitude.yPosition != self._sonagram.cursorY:
+                self._magnitude.xPosition = self._sonagram.cursorX
                 self._magnitude.yPosition = self._sonagram.cursorY
                 self._polar.xPosition = self._sonagram.cursorX
+                self._polar.yPosition = self._sonagram.cursorY
 
 
 class MouseReactor(object):
