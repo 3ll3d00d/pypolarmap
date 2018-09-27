@@ -153,7 +153,7 @@ class AnimatedSingleLineMagnitudeModel:
     Allows a single measurement from a selection of magnitude data to be displayed on a chart.
     '''
 
-    def __init__(self, chart, measurementModel, display_model, preferences, type=REAL_WORLD_DATA,
+    def __init__(self, chart, measurementModel, display_model, preferences, marker_data, type=REAL_WORLD_DATA,
                  subplotSpec=SINGLE_SUBPLOT_SPEC, redrawOnDisplay=True):
         self._chart = chart
         self._measurementModel = measurementModel
@@ -182,6 +182,7 @@ class AnimatedSingleLineMagnitudeModel:
         self._redrawOnDisplay = redrawOnDisplay
         self.__display_model = display_model
         self.__show_power = preferences.get(DISPLAY_SHOW_POWER_RESPONSE)
+        self.__marker_data = marker_data
 
     def __repr__(self):
         return self.name
@@ -285,6 +286,8 @@ class AnimatedSingleLineMagnitudeModel:
             self._pressure_curve.set_color(colour)
             idx = self.__find_nearest_xy(curveData)
             self._pressure_marker.set_data(curveData.x[idx], curveData.y[idx])
+            self.__marker_data.freq = curveData.x[idx]
+            self.__marker_data.spl = curveData.y[idx]
             self._pressure_marker.set_color(colour)
             self._vline.set_xdata([curveData.x[idx], curveData.x[idx]])
             if self.__show_power:
@@ -295,6 +298,8 @@ class AnimatedSingleLineMagnitudeModel:
                 self._di_marker.set_color(colour)
                 self._di_marker.set_data(curveData.x[idx], di_y[idx])
                 self._power_marker.set_data(curveData.x[idx], self._power_data.y[idx])
+                self.__marker_data.di = di_y[idx]
+                self.__marker_data.power = self._power_data.y[idx]
         if self.__show_power:
             return self._pressure_curve, self._pressure_marker, self._power_curve, self._power_marker, self._di_curve, self._di_marker, self._vline
         else:

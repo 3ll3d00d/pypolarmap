@@ -16,8 +16,8 @@ class PolarModel:
     Allows a set of measurements to be displayed on a polar chart with the displayed curve interactively changing.
     '''
 
-    def __init__(self, chart, measurement_model, display_model, type=REAL_WORLD_DATA, subplotSpec=SINGLE_SUBPLOT_SPEC,
-                 redrawOnDisplay=True):
+    def __init__(self, chart, measurement_model, display_model, marker_data, type=REAL_WORLD_DATA,
+                 subplotSpec=SINGLE_SUBPLOT_SPEC, redrawOnDisplay=True):
         self._chart = chart
         self._axes = self._chart.canvas.figure.add_subplot(subplotSpec, projection='polar')
         self.__init_axes()
@@ -37,6 +37,7 @@ class PolarModel:
         self.__display_model = display_model
         self._y_range_update_required = False
         self.updateDecibelRange(draw=False)
+        self.__marker_data = marker_data
 
     def __repr__(self):
         return self.name
@@ -128,6 +129,7 @@ class PolarModel:
             idx = np.argmax(np.array(curveData[0]) >= math.radians(self.yPosition))
             self._vline.set_xdata([curveData[0][idx], curveData[0][idx]])
             self._vmarker.set_data(curveData[0][idx], curveData[1][idx])
+            self.__marker_data.angle = self.formatAngle(curveData[0][idx])
         return self._curve, self._vline, self._vmarker
 
     def findNearestData(self):
