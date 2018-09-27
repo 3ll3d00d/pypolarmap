@@ -24,7 +24,7 @@ class MultiChartModel:
                                                            subplotSpec=gs.new_subplotspec((0, 0), 1, 3))
         self._sonagram = ContourModel(self._chart, self._measurementModel, type, display_model,
                                       subplotSpec=gs.new_subplotspec((1, 0), 1, 2),
-                                      redrawOnDisplay=False)
+                                      redrawOnDisplay=False, show_crosshairs=True)
         self._polar = PolarModel(self._chart, self._measurementModel, display_model, type=type,
                                  subplotSpec=gs.new_subplotspec((1, 2), 1, 1))
         self._mouseReactor = MouseReactor(0.10, self.propagateCoords)
@@ -46,6 +46,7 @@ class MultiChartModel:
 
     def hide(self):
         ''' Reacts to the chart no longer being visible by stopping the animation '''
+        self._sonagram.clear()
         self._polar.clear()
         self._magnitude.clear()
 

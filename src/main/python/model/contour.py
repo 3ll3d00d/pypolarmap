@@ -1,7 +1,12 @@
+import logging
+
 import numpy as np
+from matplotlib import animation
 
 from model import configureFreqAxisFormatting, calculate_dBFS_Scales, colorbar, SINGLE_SUBPLOT_SPEC
 from model.measurement import CLEAR_MEASUREMENTS, ANALYSED
+
+logger = logging.getLogger('contour')
 
 
 class ContourModel:
@@ -10,7 +15,7 @@ class ContourModel:
     '''
 
     def __init__(self, chart, measurementModel, type, display_model, subplotSpec=SINGLE_SUBPLOT_SPEC,
-                 redrawOnDisplay=True, depends_on=lambda: False):
+                 redrawOnDisplay=True, depends_on=lambda: False, show_crosshairs=False):
         '''
         Creates a new contour model.
         :param chart: the MplWidget that owns the canvas onto which the chart will be drawn.
@@ -21,6 +26,8 @@ class ContourModel:
         '''
         self._chart = chart
         self._axes = None
+        self.__crosshair_axes = None
+        self.__show_crosshairs = show_crosshairs
         self._subplotSpec = subplotSpec
         self._initChart(subplotSpec)
         self._measurementModel = measurementModel
@@ -38,9 +45,13 @@ class ContourModel:
         self.__dragging = False
         self.cursorX = None
         self.cursorY = None
+        self.__crosshair_h = None
+        self.__crosshair_v = None
+        self.__ani = None
         self._redrawOnDisplay = redrawOnDisplay
         self.__display_model = display_model
         self._required_clim = None
+        self.__extents = []
 
     def __repr__(self):
         return self.name
@@ -55,6 +66,9 @@ class ContourModel:
         '''
         if self._axes is None:
             self._axes = self._chart.canvas.figure.add_subplot(subplotSpec)
+        if self.__show_crosshairs is True:
+            self.__crosshair_axes = self._axes.twinx()
+            self.__crosshair_axes.get_yaxis().set_visible(False)
         self._axes.axis('auto')
         self._axes.set_xscale('log')
         self._axes.set_xlabel('Hz')
@@ -96,8 +110,8 @@ class ContourModel:
         if len(self._measurementModel) > 0:
             if self._refreshData:
                 self._data = self._measurementModel.getContourData(type=self._type)
-                self._extents = [np.nanmin(self._data['x']), np.nanmax(self._data['x']),
-                                 np.nanmax(self._data['y']), np.nanmin(self._data['y'])]
+                self.__extents = [np.nanmin(self._data['x']), np.nanmax(self._data['x']),
+                                  np.nanmax(self._data['y']), np.nanmin(self._data['y'])]
                 if self._tcf:
                     self.clear(disconnect=False)
                 self._redraw()
@@ -131,6 +145,29 @@ class ContourModel:
         self._cb.set_ticks(steps)
         configureFreqAxisFormatting(self._axes)
         self._tcf.set_clim(vmin=vmin, vmax=vmax)
+        if self.__crosshair_axes is not None:
+            xlim = self._axes.get_xlim()
+            ylim = self._axes.get_ylim()
+            self.__crosshair_axes.set_xlim(left=xlim[0], right=xlim[1])
+            self.__crosshair_axes.set_ylim(bottom=ylim[0], top=ylim[1])
+            self.__crosshair_h = self.__crosshair_axes.axhline(color='k', linestyle=':')
+            self.__crosshair_v = self.__crosshair_axes.axvline(color='k', linestyle=':')
+            # if self._ani is None:
+            logger.info(f"Starting animation in {self.name}")
+            self._ani = animation.FuncAnimation(self._chart.canvas.figure, self.__redraw_crosshairs, interval=50,
+                                                init_func=self.__init_crosshairs, blit=True, save_count=50, repeat=False)
+
+    def __init_crosshairs(self):
+        self.__crosshair_h.set_ydata([self.__extents[3], self.__extents[3]])
+        self.__crosshair_v.set_xdata([self.__extents[0], self.__extents[0]])
+        return self.__crosshair_h, self.__crosshair_v
+
+    def __redraw_crosshairs(self, frame, *fargs):
+        if self.cursorY is not None:
+            self.__crosshair_h.set_ydata([self.cursorY] * 2)
+        if self.cursorX is not None:
+            self.__crosshair_v.set_xdata([self.cursorX] * 2)
+        return self.__crosshair_h, self.__crosshair_v
 
     def recordDataCoords(self, event):
         '''
@@ -146,7 +183,7 @@ class ContourModel:
         Start recording the y position if the mouse is in the contour plot.
         :param event: the location event.
         '''
-        self._recordY = event.inaxes is self._axes
+        self._recordY = event.inaxes is self._axes or self.__crosshair_axes
 
     def leaveAxes(self, event):
         '''
@@ -196,9 +233,22 @@ class ContourModel:
                 for cid in self._cid:
                     self._chart.canvas.mpl_disconnect(cid)
                 self._cid = []
+            self.stop_animation()
             self._cb.remove()
             self._axes.clear()
+            if self.__crosshair_axes is not None:
+                self.__crosshair_axes.clear()
             self._tc = None
             self._tcf = None
             self._initChart(self._subplotSpec)
             self._chart.canvas.draw_idle()
+
+    def stop_animation(self):
+        '''
+        Stops the animation.
+        '''
+        if self._ani is not None:
+            logger.info(f"Stopping animation in {self.name}")
+            ani = self._ani
+            self._ani = None
+            ani._stop()
