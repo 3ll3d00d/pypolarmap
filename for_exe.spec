@@ -10,7 +10,7 @@ a = Analysis(['src\\main\\python\\app.py'],
                     ('src\\main\\resources\\libifcoremdd.dll', '.'),
                     ('src\\main\\resources\\libmmd.dll', '.'),
                     ('C:\\Windows\\SysWOW64\\msvcr120d.dll', '.'),
-                    ('src\\main\\python\\VERSION', '.')]
+                    ('src\\main\\python\\VERSION', '.')],
              hiddenimports=[],
              hookspath=[],
              runtime_hooks=[],
