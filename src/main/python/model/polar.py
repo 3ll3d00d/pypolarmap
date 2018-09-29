@@ -162,7 +162,7 @@ class PolarModel:
         elif type == CLEAR_MEASUREMENTS:
             self.clear()
 
-    def clear(self):
+    def clear(self, draw=False):
         '''
         clears the graph.
         '''
@@ -171,6 +171,9 @@ class PolarModel:
         self._data = {}
         self._curve = None
         self.__init_axes()
+        self._refreshData = True
+        if draw:
+            self._chart.canvas.draw_idle()
 
     def stop_animation(self):
         '''

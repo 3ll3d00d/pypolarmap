@@ -336,7 +336,7 @@ class AnimatedSingleLineMagnitudeModel:
         elif type == CLEAR_MEASUREMENTS:
             self.clear()
 
-    def clear(self):
+    def clear(self, draw=True):
         '''
         clears the graph.
         '''
@@ -344,12 +344,15 @@ class AnimatedSingleLineMagnitudeModel:
         self._axes.clear()
         self._pressure_curve = None
         formatAxes_dBFS_Hz(self._axes)
+        if draw:
+            self._chart.canvas.draw_idle()
 
     def stop_animation(self):
         '''
         Stops the animation.
         '''
         if self._ani is not None:
+            logger.info(f"Stopping animation in {self.name}")
             ani = self._ani
             self._ani = None
             self._refreshData = True

@@ -1,5 +1,6 @@
 import logging
 from threading import Timer
+from time import sleep
 
 from matplotlib import animation
 from matplotlib.gridspec import GridSpec
@@ -53,6 +54,7 @@ class MultiChartModel:
         self.__table_axes = self._chart.canvas.figure.add_subplot(gs.new_subplotspec((0, 2), 1, 1))
         self.__table = None
         self.__ani = None
+        self.__stopping = False
         self._mouseReactor = MouseReactor(0.10, self.propagateCoords)
 
     def __repr__(self):
@@ -73,48 +75,51 @@ class MultiChartModel:
 
     def __init_table(self):
         ''' Initialises the table '''
-        self.__table_axes.clear()
-        self.__table_axes.axis('off')
-        table_data = self.__data.as_table()
-        self.__table = self.__table_axes.table(cellText=table_data, loc='center')
-        self.__table.auto_set_font_size(value=False)
-        for idx, value in enumerate(table_data):
-            key_cell = self.__table[idx, 0]
-            value_cell = self.__table[idx, 1]
-            key_cell._loc = 'right'
-            value_cell._loc = 'left'
-            key_cell.set_fontsize(12)
-            value_cell.set_fontsize(12)
-            if idx == 0:
-                key_cell.visible_edges = 'RB'
-                value_cell.visible_edges = 'B'
-            elif idx == len(table_data)-1:
-                key_cell.visible_edges = 'RT'
-                value_cell.visible_edges = 'T'
-            else:
-                key_cell.visible_edges = 'RTB'
-                value_cell.visible_edges = 'TB'
+        if self.__table is None:
+            self.__table_axes.axis('off')
+            table_data = self.__data.as_table()
+            self.__table = self.__table_axes.table(cellText=table_data, loc='center', bbox=(0.1, 0.2, 0.7, 0.6))
+            self.__table.auto_set_font_size(value=False)
+            for idx, value in enumerate(table_data):
+                key_cell = self.__table[idx, 0]
+                value_cell = self.__table[idx, 1]
+                key_cell._loc = 'right'
+                value_cell._loc = 'left'
+                key_cell.set_fontsize(12)
+                value_cell.set_fontsize(12)
+                if idx == 0:
+                    key_cell.visible_edges = 'RB'
+                    value_cell.visible_edges = 'B'
+                elif idx == len(table_data) - 1:
+                    key_cell.visible_edges = 'RT'
+                    value_cell.visible_edges = 'T'
+                else:
+                    key_cell.visible_edges = 'RTB'
+                    value_cell.visible_edges = 'TB'
         if self.__ani is None:
             logger.info(f"Starting animation in {self.name}")
             self.__ani = animation.FuncAnimation(self._chart.canvas.figure, self.redraw, interval=50,
-                                                 init_func=self.init_animation, blit=True, save_count=50)
+                                                 init_func=self.init_animation, blit=True, save_count=50, repeat=False)
 
     def init_animation(self):
         return self.__table,
 
     def redraw(self, frame, *fargs):
         for idx, value in enumerate(self.__data.as_table()):
-            self.__table[idx, 1].get_text().set_text(value[1])
+            self.__table[idx, 1].get_text().set_text(' ' if self.__stopping else value[1])
         return self.__table,
 
     def hide(self):
         ''' Reacts to the chart no longer being visible by stopping the animation '''
-        self._sonagram.clear()
-        self._polar.clear()
-        self._magnitude.clear()
+        logger.info(f"Hiding {self.name}")
+        self._sonagram.clear(draw=False)
+        self._polar.clear(draw=False)
+        self._magnitude.clear(draw=False)
+        self.__stopping = True
         self.stop_animation()
-        self.__table_axes.clear()
-        self.__table = None
+        sleep(0.125)
+        self.__stopping = False
+        self._chart.canvas.draw_idle()
 
     def stop_animation(self):
         '''
@@ -135,7 +140,6 @@ class MultiChartModel:
         self._magnitude.updateDecibelRange(draw=False)
         self._magnitude._refreshData = True
         self._magnitude.display()
-
         self._polar.updateDecibelRange(draw=False)
         self._sonagram.updateDecibelRange(draw=False)
         if draw:

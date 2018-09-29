@@ -66,7 +66,7 @@ class ContourModel:
         '''
         if self._axes is None:
             self._axes = self._chart.canvas.figure.add_subplot(subplotSpec)
-        if self.__show_crosshairs is True:
+        if self.__show_crosshairs is True and self.__crosshair_axes is None:
             self.__crosshair_axes = self._axes.twinx()
             self.__crosshair_axes.get_yaxis().set_visible(False)
         self._axes.axis('auto')
@@ -152,10 +152,10 @@ class ContourModel:
             self.__crosshair_axes.set_ylim(bottom=ylim[0], top=ylim[1])
             self.__crosshair_h = self.__crosshair_axes.axhline(color='k', linestyle=':')
             self.__crosshair_v = self.__crosshair_axes.axvline(color='k', linestyle=':')
-            # if self._ani is None:
-            logger.info(f"Starting animation in {self.name}")
-            self._ani = animation.FuncAnimation(self._chart.canvas.figure, self.__redraw_crosshairs, interval=50,
-                                                init_func=self.__init_crosshairs, blit=True, save_count=50, repeat=False)
+            if self.__ani is None:
+                logger.info(f"Starting animation in {self.name}")
+                self.__ani = animation.FuncAnimation(self._chart.canvas.figure, self.__redraw_crosshairs, interval=50,
+                                                     init_func=self.__init_crosshairs, blit=True, save_count=50, repeat=False)
 
     def __init_crosshairs(self):
         self.__crosshair_h.set_ydata([self.__extents[3], self.__extents[3]])
@@ -224,7 +224,7 @@ class ContourModel:
                 self._chart.canvas.draw_idle()
         self._selectedCmap = cmap
 
-    def clear(self, disconnect=True):
+    def clear(self, disconnect=True, draw=True):
         '''
         clears the graph and disconnects the handlers
         '''
@@ -241,14 +241,16 @@ class ContourModel:
             self._tc = None
             self._tcf = None
             self._initChart(self._subplotSpec)
-            self._chart.canvas.draw_idle()
+            self._refreshData = True
+            if draw:
+                self._chart.canvas.draw_idle()
 
     def stop_animation(self):
         '''
         Stops the animation.
         '''
-        if self._ani is not None:
+        if self.__ani is not None:
             logger.info(f"Stopping animation in {self.name}")
-            ani = self._ani
-            self._ani = None
+            ani = self.__ani
+            self.__ani = None
             ani._stop()
