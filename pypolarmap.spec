@@ -71,7 +71,6 @@ def get_data_args():
     '''
     return [
         ('src/main/icons/Icon.ico', '.'),
-        ('src/main/python/style', 'style'),
         ('src/main/python/VERSION', '.'),
     ]
 
