@@ -1,0 +1,20 @@
+[[source]]
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+pyqt5 = ">=5.12.1"
+matplotlib = "*"
+numpy = "*"
+scipy = "*"
+qtpy = "*"
+qtawesome = ">=0.5.7"
+colorcet = "*"
+
+[dev-packages]
+pytest = "*"
+pytest-cov = "*"
+
+[requires]
+python_version = "3.7"

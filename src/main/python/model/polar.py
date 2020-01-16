@@ -6,7 +6,7 @@ from matplotlib import animation
 from matplotlib.ticker import MultipleLocator, FuncFormatter
 
 from model import calculate_dBFS_Scales, SINGLE_SUBPLOT_SPEC, setYLimits
-from model.measurement import REAL_WORLD_DATA, ANALYSED, LOAD_MEASUREMENTS, CLEAR_MEASUREMENTS
+from model.measurement import REAL_WORLD_DATA, LOAD_MEASUREMENTS, CLEAR_MEASUREMENTS
 
 logger = logging.getLogger('polar')
 
@@ -157,7 +157,7 @@ class PolarModel:
         If event type is analysis change then the model is marked for refresh.
         :param idx: the measurement idx.
         '''
-        if type == ANALYSED or type == LOAD_MEASUREMENTS:
+        if type == LOAD_MEASUREMENTS:
             self._refreshData = True
         elif type == CLEAR_MEASUREMENTS:
             self.clear()

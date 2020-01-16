@@ -8,23 +8,21 @@ import matplotlib
 
 matplotlib.use("Qt5Agg")
 
-from qtpy.QtCore import QSettings, QItemSelectionModel
+from qtpy.QtCore import QSettings
 from qtpy.QtGui import QIcon, QFont, QCursor
-from qtpy.QtWidgets import QMainWindow, QFileDialog, QDialog, QDialogButtonBox, QMessageBox, QApplication, QErrorMessage
+from qtpy.QtWidgets import QMainWindow, QFileDialog, QDialog, QMessageBox, QApplication, QErrorMessage
 
 from model.contour import ContourModel
 from model.display import DisplayModel, DisplayControlDialog
-from model.load import WavLoader, HolmLoader, TxtLoader, DblLoader, REWLoader, ARTALoader
+from model.load import NFSLoader
 from model.log import RollingLogger
-from model.measurement import REAL_WORLD_DATA, COMPUTED_MODAL_DATA, MODAL_PARAMS_DATA
-from model.modal import ModalParametersDialog
+from model.measurement import REAL_WORLD_DATA
 from model.multi import MultiChartModel
 from model.preferences import Preferences
-from ui.loadMeasurements import Ui_loadMeasurementDialog
 from ui.pypolarmap import Ui_MainWindow
 from ui.savechart import Ui_saveChartDialog
 
-from model import impulse as imp, magnitude as mag, measurement as m, modal
+from model import magnitude as mag, measurement as m
 from qtpy import QtCore, QtWidgets
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as Canvas
@@ -111,100 +109,6 @@ class SaveChartDialog(QDialog, Ui_saveChartDialog):
         self.heightPixels.setValue(int(math.floor(newWidth / self.__aspectRatio)))
 
 
-class LoadMeasurementsDialog(QDialog, Ui_loadMeasurementDialog):
-    '''
-    Load Measurement dialog
-    '''
-
-    def __init__(self, parent=None):
-        super(LoadMeasurementsDialog, self).__init__(parent)
-        self.setupUi(self)
-        self.buttonBox.button(QDialogButtonBox.Open).setText("Select File(s)")
-        _translate = QtCore.QCoreApplication.translate
-        self.fs.setCurrentText(_translate("loadMeasurementDialog", "48000"))
-        self.__dialog = QFileDialog(parent=self)
-        self.__errors = 0
-
-    def accept(self):
-        '''
-        Shows the file select dialog based on the chosen options.
-        :return:
-        '''
-        self.__errors = 0
-        self.loadedFiles.clear()
-        self.ignoredFiles.clear()
-        loadType = self.fileType.currentText()
-        fileMode = None
-        option = QFileDialog.ShowDirsOnly
-        if loadType == 'txt' or loadType == 'dbl':
-            fileMode = QFileDialog.DirectoryOnly
-        elif loadType == 'wav':
-            fileMode = QFileDialog.DirectoryOnly
-        elif loadType == 'HolmImpulse':
-            fileMode = QFileDialog.ExistingFile
-            option = QFileDialog.DontConfirmOverwrite
-        elif loadType == 'REW':
-            fileMode = QFileDialog.DirectoryOnly
-        elif loadType == 'ARTA':
-            fileMode = QFileDialog.DirectoryOnly
-        else:
-            QMessageBox.about(self, "Error", "Unknown format " + loadType)
-        if fileMode is not None:
-            self.__dialog.setFileMode(fileMode)
-            self.__dialog.setOption(option)
-            self.__dialog.setWindowTitle("Load Measurements")
-            self.__dialog.exec()
-
-    def load(self, measurementModel, dataPathField):
-        '''
-        Loads the measurements by looking in the selected directory.
-        :param measurementModel: the model to load.
-        :param dataPathField: the display field.
-        :return:
-        '''
-        selected = self.__dialog.selectedFiles()
-        loadType = self.fileType.currentText()
-        if len(selected) > 0:
-            dataPathField.setText(selected[0])
-            if loadType == 'txt':
-                measurementModel.load(TxtLoader(self.onFile, selected[0], int(self.fs.currentText())).load())
-            elif loadType == 'dbl':
-                measurementModel.load(DblLoader(self.onFile, selected[0], int(self.fs.currentText())).load())
-            elif loadType == 'wav':
-                measurementModel.load(WavLoader(self.onFile, selected[0]).load())
-            elif loadType == 'HolmImpulse':
-                measurementModel.load(HolmLoader(self.onFile, selected[0]).load())
-            elif loadType == 'REW':
-                measurementModel.load(REWLoader(self.onFile, selected[0]).load())
-            elif loadType == 'ARTA':
-                measurementModel.load(ARTALoader(self.onFile, selected[0]).load())
-        else:
-            measurementModel.clear()
-            dataPathField.setText('')
-        if self.__errors == 0:
-            QDialog.accept(self)
-
-    def onFile(self, filename, loaded):
-        if loaded is True:
-            self.loadedFiles.appendPlainText(filename)
-        else:
-            self.ignoredFiles.appendPlainText(filename)
-            self.__errors += 1
-
-    def fileTypeChanged(self, text):
-        '''
-        Hides the fs field if the fs is determined by the source file.
-        :param text: the selected text.
-        '''
-        visible = True
-        if text == 'txt' or text == 'dbl':
-            pass
-        else:
-            visible = False
-        self.fs.setVisible(visible)
-        self.fsLabel.setVisible(visible)
-
-
 class PyPolarmap(QMainWindow, Ui_MainWindow):
     '''
     The main UI.
@@ -213,7 +117,7 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
     def __init__(self, app, parent=None):
         super(PyPolarmap, self).__init__(parent)
         self.app = app
-        self.preferences = Preferences(QSettings("3ll3d00d", "beqdesigner"))
+        self.preferences = Preferences(QSettings("3ll3d00d", "pypolarmap"))
         self.setupUi(self)
         self.logViewer = RollingLogger(self, self.preferences)
         self.logger = logging.getLogger('pypolarmap')
@@ -232,21 +136,9 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
         self.actionSave_Current_Image.triggered.connect(self.saveCurrentChart)
         self.actionShow_Logs.triggered.connect(self.logViewer.show_logs)
         self.actionAbout.triggered.connect(self.showAbout)
-        self.dataPath.setDisabled(True)
-        self.__modal_parameter_model = modal.ModalParameterModel(self.preferences)
         self.__display_model = DisplayModel(self.preferences)
-        self.__measurement_model = m.MeasurementModel(self.__modal_parameter_model, self.__display_model)
+        self.__measurement_model = m.MeasurementModel(self.__display_model)
         self.__display_model.measurement_model = self.__measurement_model
-        depends_on_modal_params = lambda: self.__modal_parameter_model.shouldRefresh
-        # modal graphs
-        self.__modal_multi_model = MultiChartModel(self.modalMultiGraph, self.__measurement_model, COMPUTED_MODAL_DATA,
-                                                   self.__display_model, self.preferences)
-        self.__modal_polar_model = ContourModel(self.modalPolarGraph, self.__measurement_model, COMPUTED_MODAL_DATA,
-                                                self.__display_model, depends_on=depends_on_modal_params)
-        self.__modal_magnitude_model = mag.MagnitudeModel(self.modalParametersGraph, self.__measurement_model,
-                                                          self.__display_model, self.preferences,
-                                                          type=MODAL_PARAMS_DATA, selector=self.modalParametersList,
-                                                          depends_on=depends_on_modal_params)
         # measured graphs
         self.__measured_multi_model = MultiChartModel(self.measuredMultiGraph, self.__measurement_model,
                                                       REAL_WORLD_DATA, self.__display_model, self.preferences)
@@ -255,24 +147,10 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
         self.__measured_magnitude_model = mag.MagnitudeModel(self.measuredMagnitudeGraph, self.__measurement_model,
                                                              self.__display_model, self.preferences,
                                                              type=REAL_WORLD_DATA,
-                                                             selector=self.measuredMagnitudeCurves,
-                                                             depends_on=depends_on_modal_params)
-        self.__display_model.results_charts = [self.__modal_multi_model, self.__modal_polar_model,
-                                               self.__measured_multi_model, self.__measured_polar_model,
+                                                             selector=self.measuredMagnitudeCurves)
+        self.__display_model.results_charts = [self.__measured_multi_model, self.__measured_polar_model,
                                                self.__measured_magnitude_model]
-        # impulse graph
-        self.__impulse_model = imp.ImpulseModel(self.impulseGraph,
-                                                {'position': self.leftWindowSample,
-                                                 'type': self.leftWindowType,
-                                                 'percent': self.leftWindowPercent},
-                                                {'position': self.rightWindowSample,
-                                                 'type': self.rightWindowType,
-                                                 'percent': self.rightWindowPercent},
-                                                self.__measurement_model)
         self.__measurement_list_model = m.MeasurementListModel(self.__measurement_model, parent=parent)
-        self.measurementView.setModel(self.__measurement_list_model)
-        self.measurementView.selectionModel().selectionChanged.connect(self.__impulse_model.selection_changed)
-        self.actionModal_Parameters.triggered.connect(self.show_modal_parameters_dialog)
         self.action_Display.triggered.connect(self.show_display_controls_dialog)
 
     def showAbout(self):
@@ -283,12 +161,6 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
         msg_box.setIcon(QMessageBox.Information)
         msg_box.setWindowTitle('About')
         msg_box.exec()
-
-    def show_modal_parameters_dialog(self):
-        '''
-        Shows the parameters dialog.
-        '''
-        ModalParametersDialog(self, self.__modal_parameter_model, self.__measurement_model, self.__display_model).show()
 
     def show_display_controls_dialog(self):
         '''
@@ -327,27 +199,18 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
         used to load the set of measurements which is then passed to the various models.
         :return:
         '''
-        dialog = LoadMeasurementsDialog(self)
-        # this is a bit weird but it saves moving all of these references to assorted gui objects into the dialog
-        # it is required because we want the dialog to stay open if there are errors
-        wrapper = self
-
-        def _trigger_load():
-            dialog.load(wrapper.__measurement_model, wrapper.dataPath)
-            if len(wrapper.__measurement_model) > 0:
-                wrapper.fs.setValue(wrapper.__measurement_model[0]._fs)
-                wrapper.graphTabs.setEnabled(True)
-                wrapper.graphTabs.setCurrentIndex(0)
-                wrapper.graphTabs.setTabEnabled(0, True)
-                wrapper.disable_analysed_tabs()
-                wrapper.measurementView.selectionModel().select(wrapper.__measurement_list_model.index(0, 0),
-                                                                QItemSelectionModel.Select)
-            else:
-                wrapper.graphTabs.setCurrentIndex(0)
-                wrapper.graphTabs.setEnabled(False)
-
-        dialog.buttonBox.accepted.connect(_trigger_load)
-        result = dialog.exec()
+        selected = QFileDialog.getOpenFileName(parent=self, caption='Select NFS File', filter='Filter (*.txt)')
+        if len(selected) > 0:
+            self.__measurement_model.load(NFSLoader(selected[0]).load())
+            self.graphTabs.setEnabled(True)
+            self.graphTabs.setCurrentIndex(0)
+            self.graphTabs.setTabEnabled(0, True)
+            self.enable_analysed_tabs()
+            self.onGraphTabChange()
+        else:
+            self.__measurementModel.clear()
+            self.graphTabs.setCurrentIndex(0)
+            self.graphTabs.setEnabled(False)
 
     def saveCurrentChart(self):
         '''
@@ -360,19 +223,11 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
     def getSelectedGraph(self):
         idx = self.graphTabs.currentIndex()
         if idx == 0:
-            return self.__impulse_model
-        elif idx == 1:
             return self.__measured_magnitude_model
-        elif idx == 2:
+        elif idx == 1:
             return self.__measured_polar_model
-        elif idx == 3:
+        elif idx == 2:
             return self.__measured_multi_model
-        elif idx == 4:
-            return self.__modal_magnitude_model
-        elif idx == 5:
-            return self.__modal_polar_model
-        elif idx == 6:
-            return self.__modal_multi_model
         else:
             return None
 
@@ -382,48 +237,14 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
         '''
         self.__display_model.visibleChart = self.getSelectedGraph()
 
-    def updateLeftWindow(self):
-        ''' propagates left window changes to the impulse model. '''
-        self.__impulse_model.updateLeftWindow()
-        self.applyWindowBtn.setEnabled(self.__impulse_model.is_window_valid())
-
-    def updateRightWindow(self):
-        ''' propagates right window changes to the impulse model. '''
-        self.__impulse_model.updateRightWindow()
-        self.applyWindowBtn.setEnabled(self.__impulse_model.is_window_valid())
-
-    def zoomIn(self):
-        ''' propagates the zoom button click to the impulse model. '''
-        self.__impulse_model.zoomIn()
-
-    def zoomOut(self):
-        ''' Propagates the zoom button click to the impulse model. '''
-        self.__impulse_model.zoomOut()
-
-    def findFirstPeak(self):
-        ''' Propagates the find peaks button click to the impulse model. '''
-        self.__impulse_model.findFirstPeak()
-
-    def removeWindow(self):
-        ''' propagates the window button click to the impulse model. '''
-        self.removeWindowBtn.setEnabled(False)
-        self.__impulse_model.removeWindow()
-        self.disable_analysed_tabs()
-
-    def updateWindow(self):
-        ''' Propagates the button click to the model. '''
-        self.removeWindowBtn.setEnabled(True)
-        self.__impulse_model.applyWindow()
-        self.enable_analysed_tabs()
-
     def disable_analysed_tabs(self):
         ''' Disables all tabs that depend on the impulse analysis '''
-        for idx in range(1, self.graphTabs.count()):
+        for idx in range(0, self.graphTabs.count()):
             self.graphTabs.setTabEnabled(idx, False)
 
     def enable_analysed_tabs(self):
         ''' Enables all tabs that depend on the impulse analysis '''
-        for idx in range(1, self.graphTabs.count()):
+        for idx in range(0, self.graphTabs.count()):
             self.graphTabs.setTabEnabled(idx, True)
 
 

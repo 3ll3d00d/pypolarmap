@@ -4,7 +4,7 @@ import numpy as np
 from matplotlib import animation
 
 from model import configureFreqAxisFormatting, calculate_dBFS_Scales, colorbar, SINGLE_SUBPLOT_SPEC
-from model.measurement import CLEAR_MEASUREMENTS, ANALYSED
+from model.measurement import CLEAR_MEASUREMENTS, LOAD_MEASUREMENTS
 
 logger = logging.getLogger('contour')
 
@@ -96,7 +96,7 @@ class ContourModel:
         :param kwargs: any additional args.
         :return:
         '''
-        if type == ANALYSED:
+        if type == LOAD_MEASUREMENTS:
             self._refreshData = True
         elif type == CLEAR_MEASUREMENTS:
             self.clear()

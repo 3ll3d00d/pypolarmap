@@ -131,7 +131,7 @@ class DisplayControlDialog(QDialog, Ui_displayControlsDialog):
         self.normaliseCheckBox.setChecked(self.__display_model.normalised)
         self.__select_combo(self.smoothingType, self.__display_model.smoothing_type)
         for m in self.__measurement_model:
-            self.normalisationAngle.addItem(str(m._h))
+            self.normalisationAngle.addItem(str(m.h))
         if not self.__select_combo(self.normalisationAngle, str(self.__display_model.normalisationAngle)):
             self.__display_model.normalisationAngle = None
         stored_idx = 0

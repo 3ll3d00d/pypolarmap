@@ -2,11 +2,13 @@
 
 # Form implementation generated from reading ui file 'logs.ui'
 #
-# Created by: PyQt5 UI code generator 5.9.2
+# Created by: PyQt5 UI code generator 5.13.1
 #
 # WARNING! All changes made in this file will be lost!
 
+
 from PyQt5 import QtCore, QtGui, QtWidgets
+
 
 class Ui_logsForm(object):
     def setupUi(self, logsForm):
@@ -69,4 +71,3 @@ class Ui_logsForm(object):
         self.logLevel.setItemText(2, _translate("logsForm", "WARNING"))
         self.logLevel.setItemText(3, _translate("logsForm", "ERROR"))
         self.logLevel.setItemText(4, _translate("logsForm", "CRITICAL"))
-

@@ -7,8 +7,7 @@ from qtpy.QtWidgets import QListWidgetItem
 
 from model import configureFreqAxisFormatting, formatAxes_dBFS_Hz, setYLimits, SINGLE_SUBPLOT_SPEC, \
     calculate_dBFS_Scales
-from model.measurement import REAL_WORLD_DATA, ANALYSED, CLEAR_MEASUREMENTS, LOAD_MEASUREMENTS
-from model.preferences import DISPLAY_SHOW_POWER_RESPONSE
+from model.measurement import REAL_WORLD_DATA, CLEAR_MEASUREMENTS, LOAD_MEASUREMENTS
 
 logger = logging.getLogger('magnitude')
 
@@ -36,7 +35,6 @@ class MagnitudeModel:
         self.__depends_on = depends_on
         if self._selector is not None:
             self._selector.itemSelectionChanged.connect(self.set_visible)
-        self.__show_power = preferences.get(DISPLAY_SHOW_POWER_RESPONSE)
         self.updateDecibelRange(draw=False)
 
     def set_visible(self):
@@ -72,12 +70,6 @@ class MagnitudeModel:
             all_y = [x.y for x in data]
             for idx, x in enumerate(data):
                 self._create_or_update_curve(x, self._axes, self._chart.getColour(idx, len(self._measurementModel)))
-            # power
-            power = self._measurementModel.getPowerResponse(type=self._type, ref=1)
-            if power is not None and self.__show_power:
-                self._create_or_update_curve(power, self._axes, 'k')
-                all_y.append(power.y)
-                current_names.append(power.name)
             # scales
             self._update_y_lim(np.concatenate(all_y), self._axes)
             # delete redundant data
@@ -132,7 +124,7 @@ class MagnitudeModel:
         '''
         if self._modelListener:
             self._modelListener.onUpdate(type, kwargs)
-        if type == ANALYSED or type == LOAD_MEASUREMENTS:
+        if type == LOAD_MEASUREMENTS:
             self._refreshData = True
         elif type == CLEAR_MEASUREMENTS:
             self.clear()
@@ -171,9 +163,6 @@ class AnimatedSingleLineMagnitudeModel:
         self._pressure_data = None
         self._pressure_curve = None
         self._pressure_marker = None
-        self._power_data = None
-        self._power_curve = None
-        self._power_marker = None
         self._di_curve = None
         self._di_marker = None
         self._vline = None
@@ -181,7 +170,6 @@ class AnimatedSingleLineMagnitudeModel:
         self._y_range_update_required = False
         self._redrawOnDisplay = redrawOnDisplay
         self.__display_model = display_model
-        self.__show_power = preferences.get(DISPLAY_SHOW_POWER_RESPONSE)
         self.__marker_data = marker_data
 
     def __repr__(self):
@@ -221,24 +209,6 @@ class AnimatedSingleLineMagnitudeModel:
                                                            linestyle='solid')[0]
                 self._pressure_marker = self._axes.plot(0, 0, 'bo', markersize=8)[0]
                 all_data = [x.y for x in self._pressure_data]
-                # directivity
-                if self.__show_power:
-                    self._di_curve = self._secondary_axes.semilogx(self._pressure_data[0].x,
-                                                                   [np.nan] * len(self._pressure_data[0].x),
-                                                                   linewidth=2,
-                                                                   antialiased=True,
-                                                                   linestyle='--')[0]
-                    self._di_marker = self._secondary_axes.plot(0, 0, 'bo', markersize=8)[0]
-                    # power
-                    self._power_data = self._measurementModel.getPowerResponse(type=self._type, ref=1)
-                    self._power_curve = self._axes.semilogx(self._power_data.x,
-                                                            self._power_data.y,
-                                                            linewidth=2,
-                                                            antialiased=True,
-                                                            color='k',
-                                                            linestyle='solid')[0]
-                    self._power_marker = self._axes.plot(0, 0, 'ko', markersize=8)[0]
-                    all_data.append(self._power_data.y)
                 # line
                 self._vline = self._axes.axvline(x=0, linewidth=2, color='gray', linestyle=':')
                 # scales
@@ -266,11 +236,7 @@ class AnimatedSingleLineMagnitudeModel:
         :return: the curve artist.
         '''
         self._pressure_curve.set_ydata([np.nan] * len(self._pressure_data[0].x))
-        if self.__show_power:
-            return self._pressure_curve, self._pressure_marker, self._power_curve, self._power_marker, \
-                   self._di_curve, self._di_marker, self._vline
-        else:
-            return self._pressure_curve, self._pressure_marker, self._vline
+        return self._pressure_curve, self._pressure_marker, self._vline
 
     def __find_nearest_xy(self, curve):
         return np.argmax(curve.x >= self.xPosition)
@@ -290,20 +256,7 @@ class AnimatedSingleLineMagnitudeModel:
             self.__marker_data.spl = curveData.y[idx]
             self._pressure_marker.set_color(colour)
             self._vline.set_xdata([curveData.x[idx], curveData.x[idx]])
-            if self.__show_power:
-                di_y = (curveData.y * curveData.y) / self._power_data.y
-                di_y += (0.0 - di_y[0])
-                self._di_curve.set_ydata(di_y)
-                self._di_curve.set_color(colour)
-                self._di_marker.set_color(colour)
-                self._di_marker.set_data(curveData.x[idx], di_y[idx])
-                self._power_marker.set_data(curveData.x[idx], self._power_data.y[idx])
-                self.__marker_data.di = di_y[idx]
-                self.__marker_data.power = self._power_data.y[idx]
-        if self.__show_power:
-            return self._pressure_curve, self._pressure_marker, self._power_curve, self._power_marker, self._di_curve, self._di_marker, self._vline
-        else:
-            return self._pressure_curve, self._pressure_marker, self._vline
+        return self._pressure_curve, self._pressure_marker, self._vline
 
     def findNearestXYData(self):
         '''
@@ -331,7 +284,7 @@ class AnimatedSingleLineMagnitudeModel:
         If event type is analysis change then the model is marked for refresh.
         :param idx: the measurement idx.
         '''
-        if type == ANALYSED or type == LOAD_MEASUREMENTS:
+        if type == LOAD_MEASUREMENTS:
             self._refreshData = True
         elif type == CLEAR_MEASUREMENTS:
             self.clear()

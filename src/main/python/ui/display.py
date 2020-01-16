@@ -2,11 +2,13 @@
 
 # Form implementation generated from reading ui file 'display.ui'
 #
-# Created by: PyQt5 UI code generator 5.9.2
+# Created by: PyQt5 UI code generator 5.13.1
 #
 # WARNING! All changes made in this file will be lost!
 
+
 from PyQt5 import QtCore, QtGui, QtWidgets
+
 
 class Ui_displayControlsDialog(object):
     def setupUi(self, displayControlsDialog):
@@ -88,4 +90,3 @@ class Ui_displayControlsDialog(object):
         self.label_15.setText(_translate("displayControlsDialog", "Normalisation Angle"))
         self.normalisationAngle.setItemText(0, _translate("displayControlsDialog", "0"))
         self.polarRange.setText(_translate("displayControlsDialog", "+/- 180?"))
-
