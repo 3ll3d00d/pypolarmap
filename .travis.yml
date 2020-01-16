@@ -74,9 +74,9 @@ addons:
     packages:
     - pipenv
 install:
-- $PBIN install pipenv
+- "$PBIN install pipenv"
 - pipenv install -d
-- $PBIN list
+- "$PBIN list"
 - pipenv run $PBIN list
 before_script:
 - |
@@ -87,8 +87,8 @@ before_script:
 script:
 - PYTHONPATH=./src/main/python $PRUN pytest $COVERAGE_ARGS
 before_deploy:
-- $PRUN $PBIN install https://github.com/pyinstaller/pyinstaller/archive/develop.zip
-- $PRUN pyinstaller --clean --log-level=INFO ${DEBUG_FLAG} -F pypolarmap.spec
+- "$PRUN $PBIN install https://github.com/pyinstaller/pyinstaller/archive/develop.zip"
+- "$PRUN pyinstaller --clean --log-level=INFO ${DEBUG_FLAG} -F pypolarmap.spec"
 - |
   if [[ "$TRAVIS_OS_NAME" == "osx" ]]
   then
@@ -114,12 +114,7 @@ before_deploy:
 deploy:
   provider: releases
   api_key:
-    secure: jtvKOIp7RnBbnlQ2L8D7vQ8V3VsQTZBJll/2CcumKYQEjQ/HL3IccyifkaBP/u2sWfO6EF4nZu9EZHE3RrY4TWRtyf5RbN7KuUfqRdH/njZCHYFqeAywLgAk0P5ame1HmGki04cZVT9C0NryCMYMg8W2uAqRoHsnQgIXWrobzx0S5v6kttnNUNs6ZaaCxS7px4tcgx/q7AdbpKivMK1XzHlJGnyjTzrnjxjRU1WYfHCks8GiNMuiaRsJE2DuX3PUqx+9f5+nwN+s8WcQD47JEkZh9JiKTIMJPWzeOyhcPNkGTkhFf4LmP9h5KugapMyhSamRmLRzYI0IuqEnsAT6cgu2TZ4ZGkuMUEFCpZqHwb2k3UzdUSb55CKmlsQgZhuQAbyvO0XqDlygiVCVulzb7JgFZvd49+ZFQvGLEgPa3UwAlO+9p6L0CAeDWYMCs+tFUqbcKp13E1G53Kowsqcr7CgC62iQfAIUoVApKe+p5OpakdsdAEwcayAu/nym/4EBOY5hKZU1VRae92863Lx4IbY2h01TBZKi8QwC4LRntkakCjpzMieYWj75EojgKbB8kL75gMJtlS38ZgF5vZgtWPkrYOKEdxuUFF3Ix0BEzs9kl4PxhmFeH5yk77zeuH2qHABcwRNgm8/RlWf0hey1ArW/K9Z7OTtueybqsbCZLpQ=
-  file_glob: true
-  file: dist/pypolarmap*
+    secure: j7kTuSIZVee4IMNDgX/O5Ue1gkr64Myo1c61SWKN4DoHdKXeNbqn1QeWBKlKqWhAaXPmC8sATaiFv30KEtvmTfg0a3fe9/daDRWqimvq9NBw9DiQojc+P/3rIQV/6E4g0g4Aby5bLyNcxKvONQO9T+TBxxCW/ZznwM2OsUlGdBwOX7lGjmQL0qO+PkvOa54UZIxXIWf2KOr0MQaolBlPXO1nIcum4PDXugPzdmEmUkQvgT2j+XSRlnl6WUEdjx9LoG8jjYn2Hk46t8Gofk7ETRXAgKkpZD+uTAjStCpYZRbPOUNYoWGdyDE5SirR96R76EECM7tm17MjRVriKZnP1uICLy/jfN+Bs26dC3P3pyNHf/5nkffuDp6Wk7u+MkGMhS2zBnDLrAa3zgvsC4A7ZppYlyeJmJIWazY+L+LhS/2Y+B0CIwpBUDnTxzdolGm7bc1xmHkZiY/jxGZHi1jpCxEUotShnbOAkLNGFLzDT7BQqsB04HdETA74j+OcxcJ72J+EWuLY+n62NJcYU6eSa0Q9lOvT/VVDQWGDghAzLTiEgo1XQDyRbj+1sl8IaBrbzlSs+gIyFWw+Svw9hsfITrxzomXrGwit+a9g+SUVl1LTMY2z410OYvLzlwS+MMpV0r805FlQluQZuJEy1iQxs9NHBnA3FjfxkvGlX6rnjMo=
+  file: pypolarmap
   on:
     repo: 3ll3d00d/pypolarmap
-    branch: travis
-    tags: true
-  skip_cleanup: true
-  prerelease: true
