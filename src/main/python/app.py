@@ -5,6 +5,7 @@ import sys
 from contextlib import contextmanager
 
 import matplotlib
+from matplotlib.colors import LinearSegmentedColormap
 
 matplotlib.use("Qt5Agg")
 
@@ -16,7 +17,6 @@ from model.contour import ContourModel
 from model.display import DisplayModel, DisplayControlDialog
 from model.load import NFSLoader
 from model.log import RollingLogger
-from model.measurement import REAL_WORLD_DATA
 from model.multi import MultiChartModel
 from model.preferences import Preferences
 from ui.pypolarmap import Ui_MainWindow
@@ -38,6 +38,7 @@ for k, v in cc.cm_n.items():
         inverse[v].insert(0, k)
 all_cms = sorted({',  '.join(reversed(v)): k for (k, v) in inverse.items()}.items())
 cms_by_name = dict(all_cms)
+cms_by_name['custom'] = LinearSegmentedColormap.from_list('custom', ['black', 'magenta', 'blue', 'cyan', 'lime', 'yellow', 'red', 'white'])
 
 
 # Matplotlib canvas class to create figure

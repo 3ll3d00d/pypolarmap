@@ -34,6 +34,7 @@ class ContourModel:
         self.__measurement_model = measurement_model
         self.__depends_on = depends_on
         self.__selected_cmap = preferences.get(DISPLAY_COLOUR_MAP)
+        self.__cmap_changed = False
         self.name = 'contour'
         self.__data = None
         self.__tc = None
@@ -126,6 +127,9 @@ class ContourModel:
                 if self.__tcf is not None and self.__required_clim is not None:
                     self.update_decibel_range(draw=self.__redraw_on_display)
                     return self.__redraw_on_display
+                if self.__cmap_changed:
+                    self.__chart.canvas.draw_idle()
+                    self.__cmap_changed = False
         return False
 
     def __redraw(self):
@@ -224,12 +228,15 @@ class ContourModel:
         Updates the currently selected colour map.
         :param cmap_name: the cmap name.
         '''
-        self.__selected_cmap = cmap_name
-        if self.__tcf:
-            cmap = self.__chart.get_colour_map(cmap_name)
-            self.__tcf.set_cmap(cmap)
-            if draw:
-                self.__chart.canvas.draw_idle()
+        if cmap_name != self.__selected_cmap:
+            self.__selected_cmap = cmap_name
+            if self.__tcf:
+                cmap = self.__chart.get_colour_map(cmap_name)
+                self.__tcf.set_cmap(cmap)
+                if draw:
+                    self.__chart.canvas.draw_idle()
+                else:
+                    self.__cmap_changed = True
 
     def clear(self, disconnect=True, draw=True):
         '''

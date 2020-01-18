@@ -41,6 +41,7 @@ class DisplayModel:
             should_refresh = True
 
         if self.__db_range != db_range:
+            self.__db_range = db_range
             for chart in self.results_charts:
                 chart.update_decibel_range(draw=False)
             self.__preferences.set(DISPLAY_DB_RANGE, db_range)
