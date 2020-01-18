@@ -57,17 +57,17 @@ class MplWidget(QtWidgets.QWidget):
         self.vbl = QtWidgets.QVBoxLayout()
         self.vbl.addWidget(self.canvas)
         self.setLayout(self.vbl)
-        self._cmap = self.getColourMap('rainbow')
+        self.__cmap = self.get_colour_map('rainbow')
 
-    def getColourMap(self, name):
+    def get_colour_map(self, name):
         return cms_by_name.get(name, cms_by_name.get('bgyw'))
 
-    def getColour(self, idx, count):
+    def get_colour(self, idx, count):
         '''
         :param idx: the colour index.
         :return: the colour at that index.
         '''
-        return self._cmap(idx / count)
+        return self.__cmap(idx / count)
 
 
 class SaveChartDialog(QDialog, Ui_saveChartDialog):
@@ -141,12 +141,11 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
         self.__display_model.measurement_model = self.__measurement_model
         # measured graphs
         self.__measured_multi_model = MultiChartModel(self.measuredMultiGraph, self.__measurement_model,
-                                                      REAL_WORLD_DATA, self.__display_model, self.preferences)
+                                                      self.__display_model, self.preferences)
         self.__measured_polar_model = ContourModel(self.measuredPolarGraph, self.__measurement_model,
-                                                   REAL_WORLD_DATA, self.__display_model)
+                                                   self.__display_model, self.preferences)
         self.__measured_magnitude_model = mag.MagnitudeModel(self.measuredMagnitudeGraph, self.__measurement_model,
-                                                             self.__display_model, self.preferences,
-                                                             type=REAL_WORLD_DATA,
+                                                             self.__display_model,
                                                              selector=self.measuredMagnitudeCurves)
         self.__display_model.results_charts = [self.__measured_multi_model, self.__measured_polar_model,
                                                self.__measured_magnitude_model]
@@ -235,7 +234,7 @@ class PyPolarmap(QMainWindow, Ui_MainWindow):
         '''
         Updates the visible chart.
         '''
-        self.__display_model.visibleChart = self.getSelectedGraph()
+        self.__display_model.visible_chart = self.getSelectedGraph()
 
     def disable_analysed_tabs(self):
         ''' Disables all tabs that depend on the impulse analysis '''

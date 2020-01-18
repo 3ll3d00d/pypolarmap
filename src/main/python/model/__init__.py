@@ -36,7 +36,7 @@ def configureFreqAxisFormatting(axes):
     axes.get_xaxis().set_minor_formatter(PrintFirstHalfFormatter(hzFormatter))
 
 
-def formatAxes_dBFS_Hz(axes):
+def format_axes_dbfs_hz(axes):
     '''
     Applies formatting applicable to a dbFS vs Hz line chart.
     :param axes: the axes to format.
@@ -48,26 +48,27 @@ def formatAxes_dBFS_Hz(axes):
     axes.set_xlabel('Hz')
 
 
-def calculate_dBFS_Scales(data, maxRange=60):
+def calculate_dBFS_Scales(data, max_range=60, vmax_to_round=True):
     '''
     Calculates the min/max in the data and returns the steps to use when displaying lines on a chart, this uses -2 for
     the first 12 and then -6 thereafter.
     :param data: the data.
-    :param maxRange: the max range.
+    :param max_range: the max range.
     :return: max, min, steps, fillSteps
     '''
     vmax = np.math.ceil(np.nanmax(data))
     # coerce max to a round value
-    multiple = 5 if maxRange <= 30 else 10
-    if vmax % multiple != 0:
-        vmax = (vmax - vmax % multiple) + multiple
-    vmin = vmax - maxRange
+    if vmax_to_round:
+        multiple = 5 if max_range <= 30 else 10
+        if vmax % multiple != 0:
+            vmax = (vmax - vmax % multiple) + multiple
+    vmin = vmax - max_range
     steps = np.sort(np.concatenate((np.arange(vmax, vmax - 14, -2), np.arange(vmax - 18, vmin - 6, -6))))
     fillSteps = np.sort(np.arange(vmax, vmin, -0.05))
     return vmax, vmin, steps, fillSteps
 
 
-def setYLimits(axes, dBRange):
+def set_y_limits(axes, dBRange):
     '''
     Updates the decibel range on the chart.
     :param axes: the axes.

@@ -5,7 +5,7 @@ import numpy as np
 from matplotlib import animation
 from matplotlib.ticker import MultipleLocator, FuncFormatter
 
-from model import calculate_dBFS_Scales, SINGLE_SUBPLOT_SPEC, setYLimits
+from model import calculate_dBFS_Scales, SINGLE_SUBPLOT_SPEC, set_y_limits
 from model.measurement import REAL_WORLD_DATA, LOAD_MEASUREMENTS, CLEAR_MEASUREMENTS
 
 logger = logging.getLogger('polar')
@@ -24,10 +24,9 @@ class PolarModel:
         self._data = {}
         self._curve = None
         self._refreshData = False
-        self._type = type
-        self.name = f"polar_{self._type}"
+        self.name = f"polar"
         self._measurementModel = measurement_model
-        self._measurementModel.registerListener(self)
+        self._measurementModel.register_listener(self)
         self.xPosition = 1000
         self.yPosition = 0
         self._vline = None
@@ -36,21 +35,21 @@ class PolarModel:
         self._redrawOnDisplay = redrawOnDisplay
         self.__display_model = display_model
         self._y_range_update_required = False
-        self.updateDecibelRange(draw=False)
+        self.update_decibel_range(draw=False)
         self.__marker_data = marker_data
 
     def __repr__(self):
         return self.name
 
-    def shouldRefresh(self):
+    def should_refresh(self):
         return self._refreshData
 
-    def updateDecibelRange(self, draw=True):
+    def update_decibel_range(self, draw=True):
         '''
         Updates the decibel range on the chart.
         '''
         self._y_range_update_required = True
-        setYLimits(self._axes, self.__display_model.dBRange)
+        set_y_limits(self._axes, self.__display_model.db_range)
         if self._ani:
             # have to clear the blit cache to get the r grid to redraw as per
             # https://stackoverflow.com/questions/25021311/matplotlib-animation-updating-radial-view-limit-for-polar-plot
@@ -65,16 +64,16 @@ class PolarModel:
         :return: true if it redrew.
         '''
         redrew = False
-        if self.shouldRefresh():
+        if self.should_refresh():
             # convert x-y by theta data to theta-r by freq
-            xydata = self._measurementModel.getMagnitudeData(type=self._type, ref=1)
+            xydata = self._measurementModel.get_magnitude_data()
             self._data = {}
             for idx, freq in enumerate(xydata[0].x):
-                theta, r = zip(*[(math.radians(x.hAngle), x.y[idx]) for x in xydata])
+                theta, r = zip(*[(math.radians(x.h), x.y[idx]) for x in xydata])
                 self._data[freq] = (theta, r)
             self._axes.set_thetagrids(np.arange(0, 360, 15))
             rmax, rmin, rsteps, _ = calculate_dBFS_Scales(np.concatenate([x[1] for x in self._data.values()]),
-                                                          maxRange=self.__display_model.dBRange)
+                                                          max_range=self.__display_model.db_range)
             self._axes.set_rgrids(rsteps)
             # show degrees as +/- 180
             self._axes.xaxis.set_major_formatter(FuncFormatter(self.formatAngle))
@@ -92,7 +91,7 @@ class PolarModel:
             redrew = True
         else:
             if self._axes is not None and self._y_range_update_required:
-                self.updateDecibelRange(self._redrawOnDisplay)
+                self.update_decibel_range(self._redrawOnDisplay)
         # make sure we are animating
         if self._ani is None and self._curve is not None:
             logger.info(f"Starting animation in {self.name}")
@@ -124,7 +123,7 @@ class PolarModel:
             self._curve.set_visible(True)
             self._curve.set_xdata(curveData[0])
             self._curve.set_ydata(curveData[1])
-            self._curve.set_color(self._chart.getColour(curveIdx, len(self._data.keys())))
+            self._curve.set_color(self._chart.get_colour(curveIdx, len(self._data.keys())))
             self._vline.set_visible(True)
             idx = np.argmax(np.array(curveData[0]) >= math.radians(self.yPosition))
             self._vline.set_xdata([curveData[0][idx], curveData[0][idx]])
@@ -150,7 +149,7 @@ class PolarModel:
                 break
         return curveIdx, curveData
 
-    def onUpdate(self, type, **kwargs):
+    def on_update(self, type, **kwargs):
         '''
         handles measurement model changes
         If event type is activation toggle then changes the associated curve visibility.

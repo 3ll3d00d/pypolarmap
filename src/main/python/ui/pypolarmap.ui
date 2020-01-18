@@ -43,7 +43,7 @@
       </property>
       <widget class="QWidget" name="measuredMagnitudeTab">
        <attribute name="title">
-        <string>Measured - Magnitude</string>
+        <string>Magnitude</string>
        </attribute>
        <layout class="QGridLayout" name="measuredMagnitudeGridLayout" columnstretch="0,1">
         <item row="0" column="0">
@@ -110,7 +110,7 @@
       </widget>
       <widget class="QWidget" name="measuredPolarTab">
        <attribute name="title">
-        <string>Measured - Polar</string>
+        <string>Contour</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_4">
         <item row="0" column="0">
@@ -127,7 +127,7 @@
       </widget>
       <widget class="QWidget" name="measuredMultiTab">
        <attribute name="title">
-        <string>Measured - Multi</string>
+        <string>Interactive</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_5">
         <item row="0" column="0">

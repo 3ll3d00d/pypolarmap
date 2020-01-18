@@ -31,7 +31,7 @@ class NFSLoader:
             data = np.loadtxt(self.__file, delimiter='\t', unpack=True, skiprows=3, dtype=np.str)
             data = np.char.replace(data, ',', '')
             data = np.char.replace(data, '"', '').astype(np.float64)
-            measurements = [self.convert(data, angle, idx) for idx, angle in enumerate(angles)]
+            measurements = [self.convert(data, angle, 0, idx) for idx, angle in enumerate(angles)]
             return self.mirrored(measurements) if min(angles) == 0 else measurements
         else:
             raise ValueError(self.__file + ' is not an NFS export file, no angles found')
@@ -43,5 +43,5 @@ class NFSLoader:
         return mirrored + measurements
 
     @staticmethod
-    def convert(cols, angle, idx):
-        return Measurement('NFS', h=angle, freq=cols[idx * 2], spl=cols[(idx * 2) + 1])
+    def convert(cols, h, v, idx):
+        return Measurement('NFS', h=h, v=v, freq=cols[idx * 2], spl=cols[(idx * 2) + 1])

@@ -36,10 +36,11 @@ class MeasurementModel(Sequence):
     def __init__(self, display_model, m=None, listeners=None):
         self.__measurements = m if m is not None else []
         self.__listeners = listeners if listeners is not None else []
-        self.__smoothingType = None
-        self.__displayModel = display_model
-        self.__displayModel.measurementModel = self
-        self.__complexData = {}
+        self.__display_model = display_model
+        self.__display_model.measurementModel = self
+        self.__measurements = []
+        self.__power_response = None
+        self.__di = None
         self.table = None
         super().__init__()
 
@@ -49,7 +50,15 @@ class MeasurementModel(Sequence):
     def __len__(self):
         return len(self.__measurements)
 
-    def registerListener(self, listener):
+    @property
+    def power_response(self):
+        return self.__power_response
+
+    @property
+    def di(self):
+        return self.__di
+
+    def register_listener(self, listener):
         '''
         Registers a listener for changes to measurements. Must provide onMeasurementUpdate methods that take no args and
         an idx as well as a clear method.
@@ -57,17 +66,17 @@ class MeasurementModel(Sequence):
         '''
         self.__listeners.append(listener)
 
-    def __propagateEvent(self, eventType, **kwargs):
+    def __propagate_event(self, event_type, **kwargs):
         '''
         propagates the specified event to all listeners.
-        :param eventType: the event type.
+        :param event_type: the event type.
         :param kwargs: the event args.
         '''
         for l in self.__listeners:
             start = time.time()
-            l.onUpdate(eventType, **kwargs)
+            l.on_update(event_type, **kwargs)
             end = time.time()
-            logger.debug(f"Propagated event: {eventType} to {l} in {round((end - start) * 1000)}ms")
+            logger.debug(f"Propagated event: {event_type} to {l} in {round((end - start) * 1000)}ms")
 
     def load(self, measurements):
         '''
@@ -82,10 +91,9 @@ class MeasurementModel(Sequence):
         if self.table is not None:
             self.table.endResetModel()
         if len(self.__measurements) > 0:
-            self.__complexData[REAL_WORLD_DATA] = [self._createFRData(x) for x in self.__measurements]
-            self.__propagateEvent(LOAD_MEASUREMENTS)
+            self.__propagate_event(LOAD_MEASUREMENTS)
         else:
-            self.__propagateEvent(CLEAR_MEASUREMENTS)
+            self.__propagate_event(CLEAR_MEASUREMENTS)
 
     def clear(self, reset=True):
         '''
@@ -96,94 +104,50 @@ class MeasurementModel(Sequence):
         self.__measurements = []
         if self.table is not None and reset:
             self.table.endResetModel()
-        self.__propagateEvent(CLEAR_MEASUREMENTS)
+        self.__propagate_event(CLEAR_MEASUREMENTS)
 
-    def normalisationChanged(self):
+    def normalisation_changed(self):
         '''
         flags that the normalisation selection has changed.
         :param normalised: true if normalised.
         :param angle: the angle to normalise to.
         '''
-        self.__propagateEvent(LOAD_MEASUREMENTS)
+        self.__propagate_event(LOAD_MEASUREMENTS)
 
-    def _createFRData(self, measurement):
-        return XYData(name=measurement.display_name,
-                      hAngle=measurement.h,
-                      x=measurement.freq,
-                      y=measurement.spl)
-
-    def getMagnitudeData(self, type=REAL_WORLD_DATA, ref=1):
+    def get_magnitude_data(self):
         '''
         Gets the magnitude data of the specified type from the model.
-        :param type: the type.
-        :param ref: the reference against which to scale the result in dB.
         :return: the data (if any)
         '''
-        data = [x for x in self.__complexData[type]] if type in self.__complexData else []
-        if self.__displayModel.normalised and self.can_normalise(type):
+        data = [x for x in self.__measurements]
+        if self.__display_model.normalised:
             target = next(
-                (x for x in data if math.isclose(float(x.hAngle), float(self.__displayModel.normalisationAngle))), None)
+                (x for x in data if math.isclose(float(x.h), float(self.__display_model.normalisation_angle))), None)
             if target:
                 data = [x.normalise(target) for x in data]
             else:
-                print(f"Unable to normalise {self.__displayModel.normalisationAngle}")
+                print(f"Unable to normalise {self.__display_model.normalisation_angle}")
         return data
 
-    def can_normalise(self, type):
-        '''
-        :param type: the data type.
-        :return: True if that type can be normalised.
-        '''
-        return type == REAL_WORLD_DATA
-
-    def getContourData(self, type=REAL_WORLD_DATA):
+    def get_contour_data(self):
         '''
         Generates data for contour plots from the analysed data sets.
         :param type: the type of data to retrieve.
         :return: the data as a dict with xyz keys.
         '''
         # convert to a table of xyz coordinates where x = frequencies, y = angles, z = magnitude
-        mag = self.getMagnitudeData(type)
+        mag = self.get_magnitude_data()
         return {
             'x': np.array([d.x for d in mag]).flatten(),
-            'y': np.array([d.hAngle for d in mag]).repeat(mag[0].x.size),
+            'y': np.array([d.h for d in mag]).repeat(mag[0].x.size),
             'z': np.array([d.y for d in mag]).flatten()
         }
-
-    def smooth(self, smoothingType):
-        '''
-        Sets the smoothing type for log spaced data.
-        :param smoothingType:
-        '''
-        self.__smoothingType = smoothingType
-        self.__propagateEvent(LOAD_MEASUREMENTS)
-
-
-class XYData:
-    '''
-    Value object for showing data on a magnitude graph.
-    '''
-
-    def __init__(self, name, hAngle, x, y):
-        self.name = name
-        self.hAngle = hAngle
-        self.x = x
-        self.y = y
-
-    def normalise(self, target):
-        '''
-        Normalises the y value against the target y.
-        :param target: the target.
-        :return: a normalised XYData.
-        '''
-        return XYData(self.name, self.hAngle, self.x, self.y - target.y)
 
 
 class Measurement:
     '''
     A single measurement taken in the real world.
     '''
-    reflectionFreeZoneLimit = 10 ** -4
 
     def __init__(self, name, h=0, v=0, freq=np.array([]), spl=np.array([])):
         self.__name = name
@@ -212,18 +176,34 @@ class Measurement:
         return self.__freq
 
     @property
+    def x(self):
+        return self.freq
+
+    @property
     def spl(self):
         return self.__spl
+
+    @property
+    def y(self):
+        return self.spl
 
     @property
     def display_name(self):
         '''
         :return: the display name of this measurement.
         '''
-        return f"H{self.h}V{self.v}"
+        return f"{self.name}:H{self.h}V{self.v}"
 
     def __repr__(self):
         return f"{self.__class__.__name__}: {self.display_name}"
+
+    def normalise(self, target):
+        '''
+        Normalises the y value against the target y.
+        :param target: the target.
+        :return: a normalised measurement.
+        '''
+        return Measurement(self.name, h=self.h, v=self.v, freq=self.x, spl=self.y - target.y)
 
 
 class MeasurementListModel(QAbstractListModel):

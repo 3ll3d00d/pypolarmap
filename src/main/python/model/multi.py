@@ -36,26 +36,24 @@ class MultiChartModel:
     is driven by the position of the cursor over the sonagram.
     '''
 
-    def __init__(self, chart, measurementModel, type, display_model, preferences):
-        self._chart = chart
-        self._measurementModel = measurementModel
-        self._type = type
-        self.name = f"multi_{self._type}"
+    def __init__(self, chart, measurement_model, display_model, preferences):
+        self.__chart = chart
+        self.__measurement_model = measurement_model
+        self.name = f"multi"
         self.__data = MarkerData()
         gs = GridSpec(2, 3, width_ratios=[1, 1, 0.75])
-        self._magnitude = AnimatedSingleLineMagnitudeModel(self._chart, self._measurementModel, display_model,
-                                                           preferences, self.__data, type=type,
-                                                           subplotSpec=gs.new_subplotspec((0, 0), 1, 2))
-        self._sonagram = ContourModel(self._chart, self._measurementModel, type, display_model,
-                                      subplotSpec=gs.new_subplotspec((1, 0), 1, 2),
-                                      redrawOnDisplay=False, show_crosshairs=True)
-        self._polar = PolarModel(self._chart, self._measurementModel, display_model, self.__data, type=type,
-                                 subplotSpec=gs.new_subplotspec((1, 2), 1, 1))
-        self.__table_axes = self._chart.canvas.figure.add_subplot(gs.new_subplotspec((0, 2), 1, 1))
+        self.__magnitude = AnimatedSingleLineMagnitudeModel(self.__chart, self.__measurement_model, display_model,
+                                                            self.__data, subplot_spec=gs.new_subplotspec((0, 0), 1, 2))
+        self.__sonagram = ContourModel(self.__chart, self.__measurement_model, display_model, preferences,
+                                       subplot_spec=gs.new_subplotspec((1, 0), 1, 2),
+                                       redraw_on_display=False, show_crosshairs=True)
+        self.__polar = PolarModel(self.__chart, self.__measurement_model, display_model, self.__data,
+                                  subplotSpec=gs.new_subplotspec((1, 2), 1, 1))
+        self.__table_axes = self.__chart.canvas.figure.add_subplot(gs.new_subplotspec((0, 2), 1, 1))
         self.__table = None
         self.__ani = None
         self.__stopping = False
-        self._mouseReactor = MouseReactor(0.10, self.propagateCoords)
+        self.__mouse_reactor = MouseReactor(0.10, self.propagateCoords)
 
     def __repr__(self):
         return self.name
@@ -66,11 +64,11 @@ class MultiChartModel:
         :return: always true as the multi chart always redraws (otherwise you end up with lots of glitches like old
         charts being seen behind a new chart)
         '''
-        self._magnitude.display()
-        self._polar.display()
-        self._sonagram.display()
+        self.__magnitude.display()
+        self.__polar.display()
+        self.__sonagram.display()
         self.__init_table()
-        self._chart.canvas.draw_idle()
+        self.__chart.canvas.draw_idle()
         return True
 
     def __init_table(self):
@@ -98,7 +96,7 @@ class MultiChartModel:
                     value_cell.visible_edges = 'TB'
         if self.__ani is None:
             logger.info(f"Starting animation in {self.name}")
-            self.__ani = animation.FuncAnimation(self._chart.canvas.figure, self.redraw, interval=50,
+            self.__ani = animation.FuncAnimation(self.__chart.canvas.figure, self.redraw, interval=50,
                                                  init_func=self.init_animation, blit=True, save_count=50, repeat=False)
 
     def init_animation(self):
@@ -112,14 +110,14 @@ class MultiChartModel:
     def hide(self):
         ''' Reacts to the chart no longer being visible by stopping the animation '''
         logger.info(f"Hiding {self.name}")
-        self._sonagram.clear(draw=False)
-        self._polar.clear(draw=False)
-        self._magnitude.clear(draw=False)
+        self.__sonagram.clear(draw=False)
+        self.__polar.clear(draw=False)
+        self.__magnitude.clear(draw=False)
         self.__stopping = True
         self.stop_animation()
         sleep(0.125)
         self.__stopping = False
-        self._chart.canvas.draw_idle()
+        self.__chart.canvas.draw_idle()
 
     def stop_animation(self):
         '''
@@ -131,30 +129,30 @@ class MultiChartModel:
             self.__ani = None
             ani._stop()
 
-    def updateDecibelRange(self, draw=True):
+    def update_decibel_range(self, draw=True):
         '''
         Updates the decibel range on the charts.
         '''
         # we have to redraw otherwise the grid & labels don't update properly because of blitting
-        self._magnitude.clear()
-        self._magnitude.updateDecibelRange(draw=False)
-        self._magnitude._refreshData = True
-        self._magnitude.display()
-        self._polar.updateDecibelRange(draw=False)
-        self._sonagram.updateDecibelRange(draw=False)
+        self.__magnitude.clear()
+        self.__magnitude.update_decibel_range(draw=False)
+        self.__magnitude.__refresh_data = True
+        self.__magnitude.display()
+        self.__polar.update_decibel_range(draw=False)
+        self.__sonagram.update_decibel_range(draw=False)
         if draw:
-            self._chart.canvas.draw_idle()
+            self.__chart.canvas.draw_idle()
 
     def propagateCoords(self):
         '''
         Propagates the mouse cursor position to the magnitude & polar models.
         '''
-        if self._sonagram.cursorX is not None and self._sonagram.cursorY is not None:
-            if self._magnitude.yPosition != self._sonagram.cursorY:
-                self._magnitude.xPosition = self._sonagram.cursorX
-                self._magnitude.yPosition = self._sonagram.cursorY
-                self._polar.xPosition = self._sonagram.cursorX
-                self._polar.yPosition = self._sonagram.cursorY
+        if self.__sonagram.cursor_x is not None and self.__sonagram.cursor_y is not None:
+            if self.__magnitude.y_position != self.__sonagram.cursor_y:
+                self.__magnitude.x_position = self.__sonagram.cursor_x
+                self.__magnitude.y_position = self.__sonagram.cursor_y
+                self.__polar.xPosition = self.__sonagram.cursor_x
+                self.__polar.yPosition = self.__sonagram.cursor_y
 
 
 class MouseReactor(object):
