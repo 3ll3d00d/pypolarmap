@@ -22,10 +22,15 @@ class NFSLoader:
         angles = []
         with open(self.__file) as fp:
             for line in fp:
-                if line.startswith('On-Axis'):
+                if line.startswith('On-Axis') or line.startswith('"On-Axis"'):
                     from re import sub
-                    angles = [sub(r"\D", "", a.strip()) for a in line.strip().split('\t')]
-                    angles = [0] + [int(a) for a in angles if a]
+                    for txt in line.strip().split('\t'):
+                        if 'On-Axis' in txt:
+                            angles.append(0)
+                        else:
+                            txt = sub(r"[^0-9\-]", "", txt)
+                            if txt:
+                                angles.append(int(txt))
                     break
         if angles:
             data = np.loadtxt(self.__file, delimiter='\t', unpack=True, skiprows=3, dtype=np.str)
