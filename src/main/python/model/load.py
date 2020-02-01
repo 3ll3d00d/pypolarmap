@@ -37,7 +37,8 @@ class NFSLoader:
             data = np.char.replace(data, ',', '')
             data = np.char.replace(data, '"', '').astype(np.float64)
             measurements = [self.convert(data, angle, 0, idx) for idx, angle in enumerate(angles)]
-            return self.mirrored(measurements) if min(angles) == 0 else measurements
+            to_return = self.mirrored(measurements) if min(angles) == 0 else measurements
+            return sorted(to_return, key=lambda x: x.h)
         else:
             raise ValueError(self.__file + ' is not an NFS export file, no angles found')
 
